@@ -31,13 +31,17 @@ read_json_field() {
   jq -r "$jq_path" "$file"
 }
 
-# Write a dotted field path in a JSON file, preserving formatting.
+# Write a dotted field path in a JSON file, then canonicalize formatting with
+# oxfmt so jq's multi-line pretty-print doesn't fight the project's formatter.
 write_json_field() {
   local file="$1" field="$2" value="$3"
   local jq_path
   jq_path=$(echo "$field" | sed -E 's/\.([0-9]+)/[\1]/g' | sed 's/^/./' | sed 's/\.\././g')
   local tmp="${file}.tmp"
   jq "$jq_path = \"$value\"" "$file" >"$tmp" && mv "$tmp" "$file"
+  if command -v oxfmt >/dev/null 2>&1; then
+    oxfmt --write "$file" >/dev/null
+  fi
 }
 
 # Read the list of declared files from config.
