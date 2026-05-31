@@ -9,7 +9,7 @@ description: Use when implementation is complete, all tests pass, and you need t
 
 Guide completion of development work by presenting clear options and handling chosen workflow.
 
-**Core principle:** Verify tests → Detect environment → Present options → Execute choice → Clean up.
+**Core principle:** Verify tests → Detect environment → Present options → Execute choice (commit the decision trail on preserve paths) → Clean up → Offer ADR sync.
 
 **Announce at start:** "I'm using the finishing-a-development-branch skill to complete this work."
 
@@ -226,6 +226,30 @@ git worktree prune  # Self-healing: clean up any stale registrations
 ```
 
 **Otherwise:** The host environment (harness) owns this workspace. Do NOT remove it. If your platform provides a workspace-exit tool, use it. Otherwise, leave the workspace in place.
+
+### Step 7: Offer ADR Derivation
+
+Runs after a **preserve** disposition — normal Options 1–3 or detached Options 1–2; never after Discard. In sequence: immediately after Step 6 for Option 1 (which runs cleanup), and immediately after Step 5 for Options 2 and 3 (which skip Step 6).
+
+**Availability gate** — only offer when the sync skill is installed:
+
+```bash
+[ -d skills/syncing-decisions-to-memory ]
+```
+
+If absent, say nothing and finish (no dangling offer).
+
+If present, make a single offer:
+
+> "Derive/update codebase-memory's ADR from the decision logs now? (runs `syncing-decisions-to-memory`)"
+
+- **Yes** → invoke the `syncing-decisions-to-memory` skill via the Skill tool. It self-gates: if
+  codebase-memory is unreachable or the repo isn't indexed, it stops with a clear message, so
+  completion never breaks on a missing dependency.
+- **No** → finish.
+
+For a merge (Option 1) this runs while on `<base-branch>` with the records already merged in, so the
+ADR reflects the integrated state.
 
 ## Quick Reference
 
