@@ -253,12 +253,14 @@ ADR reflects the integrated state.
 
 ## Quick Reference
 
-| Option | Merge | Push | Keep Worktree | Cleanup Branch |
-|--------|-------|------|---------------|----------------|
-| 1. Merge locally | yes | - | - | yes |
-| 2. Create PR | - | yes | yes | - |
-| 3. Keep as-is | - | - | yes | - |
-| 4. Discard | - | - | - | yes (force) |
+| Option | Commit records | Merge | Push | Keep Worktree | Cleanup Branch |
+|--------|----------------|-------|------|---------------|----------------|
+| 1. Merge locally | yes | yes | - | - | yes |
+| 2. Create PR | yes | - | yes | yes | - |
+| 3. Keep as-is | yes | - | - | yes | - |
+| 4. Discard | no (skip) | - | - | - | yes (force) |
+
+After any preserve disposition, Step 7 offers ADR derivation (when `syncing-decisions-to-memory` is installed).
 
 ## Common Mistakes
 
@@ -300,6 +302,8 @@ ADR reflects the integrated state.
 - Remove a worktree before confirming merge success
 - Clean up worktrees you didn't create (provenance check)
 - Run `git worktree remove` from inside the worktree
+- Leave decision records uncommitted on a preserve path (merge/PR/keep) — they ride with the work
+- Assume discarding loses decision records — they are untracked and survive in the working tree
 
 **Always:**
 - Verify tests before offering options
@@ -309,3 +313,5 @@ ADR reflects the integrated state.
 - Clean up worktree for Options 1 & 4 only
 - `cd` to main repo root before worktree removal
 - Run `git worktree prune` after removal
+- Commit the decision trail before merging/pushing on preserve paths
+- Offer ADR derivation after a preserve disposition when the sync skill is installed
