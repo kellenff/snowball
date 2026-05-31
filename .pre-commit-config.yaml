@@ -35,14 +35,14 @@ repos:
         entry: oxlint
         language: system
         types_or: [ts, javascript]
-        exclude: ^skills/(decision-logging|structured-argumentation)/scripts/
+        exclude: ^skills/(decision-logging|structured-argumentation|syncing-decisions-to-memory)/scripts/
 
       - id: oxfmt
         name: oxfmt
         entry: oxfmt
         language: system
         types_or: [ts, javascript, json, yaml]
-        exclude: ^skills/(decision-logging|structured-argumentation)/scripts/
+        exclude: ^skills/(decision-logging|structured-argumentation|syncing-decisions-to-memory)/scripts/
 
       - id: build-decision-logging
         name: build decision-logging bundles
@@ -70,4 +70,18 @@ repos:
         entry: bash -c 'cd tests/structured-argumentation && bun test'
         language: system
         files: ^skills/structured-argumentation/(src|scripts|templates)/|^tests/structured-argumentation/
+        pass_filenames: false
+
+      - id: build-syncing-decisions-to-memory
+        name: build syncing-decisions-to-memory bundle
+        entry: scripts/build-syncing-decisions-to-memory.sh
+        language: system
+        files: ^skills/syncing-decisions-to-memory/src/.*\.ts$
+        pass_filenames: false
+
+      - id: bun-test-syncing-decisions-to-memory
+        name: bun test syncing-decisions-to-memory
+        entry: bash -c 'cd tests/syncing-decisions-to-memory && bun test'
+        language: system
+        files: ^skills/syncing-decisions-to-memory/(src|scripts)/|^tests/syncing-decisions-to-memory/
         pass_filenames: false
