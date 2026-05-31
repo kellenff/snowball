@@ -1,0 +1,54 @@
+// The snowball process — why it is shaped the way it is.
+// This externalizes the design rationale already argued in prose across the
+// skills (using-snowball, brainstorming, finishing-a-development-branch,
+// decision-logging, syncing-decisions-to-memory). It is a structural map of an
+// argument made elsewhere, not the reasoning itself.
+
+[Trustworthy-Agent-Dev]: Snowball makes agent-driven development trustworthy, reviewable, and resumable across sessions and harnesses.
+
+// --- Forward spine: gates that carry an idea from intent to integrated code ---
+
+[Skill-Gating]: Every session injects using-snowball, forcing a skill check before any response or action — even before clarifying questions.
+[Design-Before-Code]: brainstorming is a hard gate: no implementation skill runs until a design is presented and the operator approves it.
+[Plan-Before-Edit]: writing-plans turns an approved spec into a stepwise implementation plan before code is touched.
+[Isolation]: using-git-worktrees gives feature work a workspace isolated from the current one.
+[Test-First]: test-driven-development enforces red/green/refactor; systematic-debugging enforces root-cause-before-fix.
+[Evidence-Before-Claim]: verification-before-completion requires running commands and showing output before any "done / passing / fixed" claim.
+[Reviewed-Disposition]: requesting/receiving-code-review demand non-performative review; finishing-a-development-branch gates how work integrates (merge / PR / keep / discard).
+
+<Forward-Spine>: A chain of gates moves work from intent to integrated, each refusing to advance until its precondition is met.
+  (1) [Skill-Gating]
+  (2) [Design-Before-Code]
+  (3) [Plan-Before-Edit]
+  (4) [Isolation]
+  (5) [Test-First]
+  (6) [Evidence-Before-Claim]
+  (7) [Reviewed-Disposition]
+  -----
+  (8) Work cannot run ahead of its own justification: each stage blocks until the prior one is satisfied.
+
+// --- Decision spine: passive capture that returns rationale to future work ---
+
+[Passive-Capture]: Hooks capture operator decisions (MADR markdown) and agent observations (JSONL) automatically — no skill is modified and no one has to remember to log.
+[Records-Ride-With-Work]: At completion, the decision trail under docs/snowball/decisions/ is committed onto the same branch as the work it documents (preserve paths only).
+[Distilled-To-Memory]: syncing-decisions-to-memory distills the logs into codebase-memory's project ADR, owning the TRADEOFFS and PHILOSOPHY sections.
+[Future-Sessions-Recall]: A later session queries codebase-memory and recovers the rationale behind the code it is about to change.
+
+<Decision-Spine>: A passive capture loop preserves why each choice was made and feeds it back to the next agent.
+  (1) [Passive-Capture]
+  (2) [Records-Ride-With-Work]
+  (3) [Distilled-To-Memory]
+  (4) [Future-Sessions-Recall]
+  -----
+  (5) Rationale outlives the session that produced it and is recallable, in place, by whoever works the code next.
+
+<Forward-Spine> +> [Trustworthy-Agent-Dev]
+<Decision-Spine> +> [Trustworthy-Agent-Dev]
+
+// --- A tension the process deliberately holds ---
+
+[Gate-Friction]: Hard gates add ceremony, which is pure overhead on a trivially simple task.
+[Gate-Friction] - [Trustworthy-Agent-Dev]
+
+[Scaled-Ceremony]: The gates scale to the work — a "design" can be a few sentences, worktrees fall back to the current dir, and argdown / M2 brain-jam are opt-in sub-skills reached only on cross-cutting calls.
+[Scaled-Ceremony] - [Gate-Friction]

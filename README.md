@@ -1,22 +1,87 @@
-# Snowball
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat" alt="License: MIT"></a>
+  <a href="https://github.com/obra/superpowers"><img src="https://img.shields.io/badge/fork%20of-obra%2Fsuperpowers-lightgrey?style=flat" alt="Fork of obra/superpowers"></a>
+</p>
 
-Snowball is an agentic-skills plugin for multiple AI coding harnesses — Claude Code, Codex CLI, Cursor, OpenCode, Gemini CLI, GitHub Copilot CLI, and GitLab Duo. It's a fork of [`obra/superpowers`](https://github.com/obra/superpowers), maintained for personal use. As of 2026-05-25 the fork is a near-mirror of upstream `v5.1.0` with naming changed; substantive divergence will be documented here as it appears.
+# Snowball: agentic skills that remember why
+
+> A personal fork of [obra/superpowers](https://github.com/obra/superpowers). It loads as agent behavior across seven AI coding harnesses, and it captures the rationale behind each decision so the next session can read it back.
 
 > [!NOTE]
-> Personal fork. Upstream is [`obra/superpowers`](https://github.com/obra/superpowers) — see it for the canonical project, its install paths, and its community.
+> Personal fork, maintained for my own use. Upstream is [obra/superpowers](https://github.com/obra/superpowers): the canonical project, its marketplace, and its community live there.
 
 > [!IMPORTANT]
 > Not accepting contributions. Issues and pull requests on this repository will not be reviewed.
 
-## Scope & status
+## Why this exists
+
+An agent makes a hundred small decisions while it builds something. Three weeks later, nobody remembers why. Snowball records those decisions as they happen and feeds them back to the next session, so the reasoning behind the code is still there when you need it.
+
+Upstream superpowers gives a coding agent a development methodology: brainstorm before coding, plan before editing, verify before claiming done. Snowball keeps all of that and adds a second layer. A passive decision trail records what was decided and why. The result is a skills library with a memory.
+
+## How it works: two spines
+
+Snowball is two interlocking processes.
+
+The **forward spine** is a chain of gates that carries work from idea to merged code. Each gate refuses to advance until its precondition is met, so the agent cannot run ahead of its own justification.
+
+The **decision spine** runs underneath, passively. Hooks watch the events the skills already emit and record each decision, with no skill modified and nobody having to remember to log. At completion the records are committed onto the same branch as the code, then distilled into a codebase-memory knowledge graph that a later session can query.
+
+```mermaid
+flowchart TD
+  subgraph FWD["Forward spine: idea to merged"]
+    A["using-snowball<br/>skill check first"] --> B["brainstorming<br/>design gate"]
+    B --> C["writing-plans"]
+    C --> D["using-git-worktrees"]
+    D --> E["execute + TDD<br/>+ systematic-debugging"]
+    E --> F["verification-before-completion"]
+    F --> G["code review"]
+    G --> H["finishing-a-development-branch"]
+  end
+  subgraph DEC["Decision spine: passive capture"]
+    H1["hooks capture<br/>MADRs + observations"] --> H2["commit onto the branch"]
+    H2 --> H3["distill into codebase-memory ADR"]
+    H3 --> H4["next session recalls why"]
+  end
+  B -.->|emits decisions| H1
+  G -.->|emits decisions| H1
+  H -->|"commit records, then offer ADR sync"| H2
+```
+
+The full write-up of the two spines lives in [docs/design/snowball-process.md](docs/design/snowball-process.md).
+
+## See it on this repo
+
+Snowball captured the decision trail behind its own development. You can read the evidence instead of taking the claim on faith:
+
+- [`docs/snowball/decisions/`](docs/snowball/decisions/): operator decisions as MADR markdown, plus `observations.jsonl` for lower-confidence agent observations. Every `AskUserQuestion` answer and approval phrase in a snowball session lands here.
+- [`docs/design/snowball-process.md`](docs/design/snowball-process.md): the two-spine model written out, with the diagram above.
+- [`docs/design/snowball-process-steelman.argdown`](docs/design/snowball-process-steelman.argdown): a steelman of the process as an argdown graph, checked with the Dung grounded-extension tool. Six arguments survive, five objections are defeated, zero remain undecided.
+
+The decision trail behind Snowball was captured by Snowball.
+
+## What is different from upstream
+
+The fork is at **v5.4.0**. It began as a near-mirror of `superpowers` v5.1.0 and has since diverged along one axis: decision intelligence. These additions are fork-original and are not in upstream.
+
+| Version | Fork-original addition |
+| --- | --- |
+| v5.2.0 | `structured-argumentation`: argdown as an intermediate representation, with a bundled parser-validator |
+| v5.3.0 | M2 brain-jam companion: an optional second-model (MiniMax) brainstorming partner |
+| v5.4.0 | `decision-logging` (hook-driven capture) and `syncing-decisions-to-memory` (ADR distillation) |
+| in progress | completion-flow decision trail: commit records at finish, then offer codebase-memory ADR sync |
+
+Everything else tracks upstream closely. Skill content, the bootstrap design, and the multi-harness adapter pattern all originate there.
+
+## Scope and status
 
 ### What this is
 
-- A markdown-based skills library that loads as agent behavior via session-start context injection.
-- A multi-harness plugin — one `skills/` directory, six per-harness manifests, one shared bootstrap script that adapts its output to each harness's expected JSON shape.
-- Zero runtime npm dependencies for skill loading. Skills are plain markdown; the bootstrap is one bash file. Three skills ship local Node scripts: `brainstorming` (visual-companion HTTP server, stdlib only), `decision-logging` (hook bridges, with third-party code pre-bundled into the shipped `.cjs` files), and `structured-argumentation` (an argdown-parser validator bundled the same way). Node is required for those skills; `npm install` is not.
+- A markdown skills library that loads as agent behavior via session-start context injection.
+- A multi-harness plugin: one `skills/` directory, six per-harness manifests, one shared bootstrap script that adapts its output to each harness.
+- Zero `npm install` for consumers. Skills are plain markdown and the bootstrap is one bash file. Four skills ship local Node scripts with their dependencies pre-bundled into the committed `.cjs` files: `brainstorming` (a stdlib-only visual-companion server), `decision-logging` (hook bridges), `structured-argumentation` (an argdown validator), and `syncing-decisions-to-memory` (ADR prepare and render). Node runs those four; `npm install` is still not required.
 
-### What this isn't
+### What this is not
 
 - Not an MCP server, not a runtime tool, not a library you import.
 - Not on any plugin marketplace. Install is clone-and-link only.
@@ -24,118 +89,96 @@ Snowball is an agentic-skills plugin for multiple AI coding harnesses — Claude
 
 ### Known stale or broken
 
-These are real artifacts in the repo that haven't been reconciled with the fork's posture. Tracking them here so a future-me debug session doesn't waste time:
+These are real artifacts that have not been reconciled with the fork's posture. They are tracked here so a future debug session does not waste time:
 
-- **Install instructions inherited from upstream don't work.** The bulk rename replaced `obra/superpowers-marketplace` with `kellenff/snowball-marketplace` in old documentation text, but that marketplace doesn't exist. The local-setup section below is the real install path.
-- **`scripts/sync-to-codex-plugin.sh` targets the wrong destination.** Its `FORK=` constant still points at `prime-radiant-inc/openai-codex-plugins` (upstream's Codex distribution repo). Until rewired to a fork-owned destination, the script will fail or push to a repo I don't own. Codex support itself is intended to stay; only the sync path is broken.
-- **`CLAUDE.md` still contains upstream's contributor-policing prose.** The "94% PR rejection rate / anti-slop / fork-specific changes will be closed" sections were written for upstream's open-contribution model. They don't apply to this fork and will be rewritten in a separate cleanup. (`AGENTS.md` is freshly written for this fork and is no longer a symlink to `CLAUDE.md`.)
-- **`.github/ISSUE_TEMPLATE/`** carries upstream's open-issues assumption — out of place for a fork that takes no issues.
-- **`RELEASE-NOTES.md`** and the historical plans/specs under `docs/plans/`, `docs/snowball/plans/`, `docs/snowball/specs/` are upstream's historical record. Kept verbatim as history; not the current project's documentation.
+- **Install instructions inherited from upstream do not work.** The bulk rename pointed old documentation text at `kellenff/snowball-marketplace`, which does not exist. The Setup section below is the real install path.
+- **`scripts/sync-to-codex-plugin.sh` targets the wrong destination.** Its `FORK=` constant still points at upstream's Codex distribution repo, so the script will fail or push to a repo I do not own. Codex support stays; only the sync path is broken.
+- **`CLAUDE.md` is absent.** This fork has no Claude-Code-specific context file yet. `AGENTS.md` covers the other harnesses and is freshly written for the fork; a Claude-Code file may follow.
+- **`.github/ISSUE_TEMPLATE/`** carries upstream's open-issues assumption, which does not fit a fork that takes no issues.
 
-## Maintainer setup
+## Skills index
 
-Snowball uses pre-commit hooks for formatting, linting, and the decision-logging build. After cloning, maintainers should:
+17 skills in five groups. Each links to its `SKILL.md`.
 
-```bash
-# Required tools (one-time)
-brew install pre-commit shellcheck shfmt markdownlint-cli2 oxlint oxfmt bun
+### Bootstrap
 
-# Install local devDeps (typescript, @types, js-yaml for the bun build)
-npm install
+- [`using-snowball`](skills/using-snowball/SKILL.md): the entry-point skill, injected into every session by the bootstrap hook. It sets the "check skills before responding" discipline and the instruction priority (user > project skills > snowball skills > default system prompt).
 
-# Install test deps for decision-logging
-(cd tests/decision-logging && npm install)
+### Process and methodology
 
-# Activate hooks in this repo
-pre-commit install
+- [`brainstorming`](skills/brainstorming/SKILL.md): gated design exploration that refuses implementation until a design is presented and approved. Ships a [visual companion](skills/brainstorming/visual-companion.md) server for diagram-driven review.
+- [`writing-plans`](skills/writing-plans/SKILL.md): produces an implementation plan before code is written.
+- [`executing-plans`](skills/executing-plans/SKILL.md): runs an existing plan with review checkpoints.
+- [`test-driven-development`](skills/test-driven-development/SKILL.md): red/green/refactor enforcement.
+- [`systematic-debugging`](skills/systematic-debugging/SKILL.md): root-cause-first debugging.
+- [`verification-before-completion`](skills/verification-before-completion/SKILL.md): run the verification commands and show the output before claiming success.
+- [`finishing-a-development-branch`](skills/finishing-a-development-branch/SKILL.md): structured merge, PR, or cleanup at the end of work; commits the decision trail on preserve paths.
 
-# Verify the toolchain
-pre-commit run --all-files
-```
+### Collaboration
 
-Consumers (people who load snowball into their AI coding harness) do NOT need any of these. The shipped artifacts under `skills/decision-logging/scripts/*.cjs` and `skills/structured-argumentation/scripts/*.cjs` are bundled — js-yaml, `@argdown/core`, and any other dependencies are inlined.
+- [`requesting-code-review`](skills/requesting-code-review/SKILL.md): produces review-ready output.
+- [`receiving-code-review`](skills/receiving-code-review/SKILL.md): responds to feedback with technical rigor, not performative agreement.
+- [`subagent-driven-development`](skills/subagent-driven-development/SKILL.md): orchestrates implementation across subagents.
+- [`dispatching-parallel-agents`](skills/dispatching-parallel-agents/SKILL.md): splits independent tasks across parallel agents.
 
-## Repository map
+### Decision intelligence
 
-| Path | What lives here |
-|---|---|
-| `skills/` | The 15 skills (see [Skills index](#skills-index)). Each is a directory with a `SKILL.md` plus optional `references/` and `scripts/`. |
-| `hooks/` | `session-start` (the bash bootstrap script), `run-hook.cmd` (polyglot bash/batch wrapper for Windows), `hooks.json` (Claude Code hook registration), `hooks-cursor.json` (Cursor hook registration). |
-| `.claude-plugin/` | Claude Code plugin manifest + dev marketplace manifest. |
-| `.codex-plugin/` | Codex plugin manifest, kept in sync (via `scripts/sync-to-codex-plugin.sh`) with a separate Codex distribution repo. |
-| `.cursor-plugin/` | Cursor plugin manifest. |
-| `.opencode/` | OpenCode JS plugin (`plugins/snowball.js`) and harness-specific install notes. |
-| `.gitlab/duo/` | GitLab Duo CLI lifecycle-hooks manifest (`hooks.json`). |
-| `gemini-extension.json` | Gemini CLI extension manifest. |
-| `AGENTS.md` | Cross-tool context file read by Codex, Cursor, Copilot CLI, OpenCode, and GitLab Duo's non-CLI surfaces. |
-| `assets/` | App icon and Codex composer SVG. |
-| `scripts/` | `bump-version.sh` (cross-manifest semver bumper driven by `.version-bump.json`), `install-into-project.sh` (symlinks Snowball into a local project for GitLab Duo / cross-tool `AGENTS.md`), and `sync-to-codex-plugin.sh` (currently stale — see above). |
-| `tests/` | Seven test groupings: harness-specific bootstrap tests, Codex-sync verification, skill-triggering evals, SDD end-to-end runs against example scaffolds. |
-| `docs/` | Setup notes (`README.opencode.md`, `windows/`), testing notes (`testing.md`), and historical design docs under `snowball/`. |
-| `AGENTS.md`, `GEMINI.md` | Per-harness context files loaded by each agent at session start. (`CLAUDE.md` is not present in this fork — see "Known stale or broken" above.) |
-| `RELEASE-NOTES.md` | Upstream's release history through v5.1.0. Kept as historical record. |
+- [`decision-logging`](skills/decision-logging/SKILL.md): reference documentation for the hook-driven capture system. Four Claude Code hooks emit operator MADRs and agent observations; the agent does not invoke this skill, the hooks do the work.
+- [`syncing-decisions-to-memory`](skills/syncing-decisions-to-memory/SKILL.md): distills the decision logs into a codebase-memory project ADR via the `manage_adr` MCP tool. It owns the TRADEOFFS and PHILOSOPHY sections and is idempotent.
+- [`structured-argumentation`](skills/structured-argumentation/SKILL.md): argdown as an intermediate representation for the structure of an argument (option comparison, hypothesis elimination, claim decomposition). Ships a parser-only validator bundled from `@argdown/core`.
+
+### Infrastructure
+
+- [`using-git-worktrees`](skills/using-git-worktrees/SKILL.md): sets up an isolated workspace for feature work.
+- [`writing-skills`](skills/writing-skills/SKILL.md): the meta-skill for creating and adversarially testing new skills.
+
+## The decision spine in detail
+
+Capture is passive. No skill is modified, and the operator never has to remember to log. The brainstorming, planning, and review skills generate the events; the hooks observe them.
+
+| Hook | Trigger | Produces |
+| --- | --- | --- |
+| PostToolUse on `AskUserQuestion` | Operator picks an option | One MADR per question-answer pair |
+| UserPromptSubmit (pattern match) | Operator submits an approval phrase | One MADR, deduped against recent captures |
+| Stop, detached worker | Session ends | Headless `claude -p` extracts observations from the transcript tail into `observations.jsonl` |
+| PreCompact, detached worker | Auto-compaction is imminent | The same worker, run before the context window is summarized |
+
+All hooks no-op silently outside a git repo. `Stop` and `PreCompact` coordinate through a per-session cursor and a non-blocking `flock`, so each transcript region is fed to `claude -p` exactly once. Even a long session abandoned after compacting still emits its pre-compaction observations.
+
+Capture is Claude Code only for now. The hooks depend on `AskUserQuestion` and Claude Code hook events, so the other six harnesses run the forward spine without the decision trail. Cross-harness capture is a known Phase 1 limitation.
+
+At completion, `finishing-a-development-branch` commits the records under `docs/snowball/decisions/` onto the same branch as the work, then offers to run `syncing-decisions-to-memory`. That step is self-gating: if codebase-memory is unreachable or the repo is not indexed, it stops cleanly, so completion never breaks on a missing dependency.
 
 ## Per-harness adapters
 
 | Harness | Manifest | Bootstrap loader | Context file |
-|---|---|---|---|
-| Claude Code | `.claude-plugin/plugin.json` | `hooks/hooks.json` → `hooks/run-hook.cmd session-start` | `CLAUDE.md` |
-| Cursor | `.cursor-plugin/plugin.json` | `hooks/hooks-cursor.json` → same script | `AGENTS.md` |
-| GitHub Copilot CLI | `.claude-plugin/plugin.json` (shared) | same script, detects `COPILOT_CLI=1` and emits SDK-standard JSON shape | `AGENTS.md` |
+| --- | --- | --- | --- |
+| Claude Code | `.claude-plugin/plugin.json` | `hooks/hooks.json` to `hooks/run-hook.cmd session-start` | none yet (bootstrap injects via hook) |
+| Cursor | `.cursor-plugin/plugin.json` | `hooks/hooks-cursor.json` to the same script | `AGENTS.md` |
+| GitHub Copilot CLI | `.claude-plugin/plugin.json` (shared) | same script; detects `COPILOT_CLI=1` and emits SDK-standard JSON | `AGENTS.md` |
 | OpenCode | `.opencode/plugins/snowball.js` | JS plugin, `experimental.chat.messages.transform` hook | `AGENTS.md` |
-| Codex CLI / Codex App | `.codex-plugin/plugin.json` | distributed via `scripts/sync-to-codex-plugin.sh` (currently stale; see above) | `AGENTS.md` |
-| Gemini CLI | `gemini-extension.json` | extension-managed; skills activate via `activate_skill` tool | `GEMINI.md` |
-| GitLab Duo | `.gitlab/duo/hooks.json` (CLI only) | hooks.json → `run-hook.cmd session-start`, detects `DUO_SESSION_ID` and emits Claude-Code-shaped JSON. Non-CLI Duo surfaces (Agentic Chat, Agent Platform Flows) read `AGENTS.md` and `skills/<name>/SKILL.md` directly. | `AGENTS.md` |
+| Codex CLI / Codex App | `.codex-plugin/plugin.json` | distributed via `scripts/sync-to-codex-plugin.sh` (currently stale) | `AGENTS.md` |
+| Gemini CLI | `gemini-extension.json` | extension-managed; skills activate via `activate_skill` | `GEMINI.md` |
+| GitLab Duo | `.gitlab/duo/hooks.json` (CLI only) | `hooks.json` to `run-hook.cmd session-start`; detects `DUO_SESSION_ID` | `AGENTS.md` |
 
 ### How the bootstrap works
 
-The whole plugin hinges on `skills/using-snowball/SKILL.md` being **injected into the agent's context at session start**, not just present on disk. Without injection, the agent never invokes the `Skill` tool and the rest of the library is dead weight.
+The whole plugin hinges on `skills/using-snowball/SKILL.md` being injected into the agent's context at session start, not just present on disk. Without injection, the agent never invokes the `Skill` tool and the rest of the library is dead weight.
 
-For shell-driven harnesses (Claude Code, Cursor, Copilot CLI, GitLab Duo CLI), [`hooks/session-start`](hooks/session-start) reads `using-snowball/SKILL.md`, JSON-escapes it via bash parameter substitution (no `jq` dependency), wraps it in `<EXTREMELY_IMPORTANT>` framing, and branches on environment variables to emit harness-specific JSON:
+For shell-driven harnesses, [`hooks/session-start`](hooks/session-start) reads `using-snowball/SKILL.md`, JSON-escapes it with bash parameter substitution (no `jq` dependency), wraps it in `<EXTREMELY_IMPORTANT>` framing, and branches on environment variables:
 
-- `CURSOR_PLUGIN_ROOT` set → `additional_context` (snake_case)
-- `CLAUDE_PLUGIN_ROOT` set without `COPILOT_CLI` → `hookSpecificOutput.additionalContext`
-- `DUO_SESSION_ID` set → `hookSpecificOutput.additionalContext` (GitLab Duo CLI; same shape as Claude Code)
-- Otherwise → `additionalContext` (Copilot CLI / SDK standard)
+- `CURSOR_PLUGIN_ROOT` set: `additional_context` (snake_case).
+- `CLAUDE_PLUGIN_ROOT` set without `COPILOT_CLI`: `hookSpecificOutput.additionalContext`.
+- `DUO_SESSION_ID` set: `hookSpecificOutput.additionalContext` (GitLab Duo CLI, same shape as Claude Code).
+- Otherwise: `additionalContext` (Copilot CLI and SDK standard).
 
-[`hooks/run-hook.cmd`](hooks/run-hook.cmd) is a polyglot file: line 1 (`: << 'CMDBLOCK'`) is a no-op heredoc in bash, allowing Windows batch syntax to live inside the same file. On Windows, `cmd.exe` ignores the bash framing and locates `bash.exe` (Git for Windows, MSYS2, Cygwin, or PATH). On Unix, bash skips the batch block and execs the named script directly.
+[`hooks/run-hook.cmd`](hooks/run-hook.cmd) is a polyglot file. Line 1 (`: << 'CMDBLOCK'`) is a no-op heredoc in bash, which lets Windows batch syntax live in the same file. On Windows, `cmd.exe` ignores the bash framing and locates `bash.exe`; on Unix, bash skips the batch block and execs the named script.
 
-OpenCode can't shell out reliably, so [`.opencode/plugins/snowball.js`](.opencode/plugins/snowball.js) does the same job in JS — reads the SKILL.md, strips frontmatter inline (no YAML dependency), caches the result module-level, and injects the bootstrap as the first text part of the first user message. A guard (`includes('EXTREMELY_IMPORTANT')`) prevents double-injection when OpenCode re-runs the transform per agent step.
+OpenCode cannot shell out reliably, so [`.opencode/plugins/snowball.js`](.opencode/plugins/snowball.js) does the same job in JS: it reads the SKILL.md, strips frontmatter inline, caches the result, and injects the bootstrap as the first text part of the first user message. A guard prevents double-injection when OpenCode re-runs the transform per agent step.
 
-## Skills index
+## Setup
 
-15 skills in four groups. Each links to its `SKILL.md`.
-
-### Bootstrap
-
-- [`using-snowball`](skills/using-snowball/SKILL.md) — the entry-point skill loaded into every session by the bootstrap hook. Sets the "check skills before responding" discipline; defines instruction priority (user > skills > default system prompt); includes tool-mapping references for non-Claude-Code harnesses in [`references/`](skills/using-snowball/references/).
-
-### Process and methodology
-
-- [`brainstorming`](skills/brainstorming/SKILL.md) — gated design exploration; refuses implementation until a design is presented and approved. Ships a [visual companion](skills/brainstorming/visual-companion.md) (local HTTP server) for diagram-driven design review.
-- [`writing-plans`](skills/writing-plans/SKILL.md) — produces implementation plans before code is written.
-- [`executing-plans`](skills/executing-plans/SKILL.md) — runs an existing plan with review checkpoints.
-- [`test-driven-development`](skills/test-driven-development/SKILL.md) — red/green/refactor enforcement.
-- [`systematic-debugging`](skills/systematic-debugging/SKILL.md) — root-cause-first debugging process.
-- [`verification-before-completion`](skills/verification-before-completion/SKILL.md) — requires running verification commands and confirming output before claiming success.
-- [`finishing-a-development-branch`](skills/finishing-a-development-branch/SKILL.md) — structured merge / PR / cleanup decisions at end of work.
-
-### Collaboration
-
-- [`requesting-code-review`](skills/requesting-code-review/SKILL.md) — produces review-ready output.
-- [`receiving-code-review`](skills/receiving-code-review/SKILL.md) — disciplined response to review feedback; no performative agreement.
-- [`subagent-driven-development`](skills/subagent-driven-development/SKILL.md) — orchestrates implementation work across subagents.
-- [`dispatching-parallel-agents`](skills/dispatching-parallel-agents/SKILL.md) — splits independent tasks across parallel agents.
-
-### Infrastructure
-
-- [`using-git-worktrees`](skills/using-git-worktrees/SKILL.md) — sets up isolated workspaces for feature work.
-- [`writing-skills`](skills/writing-skills/SKILL.md) — meta-skill for creating and adversarially testing new skills.
-- [`structured-argumentation`](skills/structured-argumentation/SKILL.md) — argdown as an intermediate representation for surfacing the structure of arguments (option-comparison, hypothesis-elimination, claim-decomposition) once prose reasoning is well underway. Ships a parser-only validator bundled from `@argdown/core`.
-
-## Local setup
-
-This repo is for clone-and-link installation, not marketplace distribution. The exact mechanism varies by harness:
+This repo installs by clone-and-link, not marketplace distribution.
 
 ```bash
 git clone https://github.com/kellenff/snowball.git ~/Projects/snowball
@@ -143,13 +186,13 @@ git clone https://github.com/kellenff/snowball.git ~/Projects/snowball
 
 Then install into each harness:
 
-- **Claude Code** — register the repo as a local marketplace via `/plugin marketplace add /path/to/snowball` and install with `/plugin install snowball@snowball-dev` (the marketplace name is set in [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json)). Then run `/reload-plugins`. The hook in [`hooks/hooks.json`](hooks/hooks.json) fires at every `SessionStart`, `/clear`, and `/compact`.
-- **OpenCode** — see [`docs/README.opencode.md`](docs/README.opencode.md). The plugin auto-registers its skills path via [`.opencode/plugins/snowball.js`](.opencode/plugins/snowball.js); no manual symlink is needed.
-- **Cursor, Codex, Gemini CLI, Copilot CLI** — follow each harness's plugin documentation, pointing at this repo's matching manifest (`.cursor-plugin/plugin.json`, `.codex-plugin/plugin.json`, `gemini-extension.json`, `.claude-plugin/plugin.json`).
-- **GitLab Duo** — see [`docs/README.gitlab-duo.md`](docs/README.gitlab-duo.md) for the full install paths. Short version: from inside a target project, run [`scripts/install-into-project.sh`](scripts/install-into-project.sh) from this clone — it symlinks `AGENTS.md`, creates per-skill symlinks under `skills/<name>/` (so the project can keep its own `skills/<custom>/` alongside Snowball's), and generates `.gitlab/duo/hooks.json` with the absolute Snowball path patched in. The script auto-detects the Snowball clone from its own path and the target from `$PWD`, so no hard-coded locations. The using-snowball framing directs agents to prefer project-defined skills over Snowball-shipped defaults when both could apply. Duo CLI users still need to launch with `--enable-project-hooks` for the SessionStart hook to fire.
-- **Windows specifics** — see [`docs/windows/`](docs/windows/). The polyglot [`hooks/run-hook.cmd`](hooks/run-hook.cmd) handles Windows automatically as long as bash is reachable (Git for Windows, MSYS2, Cygwin, or PATH).
+- **Claude Code**: register the repo as a local marketplace with `/plugin marketplace add /path/to/snowball`, install with `/plugin install snowball@snowball-dev` (the marketplace name is set in [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json)), then run `/reload-plugins`. The hook in [`hooks/hooks.json`](hooks/hooks.json) fires at every `SessionStart`, `/clear`, and `/compact`.
+- **OpenCode**: see [`docs/README.opencode.md`](docs/README.opencode.md). The plugin auto-registers its skills path; no manual symlink is needed.
+- **Cursor, Codex, Gemini CLI, Copilot CLI**: follow each harness's plugin documentation, pointing at this repo's matching manifest.
+- **GitLab Duo**: see [`docs/README.gitlab-duo.md`](docs/README.gitlab-duo.md). Short version: from inside a target project, run [`scripts/install-into-project.sh`](scripts/install-into-project.sh) from this clone. It writes per-skill files under `skills/<name>/`, symlinks `AGENTS.md`, and generates `.gitlab/duo/hooks.json` with the absolute Snowball path patched in. Duo CLI users launch with `--enable-project-hooks` so the SessionStart hook fires.
+- **Windows**: see [`docs/windows/`](docs/windows/). The polyglot [`hooks/run-hook.cmd`](hooks/run-hook.cmd) handles Windows as long as bash is reachable (Git for Windows, MSYS2, Cygwin, or PATH).
 
-Updating after a `git pull`:
+Update after a pull:
 
 ```bash
 cd ~/Projects/snowball
@@ -157,21 +200,56 @@ git pull
 # In Claude Code: /reload-plugins
 ```
 
-Version bumps across the six manifests (Claude, Codex, Cursor, OpenCode, Gemini, marketplace) are driven by [`scripts/bump-version.sh`](scripts/bump-version.sh) reading [`.version-bump.json`](.version-bump.json).
+Version bumps across the six manifests are driven by [`scripts/bump-version.sh`](scripts/bump-version.sh) reading [`.version-bump.json`](.version-bump.json).
+
+### Maintainer setup
+
+Snowball uses pre-commit hooks for formatting, linting, and the decision-logging build. Consumers do not need any of this; the shipped `.cjs` bundles already inline their dependencies.
+
+```bash
+# Required tools (one-time)
+brew install pre-commit shellcheck shfmt markdownlint-cli2 oxlint oxfmt bun
+
+# Local devDeps (typescript, @types, js-yaml, @argdown/core for the bun build)
+npm install
+
+# Test deps for decision-logging
+(cd tests/decision-logging && npm install)
+
+# Activate hooks, then verify the toolchain
+pre-commit install
+pre-commit run --all-files
+```
+
+The bundles under `skills/*/scripts/*.cjs` are built outputs. Edit the TypeScript in `skills/*/src/`, and the pre-commit hook regenerates and stages the bundles. Bun (`bun build --target=node --format=cjs`) is a maintainer dependency only.
+
+## Repository map
+
+| Path | What lives here |
+| --- | --- |
+| `skills/` | The 17 skills (see the Skills index). Each is a directory with a `SKILL.md` plus optional `references/`, `scripts/`, and `src/`. |
+| `hooks/` | `session-start` (the bash bootstrap), `run-hook.cmd` (polyglot bash/batch wrapper), `hooks.json` (Claude Code registration), `hooks-cursor.json` (Cursor registration). |
+| `.claude-plugin/` | Claude Code plugin manifest plus the dev marketplace manifest. |
+| `.codex-plugin/`, `.cursor-plugin/`, `.opencode/`, `gemini-extension.json`, `.gitlab/duo/` | Per-harness manifests and plugins. |
+| `docs/design/` | The two-spine process write-up and its argdown rationale and steelman maps. |
+| `docs/snowball/decisions/` | Captured decision trail: MADR markdown plus `observations.jsonl`. |
+| `docs/snowball/specs/`, `docs/snowball/plans/` | Design specs and implementation plans. |
+| `docs/` | Setup notes (`README.opencode.md`, `README.gitlab-duo.md`, `windows/`) and testing notes (`testing.md`). |
+| `tests/` | 11 test groupings: per-harness bootstrap tests, Codex-sync verification, skill-triggering evals, decision-logging and decision-sync tests, SDD end-to-end runs. |
+| `scripts/` | `bump-version.sh`, `install-into-project.sh`, and `sync-to-codex-plugin.sh` (currently stale). |
+| `AGENTS.md`, `GEMINI.md` | Per-harness context files. No `CLAUDE.md` in this fork yet. |
+| `RELEASE-NOTES.md` | Snowball's own release history from v5.2.0 onward. |
 
 ## Pointers
 
-- [`AGENTS.md`](AGENTS.md), [`GEMINI.md`](GEMINI.md) — per-harness context files. (No `CLAUDE.md` in this fork; see "Known stale or broken".)
-- [`docs/testing.md`](docs/testing.md) — what each test grouping under `tests/` covers and how to run it.
-- [`docs/README.opencode.md`](docs/README.opencode.md) — OpenCode-specific setup and behavior notes.
-- [`docs/README.gitlab-duo.md`](docs/README.gitlab-duo.md) — GitLab Duo install paths (in-repo and cross-project), CLI hook activation, troubleshooting.
-- [`docs/windows/`](docs/windows/) — Windows-specific install and bootstrap notes.
-- [`docs/snowball/specs/`](docs/snowball/specs/), [`docs/snowball/plans/`](docs/snowball/plans/), [`docs/plans/`](docs/plans/) — historical design specs and implementation plans inherited from upstream.
-- [`RELEASE-NOTES.md`](RELEASE-NOTES.md) — upstream release history through v5.1.0.
-- `.claude/grfp/` — the four reports (deep-dive, crystal-ball, think-tank, brain-jam) that produced this README.
+- [`docs/design/snowball-process.md`](docs/design/snowball-process.md): the two-spine methodology.
+- [`docs/testing.md`](docs/testing.md): what each `tests/` grouping covers and how to run it.
+- [`docs/README.opencode.md`](docs/README.opencode.md), [`docs/README.gitlab-duo.md`](docs/README.gitlab-duo.md), [`docs/windows/`](docs/windows/): harness-specific setup.
+- [`AGENTS.md`](AGENTS.md), [`GEMINI.md`](GEMINI.md): per-harness context files.
+- `.claude/grfp/`: the staging reports (deep-dive, crystal-ball, brain-jam, think-tank) behind this README.
 
 ## License and attribution
 
 MIT, inherited from upstream. See [`LICENSE`](LICENSE).
 
-Snowball is a fork of [`obra/superpowers`](https://github.com/obra/superpowers) by Jesse Vincent and the team at [Prime Radiant](https://primeradiant.com). All skill content, the bootstrap design, and the multi-harness adapter pattern originate there. This fork exists for personal maintenance; substantive credit belongs upstream.
+Snowball is a fork of [obra/superpowers](https://github.com/obra/superpowers) by Jesse Vincent and the team at [Prime Radiant](https://primeradiant.com). All skill content, the bootstrap design, and the multi-harness adapter pattern originate there. This fork exists for personal maintenance; substantive credit belongs upstream.
