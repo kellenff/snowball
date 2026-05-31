@@ -25,6 +25,8 @@ export interface SetupOptions {
   fakeClaudeOutput?: string;
   fakeClaudeExitCode?: number;
   initialCursor?: number;
+  harness?: "claude" | "cursor";
+  transcriptPathOverride?: string;
 }
 
 export function setupWorkerEnv(opts: SetupOptions): WorkerEnv {
@@ -44,11 +46,32 @@ export function setupWorkerEnv(opts: SetupOptions): WorkerEnv {
   execFileSync("git", ["init", "-q"], { cwd: gitRoot });
 
   const encoded = "-" + gitRoot.slice(1).replace(/\//g, "-");
-  const transcriptDir = path.join(home, ".claude", "projects", encoded);
-  fs.mkdirSync(transcriptDir, { recursive: true });
-  const transcriptPath = path.join(transcriptDir, sessionId + ".jsonl");
-  const body = opts.transcriptLines.join("\n") + "\n";
-  fs.writeFileSync(transcriptPath, body);
+  const cursorEncoded = gitRoot.slice(1).replace(/\//g, "-");
+  const harness = opts.harness ?? "claude";
+  let transcriptPath: string;
+
+  if (opts.transcriptPathOverride) {
+    transcriptPath = opts.transcriptPathOverride;
+    fs.mkdirSync(path.dirname(transcriptPath), { recursive: true });
+    fs.writeFileSync(transcriptPath, opts.transcriptLines.join("\n") + "\n");
+  } else if (harness === "cursor") {
+    const transcriptDir = path.join(
+      home,
+      ".cursor",
+      "projects",
+      cursorEncoded,
+      "agent-transcripts",
+      sessionId,
+    );
+    fs.mkdirSync(transcriptDir, { recursive: true });
+    transcriptPath = path.join(transcriptDir, sessionId + ".jsonl");
+    fs.writeFileSync(transcriptPath, opts.transcriptLines.join("\n") + "\n");
+  } else {
+    const transcriptDir = path.join(home, ".claude", "projects", encoded);
+    fs.mkdirSync(transcriptDir, { recursive: true });
+    transcriptPath = path.join(transcriptDir, sessionId + ".jsonl");
+    fs.writeFileSync(transcriptPath, opts.transcriptLines.join("\n") + "\n");
+  }
 
   const checkpointDir = path.join(home, ".snowball", "checkpoints");
   fs.mkdirSync(checkpointDir, { recursive: true });
@@ -87,7 +110,10 @@ export function setupWorkerEnv(opts: SetupOptions): WorkerEnv {
   };
 }
 
-export function runWorker(env: WorkerEnv): SpawnSyncReturns<string> {
+export function runWorker(
+  env: WorkerEnv,
+  transcriptPathOverride?: string,
+): SpawnSyncReturns<string> {
   const workerPath = path.resolve(
     __dirname,
     "..",
@@ -97,7 +123,10 @@ export function runWorker(env: WorkerEnv): SpawnSyncReturns<string> {
     "scripts",
     "extract-worker.sh",
   );
-  return spawnSync("bash", [workerPath, env.sessionId, env.gitRoot], {
+  const args = transcriptPathOverride
+    ? [workerPath, env.sessionId, env.gitRoot, transcriptPathOverride]
+    : [workerPath, env.sessionId, env.gitRoot];
+  return spawnSync("bash", args, {
     env: {
       ...process.env,
       HOME: env.home,

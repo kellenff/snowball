@@ -5,6 +5,27 @@
       {
         "command": "./hooks/run-hook.cmd session-start"
       }
+    ],
+    "postToolUse": [
+      {
+        "command": "./skills/decision-logging/scripts/on-ask-user-question.sh",
+        "matcher": "AskUserQuestion|AskQuestion"
+      }
+    ],
+    "beforeSubmitPrompt": [
+      {
+        "command": "./skills/decision-logging/scripts/on-user-prompt.sh"
+      }
+    ],
+    "stop": [
+      {
+        "command": "./skills/decision-logging/scripts/on-stop.sh"
+      }
+    ],
+    "preCompact": [
+      {
+        "command": "./skills/decision-logging/scripts/on-pre-compact.sh"
+      }
     ]
   }
 }

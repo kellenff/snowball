@@ -1,23 +1,21 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as os from "node:os";
+import {
+  normalizeAnswers,
+  normalizeQuestions,
+  resolveSessionId,
+  type BaseHookPayload,
+} from "./hook-payload";
 import { writeMadr, type MadrInput } from "./write-madr";
 
 const ERROR_LOG = path.join(os.homedir(), ".snowball", "decision-logging-errors.log");
 
-interface AskUserQuestionPayload {
-  session_id?: string;
+interface AskUserQuestionPayload extends BaseHookPayload {
   tool_use_id?: string;
-  tool_input?: {
-    questions?: Array<{
-      question: string;
-      header?: string;
-      options?: Array<{ label: string; description?: string }>;
-    }>;
-  };
-  tool_response?: {
-    answers?: Record<string, string>;
-  };
+  tool_input?: unknown;
+  tool_response?: unknown;
+  tool_output?: unknown;
 }
 
 function logError(msg: string): void {
@@ -43,9 +41,9 @@ process.stdin.on("end", () => {
     return;
   }
 
-  const questions = payload.tool_input?.questions ?? [];
-  const answers = payload.tool_response?.answers ?? {};
-  const sessionId = payload.session_id ?? "unknown";
+  const questions = normalizeQuestions(payload.tool_input);
+  const answers = normalizeAnswers(questions, payload.tool_response, payload.tool_output);
+  const sessionId = resolveSessionId(payload) || "unknown";
   const sourceEventId = payload.tool_use_id ?? "unknown";
 
   const isoDate = new Date().toISOString();

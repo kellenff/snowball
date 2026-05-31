@@ -34,6 +34,96 @@ var fs2 = __toESM(require("node:fs"));
 var path2 = __toESM(require("node:path"));
 var os = __toESM(require("node:os"));
 
+// skills/decision-logging/src/hook-payload.ts
+function resolveSessionId(payload) {
+  return (payload.session_id ?? payload.conversation_id ?? "").toString();
+}
+function parseToolOutput(toolOutput) {
+  if (toolOutput == null)
+    return null;
+  if (typeof toolOutput === "object" && !Array.isArray(toolOutput)) {
+    return toolOutput;
+  }
+  if (typeof toolOutput !== "string" || !toolOutput.trim())
+    return null;
+  try {
+    const parsed = JSON.parse(toolOutput);
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return parsed;
+    }
+  } catch {}
+  return null;
+}
+function normalizeQuestions(toolInput) {
+  if (!toolInput || typeof toolInput !== "object")
+    return [];
+  const raw = toolInput.questions;
+  if (!Array.isArray(raw))
+    return [];
+  const out = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object")
+      continue;
+    const q = item;
+    const question = String(q.question ?? q.prompt ?? "").trim();
+    if (!question)
+      continue;
+    const optionsRaw = q.options;
+    const options = Array.isArray(optionsRaw) ? optionsRaw.map((opt) => {
+      if (!opt || typeof opt !== "object")
+        return null;
+      const o = opt;
+      const label = String(o.label ?? o.id ?? "").trim();
+      if (!label)
+        return null;
+      return {
+        id: typeof o.id === "string" ? o.id : undefined,
+        label,
+        description: typeof o.description === "string" ? o.description : ""
+      };
+    }).filter((opt) => opt !== null) : undefined;
+    out.push({
+      id: typeof q.id === "string" ? q.id : undefined,
+      question,
+      header: typeof q.header === "string" ? q.header : undefined,
+      options
+    });
+  }
+  return out;
+}
+function optionLabelForId(questions, questionKey, answerValue) {
+  for (const q of questions) {
+    if (q.id !== questionKey && q.question !== questionKey)
+      continue;
+    const byLabel = q.options?.find((o) => o.label === answerValue);
+    if (byLabel)
+      return byLabel.label;
+    const byId = q.options?.find((o) => o.id === answerValue);
+    if (byId)
+      return byId.label;
+  }
+  return answerValue;
+}
+function normalizeAnswers(questions, toolResponse, toolOutput) {
+  const fromResponse = toolResponse && typeof toolResponse === "object" && toolResponse.answers && typeof toolResponse.answers === "object" ? toolResponse.answers ?? {} : null;
+  if (fromResponse)
+    return fromResponse;
+  const parsed = parseToolOutput(toolOutput);
+  if (!parsed)
+    return {};
+  const nested = parsed.answers && typeof parsed.answers === "object" && !Array.isArray(parsed.answers) ? parsed.answers : null;
+  const raw = nested ?? parsed;
+  const out = {};
+  for (const [key, value] of Object.entries(raw)) {
+    if (typeof value !== "string" || !value.trim())
+      continue;
+    const question = questions.find((q) => q.id === key || q.question === key);
+    const questionText = question?.question ?? key;
+    out[questionText] = optionLabelForId(questions, key, value);
+  }
+  return out;
+}
+
 // skills/decision-logging/src/write-madr.ts
 var fs = __toESM(require("node:fs"));
 var path = __toESM(require("node:path"));
@@ -2808,9 +2898,9 @@ process.stdin.on("end", () => {
     process.exit(0);
     return;
   }
-  const questions = payload.tool_input?.questions ?? [];
-  const answers = payload.tool_response?.answers ?? {};
-  const sessionId = payload.session_id ?? "unknown";
+  const questions = normalizeQuestions(payload.tool_input);
+  const answers = normalizeAnswers(questions, payload.tool_response, payload.tool_output);
+  const sessionId = resolveSessionId(payload) || "unknown";
   const sourceEventId = payload.tool_use_id ?? "unknown";
   const isoDate = new Date().toISOString();
   for (const q of questions) {

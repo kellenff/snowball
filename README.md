@@ -145,7 +145,7 @@ Capture is passive. No skill is modified, and the operator never has to remember
 
 All hooks no-op silently outside a git repo. `Stop` and `PreCompact` coordinate through a per-session cursor and a non-blocking `flock`, so each transcript region is fed to `claude -p` exactly once. Even a long session abandoned after compacting still emits its pre-compaction observations.
 
-Capture is Claude Code only for now. The hooks depend on `AskUserQuestion` and Claude Code hook events, so the other six harnesses run the forward spine without the decision trail. Cross-harness capture is a known Phase 1 limitation.
+Capture hooks are registered for Claude Code and Cursor. Claude uses `AskUserQuestion`; Cursor uses `AskQuestion`. Other harnesses run the forward spine without the decision trail.
 
 At completion, `finishing-a-development-branch` commits the records under `docs/snowball/decisions/` onto the same branch as the work, then offers to run `syncing-decisions-to-memory`. That step is self-gating: if codebase-memory is unreachable or the repo is not indexed, it stops cleanly, so completion never breaks on a missing dependency.
 

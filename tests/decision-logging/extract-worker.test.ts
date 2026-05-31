@@ -2,6 +2,7 @@ import { test, expect } from "bun:test";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { spawn, execFileSync } from "node:child_process";
+import * as os from "node:os";
 import { setupWorkerEnv, runWorker, cleanupWorkerEnv } from "./worker-test-helpers";
 
 const validObservation = JSON.stringify({
@@ -42,6 +43,41 @@ test("first run creates cursor file at total line count", () => {
     expect(result.status).toBe(0);
     expect(fs.existsSync(env.cursorPath)).toBe(true);
     expect(fs.readFileSync(env.cursorPath, "utf-8").trim()).toBe("3");
+  } finally {
+    cleanupWorkerEnv(env);
+  }
+});
+
+test("worker resolves Cursor transcript layout", () => {
+  const env = setupWorkerEnv({
+    harness: "cursor",
+    transcriptLines: ['{"turn": 1}', '{"turn": 2}'],
+    fakeClaudeOutput: validObservation + "\n",
+  });
+  try {
+    const result = runWorker(env);
+    expect(result.status).toBe(0);
+    expect(fs.existsSync(env.claudeMarker)).toBe(true);
+    expect(fs.readFileSync(env.cursorPath, "utf-8").trim()).toBe("2");
+  } finally {
+    cleanupWorkerEnv(env);
+  }
+});
+
+test("worker honors explicit transcript_path override", () => {
+  const overridePath = path.join(
+    fs.mkdtempSync(path.join(os.tmpdir(), "snowball-override-")),
+    "override.jsonl",
+  );
+  const env = setupWorkerEnv({
+    transcriptLines: ['{"turn": 1}'],
+    fakeClaudeOutput: validObservation + "\n",
+    transcriptPathOverride: overridePath,
+  });
+  try {
+    const result = runWorker(env, overridePath);
+    expect(result.status).toBe(0);
+    expect(fs.existsSync(env.claudeMarker)).toBe(true);
   } finally {
     cleanupWorkerEnv(env);
   }

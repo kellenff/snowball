@@ -44,26 +44,42 @@ PAYLOAD='{
 
 echo "$PAYLOAD" | (cd "$TMP_REPO" && CLAUDE_PLUGIN_ROOT="$REPO_ROOT" bash "$HANDLER")
 
+# Test 3: Cursor AskQuestion payload (conversation_id + tool_output)
+CURSOR_PAYLOAD='{
+  "conversation_id": "cursor-session-1",
+  "tool_use_id": "tooluse-2",
+  "tool_input": {
+    "questions": [{
+      "id": "scope",
+      "prompt": "Which branch strategy?",
+      "options": [
+        {"id": "feature", "label": "Feature branch"},
+        {"id": "main", "label": "Main"}
+      ]
+    }]
+  },
+  "tool_output": "{\"answers\":{\"scope\":\"feature\"}}"
+}'
+
+echo "$CURSOR_PAYLOAD" | (cd "$TMP_REPO" && CLAUDE_PLUGIN_ROOT="$REPO_ROOT" bash "$HANDLER")
+
 DECISIONS_DIR="$TMP_REPO/docs/snowball/decisions"
 if [ ! -d "$DECISIONS_DIR" ]; then
   echo "[FAIL] decisions dir not created"
   FAIL=1
 else
   count=$(find "$DECISIONS_DIR" -maxdepth 1 -name '*.md' 2>/dev/null | wc -l | tr -d ' ' || echo 0)
-  if [ "$count" -ne 1 ]; then
-    echo "[FAIL] expected 1 MADR file, got $count"
+  if [ "$count" -ne 2 ]; then
+    echo "[FAIL] expected 2 MADR files, got $count"
     FAIL=1
   else
-    echo "[PASS] MADR file written"
-    MADR_FILE=$(ls "$DECISIONS_DIR"/*.md)
-    if grep -q 'capture_mechanism: ask-user-question' "$MADR_FILE" \
-      && grep -q 'Two-tier' "$MADR_FILE"; then
-      echo "[PASS] MADR contains capture_mechanism and chosen option"
+    echo "[PASS] MADR files written for Claude and Cursor payloads"
+    if grep -rq 'capture_mechanism: ask-user-question' "$DECISIONS_DIR" \
+      && grep -rq 'Two-tier' "$DECISIONS_DIR" \
+      && grep -rq 'Feature branch' "$DECISIONS_DIR"; then
+      echo "[PASS] MADR content includes both chosen options"
     else
-      echo "[FAIL] MADR content unexpected:"
-      # sed required to prefix each line; ${var//...} can't insert per-line prefixes
-      # shellcheck disable=SC2001
-      sed 's/^/    /' "$MADR_FILE"
+      echo "[FAIL] MADR content unexpected"
       FAIL=1
     fi
   fi

@@ -17,12 +17,12 @@ See `docs/snowball/specs/2026-05-25-decision-logging-design.md` for the full des
 
 ## Capture mechanisms
 
-Three Claude Code hooks emit decisions automatically:
+Three hooks emit decisions automatically (Claude Code and Cursor):
 
 | Hook | Trigger | Produces |
 |---|---|---|
-| PostToolUse on `AskUserQuestion` | User picks an option from a structured prompt | One MADR per question-answer pair (`capture_mechanism: ask-user-question`) |
-| UserPromptSubmit (pattern match) | User submits a free-text prompt matching an approval phrase | One MADR (`capture_mechanism: user-prompt-pattern`), deduped against recent `ask-user-question` captures |
+| PostToolUse on `AskUserQuestion` / `AskQuestion` | User picks an option from a structured prompt | One MADR per question-answer pair (`capture_mechanism: ask-user-question`) |
+| UserPromptSubmit / `beforeSubmitPrompt` (pattern match) | User submits a free-text prompt matching an approval phrase | One MADR (`capture_mechanism: user-prompt-pattern`), deduped against recent `ask-user-question` captures |
 | Stop → detached worker | Session ends | Headless `claude -p` extracts observations from the unprocessed transcript tail; appends to `observations.jsonl` (`source: subagent`). |
 | PreCompact → detached worker | Auto-compaction is about to run | Same detached worker as `Stop`; extracts observations from the unprocessed transcript tail before the context window is summarized. |
 
@@ -51,7 +51,7 @@ Snowball commits to the schema in `references/schema.md` with `schema_version: "
 
 ## Phase 1 limitations
 
-- Claude Code only — `AskUserQuestion` is harness-specific.
+Decision capture hooks are registered for Claude Code (`hooks/hooks.json`) and Cursor (`hooks/hooks-cursor.json`). Claude uses `AskUserQuestion`; Cursor uses `AskQuestion`. Other harnesses run the forward spine without the decision trail.
 - Source-skill tag defaults to `ambient`; transcript-based skill detection is deferred to Phase 2.
 - No manual `/log-decision` slash command yet.
 - No `superseded` linkage automation — operators hand-edit.

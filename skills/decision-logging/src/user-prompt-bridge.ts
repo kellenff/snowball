@@ -2,15 +2,15 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import * as os from "node:os";
 import { matchesApproval } from "./approval-phrases";
+import { resolveSessionId, type BaseHookPayload } from "./hook-payload";
 import { writeMadr, type MadrInput } from "./write-madr";
 import { detectGitRoot } from "./git-root";
 
 const ERROR_LOG = path.join(os.homedir(), ".snowball", "decision-logging-errors.log");
 const DEDUP_WINDOW_MS = 60 * 1000;
 
-interface UserPromptPayload {
+interface UserPromptPayload extends BaseHookPayload {
   prompt?: string;
-  session_id?: string;
 }
 
 function logError(msg: string): void {
@@ -62,7 +62,7 @@ process.stdin.on("end", () => {
   }
 
   const prompt = payload.prompt ?? "";
-  const sessionId = payload.session_id ?? "unknown";
+  const sessionId = resolveSessionId(payload) || "unknown";
 
   if (!matchesApproval(prompt)) process.exit(0);
 

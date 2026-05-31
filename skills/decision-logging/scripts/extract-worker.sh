@@ -4,6 +4,7 @@ set -uo pipefail
 
 SESSION_ID="$1"
 GIT_ROOT="$2"
+TRANSCRIPT_OVERRIDE="${3:-}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROMPT_FILE="$SCRIPT_DIR/extract-observations.md"
@@ -23,14 +24,36 @@ if command -v flock >/dev/null 2>&1; then
   flock -n 9 || exit 0
 fi
 
-# Encode project path the way Claude Code stores transcripts: leading dash, then '/' → '-'
-ENCODED="-$(echo "$GIT_ROOT" | sed 's|^/||; s|/|-|g')"
-TRANSCRIPT="$HOME/.claude/projects/$ENCODED/$SESSION_ID.jsonl"
+resolve_transcript() {
+  if [ -n "$TRANSCRIPT_OVERRIDE" ] && [ -f "$TRANSCRIPT_OVERRIDE" ]; then
+    printf '%s' "$TRANSCRIPT_OVERRIDE"
+    return 0
+  fi
 
-if [ ! -f "$TRANSCRIPT" ]; then
-  echo "[$(date)] transcript not found: $TRANSCRIPT" >>"$ERROR_LOG"
+  # Claude Code: ~/.claude/projects/-Users-foo-bar/<session>.jsonl
+  local claude_encoded="-$(echo "$GIT_ROOT" | sed 's|^/||; s|/|-|g')"
+  local claude_transcript="$HOME/.claude/projects/$claude_encoded/$SESSION_ID.jsonl"
+  if [ -f "$claude_transcript" ]; then
+    printf '%s' "$claude_transcript"
+    return 0
+  fi
+
+  # Cursor: ~/.cursor/projects/Users-foo-bar/agent-transcripts/<session>/<session>.jsonl
+  local cursor_encoded
+  cursor_encoded="$(echo "$GIT_ROOT" | sed 's|^/||; s|/|-|g')"
+  local cursor_transcript="$HOME/.cursor/projects/$cursor_encoded/agent-transcripts/$SESSION_ID/$SESSION_ID.jsonl"
+  if [ -f "$cursor_transcript" ]; then
+    printf '%s' "$cursor_transcript"
+    return 0
+  fi
+
+  return 1
+}
+
+TRANSCRIPT="$(resolve_transcript)" || {
+  echo "[$(date)] transcript not found for session $SESSION_ID (git root: $GIT_ROOT)" >>"$ERROR_LOG"
   exit 0
-fi
+}
 
 PROCESSED=$(cat "$CURSOR" 2>/dev/null || echo 0)
 TOTAL=$(wc -l <"$TRANSCRIPT" | tr -d ' ')

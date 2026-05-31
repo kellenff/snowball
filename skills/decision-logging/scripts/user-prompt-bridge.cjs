@@ -65,6 +65,11 @@ function matchesApproval(prompt) {
   return false;
 }
 
+// skills/decision-logging/src/hook-payload.ts
+function resolveSessionId(payload) {
+  return (payload.session_id ?? payload.conversation_id ?? "").toString();
+}
+
 // skills/decision-logging/src/write-madr.ts
 var fs = __toESM(require("node:fs"));
 var path = __toESM(require("node:path"));
@@ -2865,7 +2870,7 @@ process.stdin.on("end", () => {
     return;
   }
   const prompt = payload.prompt ?? "";
-  const sessionId = payload.session_id ?? "unknown";
+  const sessionId = resolveSessionId(payload) || "unknown";
   if (!matchesApproval(prompt))
     process.exit(0);
   const gitRoot = detectGitRoot();
