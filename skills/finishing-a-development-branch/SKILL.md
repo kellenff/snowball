@@ -94,7 +94,34 @@ Which option?
 
 ### Step 5: Execute Choice
 
+**For preserve-path options, commit the decision trail first.** Options 1, 2, and 3 run the
+`commit-decision-records` sub-step below before their disposition actions, so the records ride into
+the merge/PR/branch. Option 4 (Discard) skips it.
+
+**`commit-decision-records` sub-step:**
+
+1. Check for uncommitted decision artifacts:
+
+   ```bash
+   git status --short docs/snowball/decisions/
+   ```
+
+2. Empty output → no-op, continue.
+3. Otherwise commit them on the **current feature branch** (untracked `*.md` and/or a modified
+   `observations.jsonl`):
+
+   ```bash
+   git add docs/snowball/decisions/
+   git commit -m "docs: decision records for <feature-branch>"
+   ```
+
+This operationalizes the standing practice: decision records ride with the work they document.
+**Detached HEAD:** the "push as new branch and create a PR" path creates a branch, so commit the records onto it as usual. Only "keep as-is" has no named branch — there, leave the records uncommitted and say so in the report; do not create a dangling commit.
+
 #### Option 1: Merge Locally
+
+Run the `commit-decision-records` sub-step **while still on `<feature-branch>`** (before the
+checkout below), so the merge carries the records into the base branch.
 
 ```bash
 # Get main repo root for CWD safety
@@ -120,6 +147,9 @@ git branch -d <feature-branch>
 
 #### Option 2: Push and Create PR
 
+Run the `commit-decision-records` sub-step on `<feature-branch>` before pushing, so the records are
+part of the PR.
+
 ```bash
 # Push branch
 git push -u origin <feature-branch>
@@ -139,11 +169,17 @@ EOF
 
 #### Option 3: Keep As-Is
 
+Run the `commit-decision-records` sub-step on the branch before reporting back.
+
 Report: "Keeping branch <name>. Worktree preserved at <path>."
 
 **Don't cleanup worktree.**
 
 #### Option 4: Discard
+
+**Skip `commit-decision-records`.** The records are untracked, so `git branch -D` does not remove
+them — they remain in the working tree on the base branch, available to handle manually. Nothing is
+lost.
 
 **Confirm first:**
 ```text
