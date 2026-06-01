@@ -20,6 +20,8 @@
     "skills/recalling-project-context/src/**/*",
     "tests/recalling-project-context/**/*.ts",
     "skills/blast-radius/src/**/*",
-    "tests/blast-radius/**/*.ts"
+    "tests/blast-radius/**/*.ts",
+    "skills/measuring-skill-performance/src/**/*",
+    "tests/measuring-skill-performance/**/*.ts"
   ]
 }

@@ -113,3 +113,17 @@ repos:
         language: system
         files: ^skills/blast-radius/(src|scripts)/|^tests/blast-radius/|^hooks/blast-radius-audit\.(sh|cjs)$
         pass_filenames: false
+
+      - id: build-measuring-skill-performance
+        name: build measuring-skill-performance bundle
+        entry: scripts/build-measuring-skill-performance.sh
+        language: system
+        files: ^skills/measuring-skill-performance/src/.*\.ts$
+        pass_filenames: false
+
+      - id: bun-test-measuring-skill-performance
+        name: bun test measuring-skill-performance
+        entry: bash -c 'cd tests/measuring-skill-performance && bun test'
+        language: system
+        files: ^skills/measuring-skill-performance/(src|scripts)/|^tests/measuring-skill-performance/
+        pass_filenames: false
