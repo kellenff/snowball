@@ -16,6 +16,10 @@
     "skills/decision-logging/src/**/*",
     "tests/decision-logging/**/*.ts",
     "skills/syncing-decisions-to-memory/src/**/*",
-    "tests/syncing-decisions-to-memory/**/*.ts"
+    "tests/syncing-decisions-to-memory/**/*.ts",
+    "skills/recalling-project-context/src/**/*",
+    "tests/recalling-project-context/**/*.ts",
+    "skills/blast-radius/src/**/*",
+    "tests/blast-radius/**/*.ts"
   ]
 }
