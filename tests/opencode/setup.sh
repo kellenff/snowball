@@ -27,6 +27,10 @@ SNOWBALL_PLUGIN_FILE="$SNOWBALL_DIR/.opencode/plugins/snowball.js"
 mkdir -p "$SNOWBALL_DIR"
 cp -r "$REPO_ROOT/skills" "$SNOWBALL_DIR/"
 
+# Install hooks (a real git-package install ships the whole tree; the capture
+# plugin requires hooks/blast-radius-audit.cjs, so the fake install needs it too)
+cp -r "$REPO_ROOT/hooks" "$SNOWBALL_DIR/"
+
 # Install plugin
 mkdir -p "$(dirname "$SNOWBALL_PLUGIN_FILE")"
 cp "$REPO_ROOT/.opencode/plugins/snowball.js" "$SNOWBALL_PLUGIN_FILE"

@@ -6,8 +6,10 @@ import {
   normalizeQuestions,
   resolveSessionId,
   type BaseHookPayload,
+  type NormalizedQuestion,
 } from "./hook-payload";
 import { writeMadr, type MadrInput } from "./write-madr";
+import { detectGitRoot } from "./git-root";
 
 const ERROR_LOG = path.join(os.homedir(), ".snowball", "decision-logging-errors.log");
 
@@ -16,6 +18,14 @@ interface AskUserQuestionPayload extends BaseHookPayload {
   tool_input?: unknown;
   tool_response?: unknown;
   tool_output?: unknown;
+}
+
+export interface AskUserQuestionInput {
+  questions: NormalizedQuestion[];
+  answers: Record<string, string>;
+  sessionId: string;
+  sourceEventId: string;
+  gitRoot: string;
 }
 
 function logError(msg: string): void {
@@ -27,26 +37,14 @@ function logError(msg: string): void {
   }
 }
 
-let raw = "";
-process.stdin.on("data", (chunk: Buffer | string) => {
-  raw += chunk;
-});
-process.stdin.on("end", () => {
-  let payload: AskUserQuestionPayload;
-  try {
-    payload = JSON.parse(raw) as AskUserQuestionPayload;
-  } catch (err) {
-    logError(`ask-user-question-bridge: bad JSON payload: ${(err as Error).message}`);
-    process.exit(0);
-    return;
-  }
-
-  const questions = normalizeQuestions(payload.tool_input);
-  const answers = normalizeAnswers(questions, payload.tool_response, payload.tool_output);
-  const sessionId = resolveSessionId(payload) || "unknown";
-  const sourceEventId = payload.tool_use_id ?? "unknown";
-
+/**
+ * Pure handler: write one MADR per answered question. `gitRoot` is required
+ * (callers resolve it explicitly). Returns the number of MADRs written.
+ */
+export function handleAskUserQuestion(input: AskUserQuestionInput): number {
+  const { questions, answers, sessionId, sourceEventId, gitRoot } = input;
   const isoDate = new Date().toISOString();
+  let written = 0;
 
   for (const q of questions) {
     const answer = answers[q.question];
@@ -57,7 +55,7 @@ process.stdin.on("end", () => {
       description: "",
     };
 
-    const input: MadrInput = {
+    const madr: MadrInput = {
       title: String(q.question).replace(/\?+$/, ""),
       status: "accepted",
       date: isoDate,
@@ -83,11 +81,46 @@ process.stdin.on("end", () => {
     };
 
     try {
-      writeMadr(input);
+      writeMadr(madr, { gitRoot });
+      written += 1;
     } catch (err) {
       logError(`ask-user-question-bridge: writeMadr failed: ${(err as Error).message}`);
     }
   }
 
-  process.exit(0);
-});
+  return written;
+}
+
+// CLI entry: read the Claude/Cursor PostToolUse payload from stdin. cwd is the
+// project root (the shell shim `cd`s in), so detectGitRoot resolves correctly.
+function runCli(): void {
+  let raw = "";
+  process.stdin.on("data", (chunk: Buffer | string) => {
+    raw += chunk;
+  });
+  process.stdin.on("end", () => {
+    let payload: AskUserQuestionPayload;
+    try {
+      payload = JSON.parse(raw) as AskUserQuestionPayload;
+    } catch (err) {
+      logError(`ask-user-question-bridge: bad JSON payload: ${(err as Error).message}`);
+      process.exit(0);
+      return;
+    }
+
+    const questions = normalizeQuestions(payload.tool_input);
+    const answers = normalizeAnswers(questions, payload.tool_response, payload.tool_output);
+    const sessionId = resolveSessionId(payload) || "unknown";
+    const sourceEventId = payload.tool_use_id ?? "unknown";
+
+    const gitRoot = detectGitRoot();
+    if (!gitRoot) process.exit(0);
+
+    handleAskUserQuestion({ questions, answers, sessionId, sourceEventId, gitRoot });
+    process.exit(0);
+  });
+}
+
+if (require.main === module) {
+  runCli();
+}
