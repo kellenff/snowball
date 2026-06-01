@@ -35,7 +35,14 @@ escape_for_json() {
 
 using_snowball_escaped=$(escape_for_json "$using_snowball_content")
 warning_escaped=$(escape_for_json "$warning_message")
-session_context="<EXTREMELY_IMPORTANT>\nYou have snowball.\n\n**Below is the full content of your 'snowball:using-snowball' skill - your introduction to using skills. For all other skills, use the 'Skill' tool:**\n\n${using_snowball_escaped}\n\n${warning_escaped}\n</EXTREMELY_IMPORTANT>"
+
+memory_excerpt=""
+if memory_raw="$("${SCRIPT_DIR}/adr-digest" 2>/dev/null || true)" && [ -n "$memory_raw" ]; then
+  memory_excerpt="\n\n${memory_raw}"
+fi
+memory_escaped=$(escape_for_json "$memory_excerpt")
+
+session_context="<EXTREMELY_IMPORTANT>\nYou have snowball.\n\n**Below is the full content of your 'snowball:using-snowball' skill - your introduction to using skills. For all other skills, use the 'Skill' tool:**\n\n${using_snowball_escaped}\n\n${warning_escaped}${memory_escaped}\n</EXTREMELY_IMPORTANT>"
 
 # Output context injection as JSON.
 # Cursor hooks expect additional_context (snake_case).

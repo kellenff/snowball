@@ -35,14 +35,14 @@ repos:
         entry: oxlint
         language: system
         types_or: [ts, javascript]
-        exclude: ^skills/(decision-logging|structured-argumentation|syncing-decisions-to-memory)/scripts/
+        exclude: ^skills/(decision-logging|structured-argumentation|syncing-decisions-to-memory|recalling-project-context)/scripts/
 
       - id: oxfmt
         name: oxfmt
         entry: oxfmt
         language: system
         types_or: [ts, javascript, json, yaml]
-        exclude: ^skills/(decision-logging|structured-argumentation|syncing-decisions-to-memory)/scripts/
+        exclude: ^skills/(decision-logging|structured-argumentation|syncing-decisions-to-memory|recalling-project-context)/scripts/
 
       - id: build-decision-logging
         name: build decision-logging bundles
@@ -84,4 +84,18 @@ repos:
         entry: bash -c 'cd tests/syncing-decisions-to-memory && bun test'
         language: system
         files: ^skills/syncing-decisions-to-memory/(src|scripts)/|^tests/syncing-decisions-to-memory/
+        pass_filenames: false
+
+      - id: build-recalling-project-context
+        name: build recalling-project-context bundle
+        entry: scripts/build-recalling-project-context.sh
+        language: system
+        files: ^skills/recalling-project-context/src/.*\.ts$
+        pass_filenames: false
+
+      - id: bun-test-recalling-project-context
+        name: bun test recalling-project-context
+        entry: bash -c 'cd tests/recalling-project-context && bun test'
+        language: system
+        files: ^skills/recalling-project-context/(src|scripts)/|^tests/recalling-project-context/
         pass_filenames: false

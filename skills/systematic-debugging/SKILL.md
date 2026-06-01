@@ -68,6 +68,7 @@ You MUST complete each phase before proceeding to the next.
    - Git diff, recent commits
    - New dependencies, config changes
    - Environmental differences
+   - **OPTIONAL:** Invoke `snowball:recalling-project-context` scoped to the failing area — prior MADRs may document constraints or known pitfalls. When codebase-memory is indexed, `trace_path` on the failing symbol (after recall) can show inbound callers with risk labels.
 
 4. **Gather Evidence in Multi-Component Systems**
 
