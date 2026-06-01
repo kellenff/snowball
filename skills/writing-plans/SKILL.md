@@ -136,6 +136,18 @@ After writing the complete plan, look at the spec with fresh eyes and check the 
 
 If you find issues, fix them inline. No need to re-review — just fix and move on. If you find a spec requirement with no task, add the task.
 
+## Blast-radius before handoff
+
+After the plan is written and self-reviewed, **before** the Execution Handoff:
+
+1. Invoke `snowball:blast-radius` with preset `design`.
+2. Build `changeSet.paths` from every file path listed in the plan's **File Structure** and **Task N: Files** sections (dedupe; paths relative to repo root).
+3. Run `compute-and-persist`, then `render`, and attach the report to the handoff message.
+4. If the decomposition flag appears (⚠️ scope may warrant splitting), say so explicitly and recommend splitting before the operator picks an execution mode.
+5. **Report-only** — does not block handoff. Skip for trivial one-file plans (same self-gating as blast-radius). If the operator skips, use `explicitSkip: true`.
+
+This right-sizes the plan against the design's scope estimate before execution starts.
+
 ## Execution Handoff
 
 After saving the plan, offer execution choice:
