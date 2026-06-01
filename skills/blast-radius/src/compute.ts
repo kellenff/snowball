@@ -1,6 +1,6 @@
 import type { BlastRadiusEnvelope, ComputeInput, ReasonCode } from "./envelope";
 import { assertEnvelope } from "./envelope";
-import { tryGraphBackend } from "./graph-backend-stub";
+import { tryGraphBackend } from "./graph-backend";
 import { computeHeuristic } from "./heuristic-backend";
 import { listChangedFiles, mergePathLists } from "./git-diff";
 import { renderOperatorReport } from "./render";
@@ -31,7 +31,11 @@ export function computeBlastRadius(input: ComputeInput): BlastRadiusEnvelope {
     return env;
   }
 
-  const graph = tryGraphBackend({ gitRoot: input.gitRoot, paths });
+  const graph = tryGraphBackend({
+    gitRoot: input.gitRoot,
+    paths,
+    proposedAction: input.changeSet.proposedAction,
+  });
   if (graph.ok && graph.output) {
     const env: BlastRadiusEnvelope = {
       status: "success",

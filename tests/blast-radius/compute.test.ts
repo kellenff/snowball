@@ -18,7 +18,7 @@ function makeTempRepo(): string {
 }
 
 describe("computeBlastRadius", () => {
-  test("heuristic success with explicit paths", () => {
+  test("falls back to heuristic when repo is not indexed", () => {
     const repo = makeTempRepo();
     try {
       const env = computeBlastRadius({
@@ -28,7 +28,7 @@ describe("computeBlastRadius", () => {
       });
       expect(env.status).toBe("degraded");
       expect(env.backend).toBe("heuristic");
-      expect(env.reason).toBe("graph-unavailable");
+      expect(["repo-not-indexed", "graph-unavailable"]).toContain(env.reason);
       expect(env.output?.change_scope.fileCount).toBe(2);
     } finally {
       fs.rmSync(repo, { recursive: true, force: true });

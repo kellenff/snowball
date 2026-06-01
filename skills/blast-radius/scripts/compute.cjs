@@ -109,11 +109,6 @@ function assertEnvelope(envelope) {
   }
 }
 
-// skills/blast-radius/src/graph-backend-stub.ts
-function tryGraphBackend(_input) {
-  return { ok: false, reason: "graph-unavailable" };
-}
-
 // skills/blast-radius/src/schema.ts
 var THRESHOLDS = {
   changeScope: {
@@ -240,11 +235,150 @@ function computeHeuristic(input) {
   };
 }
 
-// skills/blast-radius/src/git-diff.ts
+// skills/blast-radius/src/mcp-cli.ts
 var import_node_child_process = require("node:child_process");
+var path = __toESM(require("node:path"));
+var DEFAULT_TIMEOUT_MS = 15000;
+function resolveCliBinary() {
+  if (process.env.BLAST_RADIUS_DISABLE_GRAPH === "1")
+    return null;
+  const configured = process.env.CBM_CLI_PATH?.trim();
+  if (configured)
+    return configured;
+  return "codebase-memory-mcp";
+}
+function runCliTool(binary, tool, args) {
+  try {
+    const out = import_node_child_process.execFileSync(binary, ["cli", tool, JSON.stringify(args)], {
+      encoding: "utf8",
+      timeout: DEFAULT_TIMEOUT_MS,
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    const trimmed = out.trim();
+    if (!trimmed)
+      return null;
+    return JSON.parse(trimmed);
+  } catch {
+    return null;
+  }
+}
+function createDefaultCodebaseMemoryClient() {
+  const binary = resolveCliBinary();
+  if (!binary) {
+    return {
+      isAvailable: () => false,
+      listProjects: () => [],
+      detectChanges: () => null,
+      searchGraph: () => null
+    };
+  }
+  return {
+    isAvailable: () => {
+      try {
+        import_node_child_process.execFileSync(binary, ["--version"], {
+          encoding: "utf8",
+          timeout: 5000,
+          stdio: ["ignore", "pipe", "ignore"]
+        });
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    listProjects: () => {
+      const parsed = runCliTool(binary, "list_projects", {});
+      return parsed?.projects ?? [];
+    },
+    detectChanges: (project, opts) => runCliTool(binary, "detect_changes", {
+      project,
+      scope: opts?.scope ?? "impact",
+      ...opts?.base_branch ? { base_branch: opts.base_branch } : {}
+    }),
+    searchGraph: (project, opts) => runCliTool(binary, "search_graph", {
+      project,
+      ...opts
+    })
+  };
+}
+function resolveProjectName(projects, gitRoot) {
+  const normalizedRoot = path.resolve(gitRoot);
+  for (const p of projects) {
+    if (path.resolve(p.root_path) === normalizedRoot)
+      return p.name;
+  }
+  return null;
+}
+
+// skills/blast-radius/src/graph-backend.ts
+function failureImpactFromFanOut(estimatedFanOut, sensitivePaths) {
+  let level = "low";
+  if (estimatedFanOut >= THRESHOLDS.failureImpact.highFanOut)
+    level = "high";
+  else if (estimatedFanOut >= THRESHOLDS.failureImpact.mediumFanOut || sensitivePaths.length > 0) {
+    level = "medium";
+  }
+  return { estimatedFanOut, sensitivePaths, level };
+}
+function estimateGraphFanOut(client, project, paths, detect) {
+  const seen = new Set;
+  let fanOut = 0;
+  for (const sym of detect?.impacted_symbols ?? []) {
+    const key = sym.name ?? sym.file ?? "";
+    if (key && !seen.has(key)) {
+      seen.add(key);
+      fanOut += 1;
+    }
+  }
+  for (const filePath of paths) {
+    const graph = client.searchGraph(project, {
+      file_pattern: filePath,
+      label: "Function",
+      limit: 50
+    });
+    if (graph === null)
+      continue;
+    for (const node of graph.results ?? []) {
+      const qn = node.qualified_name ?? node.name;
+      if (!qn || seen.has(qn))
+        continue;
+      seen.add(qn);
+      fanOut += Math.max(1, node.in_degree ?? 0);
+    }
+  }
+  return fanOut;
+}
+function tryGraphBackend(input, client = createDefaultCodebaseMemoryClient()) {
+  if (!client.isAvailable()) {
+    return { ok: false, reason: "graph-unavailable" };
+  }
+  const project = resolveProjectName(client.listProjects(), input.gitRoot);
+  if (!project) {
+    return { ok: false, reason: "repo-not-indexed" };
+  }
+  const detect = client.detectChanges(project, { scope: "impact" });
+  if (detect === null) {
+    return { ok: false, reason: "mcp-timeout" };
+  }
+  const base = computeHeuristic({
+    paths: input.paths,
+    proposedAction: input.proposedAction
+  });
+  const sensitivePaths = input.paths.filter((p) => matchesAnyPattern(p, SENSITIVE_PATH_PATTERNS));
+  const estimatedFanOut = estimateGraphFanOut(client, project, input.paths, detect);
+  return {
+    ok: true,
+    output: {
+      ...base,
+      failure_impact: failureImpactFromFanOut(estimatedFanOut, sensitivePaths)
+    }
+  };
+}
+
+// skills/blast-radius/src/git-diff.ts
+var import_node_child_process2 = require("node:child_process");
 function listChangedFiles(gitRoot, gitRef = "HEAD") {
   try {
-    const out = import_node_child_process.execFileSync("git", ["diff", "--name-only", gitRef], {
+    const out = import_node_child_process2.execFileSync("git", ["diff", "--name-only", gitRef], {
       cwd: gitRoot,
       stdio: ["ignore", "pipe", "ignore"]
     });
@@ -314,13 +448,13 @@ function renderOperatorReport(envelope, preset) {
 
 // skills/blast-radius/src/write-envelope.ts
 var fs = __toESM(require("node:fs"));
-var path = __toESM(require("node:path"));
+var path2 = __toESM(require("node:path"));
 function envelopeScratchPath(gitRoot) {
-  return path.join(gitRoot, ".snowball", "blast-radius", "last.json");
+  return path2.join(gitRoot, ".snowball", "blast-radius", "last.json");
 }
 function writeLastEnvelope(gitRoot, envelope) {
   const target = envelopeScratchPath(gitRoot);
-  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.mkdirSync(path2.dirname(target), { recursive: true });
   fs.writeFileSync(target, JSON.stringify(envelope, null, 2) + `
 `, "utf8");
   return target;
@@ -346,7 +480,11 @@ function computeBlastRadius(input) {
     assertEnvelope(env);
     return env;
   }
-  const graph = tryGraphBackend({ gitRoot: input.gitRoot, paths });
+  const graph = tryGraphBackend({
+    gitRoot: input.gitRoot,
+    paths,
+    proposedAction: input.changeSet.proposedAction
+  });
   if (graph.ok && graph.output) {
     const env = {
       status: "success",

@@ -203,7 +203,7 @@ After alternatives are stable and before the user picks one:
 
 1. Invoke `snowball:blast-radius` once per approach (or once for the recommended approach if the others are clearly smaller — use judgment, but never skip for non-trivial cross-cutting work).
 2. Pass projected paths the approach would touch as `changeSet.paths`.
-3. Surface the rendered report under each approach heading. The operator should see `backend: heuristic` honestly until the graph backend lands (Plan 3).
+3. Surface the rendered report under each approach heading. When the repo is indexed in codebase-memory, the operator should see `backend: graph`; otherwise expect `backend: heuristic` with an honest reason.
 4. If the decomposition flag appears, call it out explicitly when making your recommendation.
 
 This is **report-only** at design-time — it does not block brainstorming.
