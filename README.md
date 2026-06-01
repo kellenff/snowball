@@ -25,7 +25,7 @@ Snowball is two interlocking processes.
 
 The **forward spine** is a chain of gates that carries work from idea to merged code. Each gate refuses to advance until its precondition is met, so the agent cannot run ahead of its own justification.
 
-The **decision spine** runs underneath, passively. Hooks watch the events the skills already emit and record each decision, with no skill modified and nobody having to remember to log. At completion the records are committed onto the same branch as the code, then distilled into a codebase-memory knowledge graph that a later session can query.
+The **decision spine** runs underneath, passively. Hooks watch the events the skills already emit and record each decision, with no skill modified and nobody having to remember to log. At completion the records are committed onto the same branch as the code, distilled into a codebase-memory project ADR, and recalled at the next session via `recalling-project-context` plus a session-start ADR digest.
 
 ```mermaid
 flowchart TD
@@ -41,7 +41,7 @@ flowchart TD
   subgraph DEC["Decision spine: passive capture"]
     H1["hooks capture<br/>MADRs + observations"] --> H2["commit onto the branch"]
     H2 --> H3["distill into codebase-memory ADR"]
-    H3 --> H4["next session recalls why"]
+    H3 --> H4["recall via recalling-project-context"]
   end
   B -.->|emits decisions| H1
   G -.->|emits decisions| H1
@@ -69,7 +69,7 @@ The fork is at **v5.4.0**. It began as a near-mirror of `superpowers` v5.1.0 and
 | v5.2.0 | `structured-argumentation`: argdown as an intermediate representation, with a bundled parser-validator |
 | v5.3.0 | M2 brain-jam companion: an optional second-model (MiniMax) brainstorming partner |
 | v5.4.0 | `decision-logging` (hook-driven capture) and `syncing-decisions-to-memory` (ADR distillation) |
-| in progress | completion-flow decision trail: commit records at finish, then offer codebase-memory ADR sync |
+| in progress | `recalling-project-context` (ADR/MADR recall loop) + completion-flow decision trail |
 
 Everything else tracks upstream closely. Skill content, the bootstrap design, and the multi-harness adapter pattern all originate there.
 
@@ -79,7 +79,7 @@ Everything else tracks upstream closely. Skill content, the bootstrap design, an
 
 - A markdown skills library that loads as agent behavior via session-start context injection.
 - A multi-harness plugin: one `skills/` directory, six per-harness manifests, one shared bootstrap script that adapts its output to each harness.
-- Zero `npm install` for consumers. Skills are plain markdown and the bootstrap is one bash file. Four skills ship local Node scripts with their dependencies pre-bundled into the committed `.cjs` files: `brainstorming` (a stdlib-only visual-companion server), `decision-logging` (hook bridges), `structured-argumentation` (an argdown validator), and `syncing-decisions-to-memory` (ADR prepare and render). Node runs those four; `npm install` is still not required.
+- Zero `npm install` for consumers. Skills are plain markdown and the bootstrap is one bash file. Five skills ship local Node scripts with their dependencies pre-bundled into the committed `.cjs` files: `brainstorming` (a stdlib-only visual-companion server), `decision-logging` (hook bridges), `structured-argumentation` (an argdown validator), `syncing-decisions-to-memory` (ADR prepare and render), and `recalling-project-context` (recall prepare and session-start excerpt). Node runs those five; `npm install` is still not required.
 
 ### What this is not
 
@@ -98,7 +98,7 @@ These are real artifacts that have not been reconciled with the fork's posture. 
 
 ## Skills index
 
-17 skills in five groups. Each links to its `SKILL.md`.
+18 skills in five groups. Each links to its `SKILL.md`.
 
 ### Bootstrap
 
@@ -125,6 +125,7 @@ These are real artifacts that have not been reconciled with the fork's posture. 
 
 - [`decision-logging`](skills/decision-logging/SKILL.md): reference documentation for the hook-driven capture system. Four Claude Code hooks emit operator MADRs and agent observations; the agent does not invoke this skill, the hooks do the work.
 - [`syncing-decisions-to-memory`](skills/syncing-decisions-to-memory/SKILL.md): distills the decision logs into a codebase-memory project ADR via the `manage_adr` MCP tool. It owns the TRADEOFFS and PHILOSOPHY sections and is idempotent.
+- [`recalling-project-context`](skills/recalling-project-context/SKILL.md): recovers ADR rationale and scoped decision logs at session start or before non-trivial design work. Session-start hook injects a capped ADR excerpt from disk; the skill adds live MCP recall and subsystem-scoped MADR filtering.
 - [`structured-argumentation`](skills/structured-argumentation/SKILL.md): argdown as an intermediate representation for the structure of an argument (option comparison, hypothesis elimination, claim decomposition). Ships a parser-only validator bundled from `@argdown/core`.
 
 ### Infrastructure
@@ -148,6 +149,8 @@ All hooks no-op silently outside a git repo. `Stop` and `PreCompact` coordinate 
 Capture hooks are registered for Claude Code and Cursor. Claude uses `AskUserQuestion`; Cursor uses `AskQuestion`. Other harnesses run the forward spine without the decision trail.
 
 At completion, `finishing-a-development-branch` commits the records under `docs/snowball/decisions/` onto the same branch as the work, then offers to run `syncing-decisions-to-memory`. That step is self-gating: if codebase-memory is unreachable or the repo is not indexed, it stops cleanly, so completion never breaks on a missing dependency.
+
+At the next session, the bootstrap hook injects a capped ADR excerpt from `.codebase-memory/adr.md` when present. For live recall and scoped decision logs, invoke `recalling-project-context` before non-trivial design work — it falls back to on-disk MADRs when MCP is absent.
 
 ## Per-harness adapters
 
@@ -227,7 +230,7 @@ The bundles under `skills/*/scripts/*.cjs` are built outputs. Edit the TypeScrip
 
 | Path | What lives here |
 | --- | --- |
-| `skills/` | The 17 skills (see the Skills index). Each is a directory with a `SKILL.md` plus optional `references/`, `scripts/`, and `src/`. |
+| `skills/` | The 18 skills (see the Skills index). Each is a directory with a `SKILL.md` plus optional `references/`, `scripts/`, and `src/`. |
 | `hooks/` | `session-start` (the bash bootstrap), `run-hook.cmd` (polyglot bash/batch wrapper), `hooks.json` (Claude Code registration), `hooks-cursor.json` (Cursor registration). |
 | `.claude-plugin/` | Claude Code plugin manifest plus the dev marketplace manifest. |
 | `.codex-plugin/`, `.cursor-plugin/`, `.opencode/`, `gemini-extension.json`, `.gitlab/duo/` | Per-harness manifests and plugins. |

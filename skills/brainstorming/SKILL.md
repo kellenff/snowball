@@ -21,11 +21,11 @@ Every project goes through this process. A todo list, a single-function utility,
 
 You MUST create a task for each of these items and complete them in order:
 
-1. **Explore project context** — check files, docs, recent commits
+1. **Explore project context** — when the task is non-trivial, invoke `snowball:recalling-project-context` first (if installed) to recover ADR rationale and scoped decision logs; then check files, docs, recent commits
 2. **Offer visual companion** (if topic will involve visual questions) — this is its own message, not combined with a clarifying question. See the Visual Companion section below.
 3. **Offer M2 brain-jam companion** (if the `m2-brainstorm` CLI is installed and the topic may involve cross-cutting trade-offs) — its own message, like the visual companion offer. See the M2 Brain-Jam Companion section below.
 4. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
-5. **Propose 2-3 approaches** — with trade-offs and your recommendation
+5. **Propose 2-3 approaches** — with trade-offs and your recommendation; once alternatives are stable, invoke `snowball:blast-radius` with the `design` preset and attach per-approach scope/impact estimates (see Blast-Radius at design-time below)
 6. **Present design** — in sections scaled to their complexity, get user approval after each section
 7. **Write design doc** — save to `docs/snowball/specs/YYYY-MM-DD-<topic>-design.md` and commit
 8. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
@@ -75,7 +75,8 @@ digraph brainstorming {
 
 **Understanding the idea:**
 
-- Check out the current project state first (files, docs, recent commits)
+- For non-trivial work, invoke `snowball:recalling-project-context` (when installed) before deep exploration — it surfaces ADR TRADEOFFS/PHILOSOPHY and scoped MADRs from prior sessions
+- Check out the current project state (files, docs, recent commits)
 - Before asking detailed questions, assess scope: if the request describes multiple independent subsystems (e.g., "build a platform with chat, file storage, billing, and analytics"), flag this immediately. Don't spend questions refining details of a project that needs to be decomposed first.
 - If the project is too large for a single spec, help the user decompose into sub-projects: what are the independent pieces, how do they relate, what order should they be built? Then brainstorm the first sub-project through the normal design flow. Each sub-project gets its own spec → plan → implementation cycle.
 - For appropriately-scoped projects, ask questions one at a time to refine the idea
@@ -90,6 +91,7 @@ digraph brainstorming {
 - Lead with your recommended option and explain why
 - **OPTIONAL SUB-SKILL:** Once the alternatives are stable and their pros/cons cross-cut (the same consideration applies to multiple options, no single option clearly wins), use `snowball:structured-argumentation` to externalize the option/trade-off graph as a sibling `.argdown` file next to the spec. The graph surfaces the structure of the reasoning you've already done in prose — it does not replace prose deliberation. Skip for simple either/or choices.
 - **OPTIONAL SUB-SKILL (second-model perspective):** At the same decision point, if the M2 brain-jam companion was offered and accepted this session, you may delegate to `m2-brainstorm:brain-jam` for a second-model perspective on the stable alternatives. See the M2 Brain-Jam Companion section below. Complementary to structured-argumentation: argdown structures your own reasoning, the jam brings MiniMax's.
+- **OPTIONAL SUB-SKILL (scope sizing):** At the same decision point, invoke `snowball:blast-radius` with preset `design`. For each approach, pass projected `changeSet.paths` to `compute-and-persist`, render, and attach the scope/impact summary to the approach presentation. Report-only at this gate — it right-sizes the decision before the user picks. Skip for trivial brainstorms (same self-gating as the blast-radius skill). If the operator skips, use `explicitSkip: true`.
 
 **Presenting the design:**
 
@@ -194,3 +196,14 @@ If the binary is absent or not executable, say nothing and proceed with normal b
 **How to run it — delegate, then reclaim control:** Invoke `m2-brainstorm:brain-jam` via the Skill tool, framed as *a second perspective on these specific, already-stable alternatives*. That framing satisfies brain-jam's valid-use criteria and sidesteps its "NOT for from-scratch exploration" guard. When brain-jam reaches its hand-off step ("draft a design doc, hand back to `snowball:brainstorming`, or keep digging?"), always hand the synthesized angles back to brainstorming and continue presenting approaches. Brainstorming stays the driver; brain-jam is a sub-routine that returns angles. If the jam fails (missing API key, CLI error), note it and continue text-only — it never blocks design progress.
 
 **Relationship to structured-argumentation:** Complementary, can chain. Argdown externalizes the structure of *your own* reasoning; brain-jam injects a *second model's* reasoning. A natural combination: jam to surface angles, then argdown to structure the resulting option/trade-off graph.
+
+## Blast-Radius at design-time
+
+After alternatives are stable and before the user picks one:
+
+1. Invoke `snowball:blast-radius` once per approach (or once for the recommended approach if the others are clearly smaller — use judgment, but never skip for non-trivial cross-cutting work).
+2. Pass projected paths the approach would touch as `changeSet.paths`.
+3. Surface the rendered report under each approach heading. The operator should see `backend: heuristic` honestly until the graph backend lands (Plan 3).
+4. If the decomposition flag appears, call it out explicitly when making your recommendation.
+
+This is **report-only** at design-time — it does not block brainstorming.

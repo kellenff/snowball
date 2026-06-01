@@ -41,7 +41,7 @@ flowchart TD
         H1["hooks: AskUserQuestion → MADR<br/>prompt-pattern → MADR<br/>Stop / PreCompact → observations.jsonl"]
         H2["commit-decision-records<br/>(records ride onto the branch)"]
         H3["syncing-decisions-to-memory<br/>→ codebase-memory ADR"]
-        H4["future session recalls rationale"]
+        H4["recalling-project-context<br/>+ session-start ADR digest"]
         H1 --> H2 --> H3 --> H4
     end
 
@@ -101,8 +101,20 @@ which distills the operator MADRs + filtered observations into codebase-memory's
 project **ADR** via the `manage_adr` MCP tool. It owns the **TRADEOFFS** and
 **PHILOSOPHY** sections and is idempotent — a no-change re-run is a no-op.
 
-**Recall** — a later session queries codebase-memory and recovers the rationale
-behind the code it is about to change, closing the loop.
+**Recall** — [`recalling-project-context`](../../skills/recalling-project-context/SKILL.md)
+closes the loop:
+
+1. **Session start** — the bootstrap hook injects a capped excerpt from
+   `.codebase-memory/adr.md` (when present on disk) plus a pointer to the recall
+   skill for live MCP queries.
+2. **Before non-trivial design work** — brainstorming step 1 and the
+   `using-snowball` flowchart invoke the recall skill (opt-in, not a hard gate).
+   It reads ADR TRADEOFFS/PHILOSOPHY via `manage_adr` when codebase-memory is
+   indexed, falls back to on-disk MADRs when not, and optionally scopes MADRs to
+   a subsystem path or keyword.
+3. **During planning/debugging** — `writing-plans` cross-checks specs against
+   ADR TRADEOFFS; `systematic-debugging` may scope recall to the failing area
+   and follow with `trace_path` when the graph is indexed.
 
 ## Cross-cutting sub-skills
 
@@ -115,6 +127,9 @@ These aren't lifecycle stages; they're reached *within* a stage on demand:
   Opt-in, only when branching exceeds working memory. A captured decision can
   attach its `.argdown` map via `snowball.argdown_path` (schema v1.1). This very
   document's companion map is an example.
+- [`recalling-project-context`](../../skills/recalling-project-context/SKILL.md) —
+  recovers ADR rationale and scoped decision logs at session start or before
+  non-trivial design work. Self-gates when codebase-memory is absent.
 - **M2 brain-jam** (when the `m2-brainstorm` CLI is installed) — a second-model
   (MiniMax) perspective offered once per substantive brainstorm, reached only at
   the "propose 2-3 approaches" step on genuinely cross-cutting trade-offs.
@@ -155,9 +170,10 @@ The repo backing this process is, deliberately, **markdown-first**:
 - Indexed as `Users-kellen-Projects-snowball`: ~2,550 nodes / ~2,820 edges, of
   which **1,396 are `Section` nodes** — the skills *are* prose, parsed as
   document sections, not code.
-- Only ~154 `Function` nodes across the three skills that ship local Node
+- Only ~154 `Function` nodes across the skills that ship local Node
   scripts (`brainstorming` visual server, `decision-logging` hook bridges,
-  `structured-argumentation` validator). Everything else is behavior expressed as
+  `structured-argumentation` validator, `syncing-decisions-to-memory` ADR sync,
+  `recalling-project-context` recall prep). Everything else is behavior expressed as
   instructions.
 - The process leaves a paper trail on disk: `docs/snowball/specs/` (designs),
   `docs/snowball/plans/` (implementation plans), `docs/snowball/decisions/`

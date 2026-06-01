@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Emit a capped ADR/decision excerpt for session-start context injection.
+# Reads .codebase-memory/adr.md from disk — no MCP calls.
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PLUGIN_ROOT="${SNOWBALL_PLUGIN_ROOT:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
+RECALL_SCRIPT="${PLUGIN_ROOT}/skills/recalling-project-context/scripts/recall-context.cjs"
+
+escape_for_json() {
+  local s="$1"
+  s="${s//\\/\\\\}"
+  s="${s//\"/\\\"}"
+  s="${s//$'\n'/\\n}"
+  s="${s//$'\r'/\\r}"
+  s="${s//$'\t'/\\t}"
+  printf '%s' "$s"
+}
+
+git_root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+if [ -z "$git_root" ]; then
+  exit 0
+fi
+
+adr_file="${git_root}/.codebase-memory/adr.md"
+if [ ! -f "$adr_file" ] && [ ! -d "${git_root}/docs/snowball/decisions" ]; then
+  exit 0
+fi
+
+if [ ! -f "$RECALL_SCRIPT" ]; then
+  exit 0
+fi
+
+payload="$(printf '{"gitRoot":"%s"}' "$(escape_for_json "$git_root")")"
+excerpt="$(printf '%s' "$payload" | node "$RECALL_SCRIPT" excerpt 2>/dev/null || true)"
+if [ -z "$excerpt" ]; then
+  exit 0
+fi
+
+printf '%s' "$excerpt"

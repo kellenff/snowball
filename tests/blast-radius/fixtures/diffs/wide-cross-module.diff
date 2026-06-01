@@ -1,0 +1,5 @@
+skills/blast-radius/src/compute.ts
+tests/blast-radius/compute.test.ts
+hooks/blast-radius-audit.sh
+scripts/build-blast-radius.sh
+.pre-commit-config.yaml

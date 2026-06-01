@@ -54,6 +54,8 @@ digraph skill_flow {
     "About to EnterPlanMode?" [shape=doublecircle];
     "Already brainstormed?" [shape=diamond];
     "Invoke brainstorming skill" [shape=box];
+    "Non-trivial task?" [shape=diamond];
+    "Invoke recalling-project-context" [shape=box];
     "Might any skill apply?" [shape=diamond];
     "Invoke Skill tool" [shape=box];
     "Announce: 'Using [skill] to [purpose]'" [shape=box];
@@ -67,7 +69,11 @@ digraph skill_flow {
     "Already brainstormed?" -> "Might any skill apply?" [label="yes"];
     "Invoke brainstorming skill" -> "Might any skill apply?";
 
-    "User message received" -> "Might any skill apply?";
+    "User message received" -> "Non-trivial task?";
+    "Non-trivial task?" -> "Invoke recalling-project-context" [label="yes, if skill installed"];
+    "Non-trivial task?" -> "Might any skill apply?" [label="no / trivial"];
+    "Invoke recalling-project-context" -> "Might any skill apply?";
+
     "Might any skill apply?" -> "Invoke Skill tool" [label="yes, even 1%"];
     "Might any skill apply?" -> "Respond (including clarifications)" [label="definitely not"];
     "Invoke Skill tool" -> "Announce: 'Using [skill] to [purpose]'";

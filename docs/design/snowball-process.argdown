@@ -1,7 +1,7 @@
 // The snowball process — why it is shaped the way it is.
 // This externalizes the design rationale already argued in prose across the
 // skills (using-snowball, brainstorming, finishing-a-development-branch,
-// decision-logging, syncing-decisions-to-memory). It is a structural map of an
+// decision-logging, syncing-decisions-to-memory, recalling-project-context). It is a structural map of an
 // argument made elsewhere, not the reasoning itself.
 
 [Trustworthy-Agent-Dev]: Snowball makes agent-driven development trustworthy, reviewable, and resumable across sessions and harnesses.
@@ -32,7 +32,7 @@
 [Passive-Capture]: Hooks capture operator decisions (MADR markdown) and agent observations (JSONL) automatically — no skill is modified and no one has to remember to log.
 [Records-Ride-With-Work]: At completion, the decision trail under docs/snowball/decisions/ is committed onto the same branch as the work it documents (preserve paths only).
 [Distilled-To-Memory]: syncing-decisions-to-memory distills the logs into codebase-memory's project ADR, owning the TRADEOFFS and PHILOSOPHY sections.
-[Future-Sessions-Recall]: A later session queries codebase-memory and recovers the rationale behind the code it is about to change.
+[Future-Sessions-Recall]: recalling-project-context (plus a session-start ADR digest from disk) lets a later session recover TRADEOFFS/PHILOSOPHY and scoped MADRs before changing code.
 
 <Decision-Spine>: A passive capture loop preserves why each choice was made and feeds it back to the next agent.
   (1) [Passive-Capture]
