@@ -10,25 +10,26 @@
 <Process-Holds>: The two-spine snowball process produces trustworthy, reviewable, and resumable agent work.
   (1) The forward spine gates work so it cannot advance past its own justification.
   (2) The decision spine captures rationale passively and returns it to future work.
-  (3) A process that both gates execution and preserves rationale yields work that is trustworthy, reviewable, and resumable.
+  (3) Blast-radius analysis at design, plan, pre-execution, and completion makes scope and risk evidence-backed at the moments that matter.
+  (4) A process that gates execution, preserves rationale, and surfaces scope/risk yields work that is trustworthy, reviewable, and resumable.
   -----
-  (4) The two-spine snowball process produces trustworthy, reviewable, and resumable agent work.
+  (5) The two-spine snowball process produces trustworthy, reviewable, and resumable agent work.
 
 # Steelmanned objections
 
 <Ceremony-Tax>: The hard design gate fires on every task regardless of simplicity, so trivial work pays a present-approve-plan-test tax that trains operators to rubber-stamp the gate where it matters least.
 <Process-Theater>: Gates check that a step happened, not that it was done well, so an agent can perform the ritual — announce, todo, assert success — without real rigor, laundering sloppy work behind a veneer of method.
-<Capture-Noise>: Passive capture emits an MADR per click and observations per transcript tail, much of it low-signal, polluting downstream memory; the Stop worker also reads the full transcript, a privacy hazard.
-<Team-Misfit>: The richest capture (AskUserQuestion MADRs) is Claude-Code-only and assumes an interactive operator approving gates, so async teams working off Claude Code get little of the decision spine.
-<Infra-Dependence>: The resumability promise leans on codebase-memory being indexed and reachable; if that infra is down or the repo is unindexed, rationale is captured but never returned.
+<Capture-Noise>: Passive capture emits an MADR per click, observations per transcript tail, and blast-radius envelopes on approval, much of it low-signal, polluting downstream memory; the Stop worker also reads the full transcript, a privacy hazard.
+<Harness-Gap>: The richest capture (AskUserQuestion MADRs, blast-radius audit) is Claude Code and Cursor only and assumes an interactive operator approving gates, so async teams on other harnesses get little of the decision spine and lose audit envelopes even when blast-radius ran at the gate.
+<Infra-Dependence>: The resumability promise and blast-radius graph backend lean on codebase-memory being indexed and reachable; if that infra is down or the repo is unindexed, rationale is captured but recall and graph-confidence degrade.
 
 # Rebuttals
 
-<Scaled-Ceremony>: The enforced gate is only "present a design + get approval" — explicitly a few sentences for simple work; worktrees fall back to cwd, argdown and the M2 jam are opt-in, and user instructions outrank every skill, so the floor is one sentence the operator can lower further while still leaving a reviewable artifact.
-<Artifacts-Expose-Theater>: Every gate emits an inspectable artifact — shown command output rather than a claim, a reviewable diff, on-disk MADRs — so ritual without rigor produces evidence a reviewer can catch; the floor rises even though rigor is never guaranteed.
+<Scaled-Ceremony>: The enforced gate is only "present a design + get approval" — explicitly a few sentences for simple work; worktrees fall back to cwd, argdown and the M2 jam and blast-radius are opt-in or self-gating, and user instructions outrank every skill, so the floor is one sentence the operator can lower further while still leaving a reviewable artifact.
+<Artifacts-Expose-Theater>: Every gate emits an inspectable artifact — shown command output rather than a claim, a reviewable diff, on-disk MADRs, blast-radius envelopes with honest backend — so ritual without rigor produces evidence a reviewer can catch; the floor rises even though rigor is never guaranteed.
 <Filtered-Two-Stream>: High-confidence MADRs and low-confidence JSONL are separated by design; syncing-decisions-to-memory filters observations before distilling, owns only TRADEOFFS and PHILOSOPHY, and is idempotent, while privacy has a documented review-and-gitignore escape hatch.
-<Graceful-Degradation>: The forward spine runs on seven harnesses and the decision spine is additive — its absence breaks nothing; where AskUserQuestion is unavailable the Stop/PreCompact worker still runs and MADRs can be hand-authored, so capture degrades rather than collapses.
-<Durable-On-Disk>: MADRs and observations.jsonl are the source of truth and ride with the work on the branch; codebase-memory's ADR is a derived cache and the sync self-gates when codebase-memory is unreachable, so infra outage degrades recall convenience, not rationale preservation.
+<Graceful-Degradation>: The forward spine runs on seven harnesses; the decision spine and blast-radius skill are additive — their absence breaks nothing; where AskUserQuestion is unavailable the Stop/PreCompact worker still runs, MADRs can be hand-authored, and blast-radius still surfaces at gates without audit capture; capture degrades rather than collapses.
+<Durable-On-Disk>: MADRs and observations.jsonl are the source of truth and ride with the work on the branch; codebase-memory's ADR is a derived cache, sync and blast-radius self-gate to heuristics when MCP is unreachable, so infra outage degrades recall convenience and graph confidence, not rationale preservation or the pre-execution safety surface.
 
 # Dialectic
 
@@ -38,7 +39,7 @@
   <- <Ceremony-Tax>
   <- <Process-Theater>
   <- <Capture-Noise>
-  <- <Team-Misfit>
+  <- <Harness-Gap>
   <- <Infra-Dependence>
 
 <Ceremony-Tax>
@@ -50,7 +51,7 @@
 <Capture-Noise>
   <- <Filtered-Two-Stream>
 
-<Team-Misfit>
+<Harness-Gap>
   <- <Graceful-Degradation>
 
 <Infra-Dependence>
@@ -63,6 +64,6 @@
 // steelmanning means naming what the rebuttals concede rather than what they
 // eliminate.
 
-[Phase-1-Capture]: Cross-harness capture and filter-quality-at-scale are genuinely Phase-1-limited.
+[Phase-1-Capture]: Cross-harness capture, audit envelopes on non-CC/Cursor harnesses, and filter-quality-at-scale are genuinely Phase-1-limited.
 [Opt-In-Hygiene]: Privacy hygiene and ceremony-scaling depend on the operator actually opting in.
 [Floor-Not-Ceiling]: Every rebuttal raises the floor; none guarantees a determined operator can't still produce shallow work.

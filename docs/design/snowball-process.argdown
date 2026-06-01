@@ -1,8 +1,9 @@
 // The snowball process — why it is shaped the way it is.
 // This externalizes the design rationale already argued in prose across the
-// skills (using-snowball, brainstorming, finishing-a-development-branch,
-// decision-logging, syncing-decisions-to-memory, recalling-project-context). It is a structural map of an
-// argument made elsewhere, not the reasoning itself.
+// skills (using-snowball, brainstorming, writing-plans, executing-plans,
+// finishing-a-development-branch, blast-radius, decision-logging,
+// syncing-decisions-to-memory, recalling-project-context). It is a structural map
+// of an argument made elsewhere, not the reasoning itself.
 
 [Trustworthy-Agent-Dev]: Snowball makes agent-driven development trustworthy, reviewable, and resumable across sessions and harnesses.
 
@@ -27,28 +28,46 @@
   -----
   (8) Work cannot run ahead of its own justification: each stage blocks until the prior one is satisfied.
 
+// --- Scope and risk: one envelope, four lifecycle moments ---
+
+[Scope-At-Design]: blast-radius with the design preset right-sizes approach and plan choices using change-scope and failure-impact (report-only at design and plan handoff).
+[Risk-Before-Action]: blast-radius with the pre-execution preset surfaces medium-or-higher action-risk and unknown-risk errors before a plan step runs, using the same approval phrase as decision-logging.
+[Impact-At-Completion]: blast-radius with the completion preset summarizes the actual diff before merge/PR disposition (report-only; action-risk loud only for push/release-class next steps).
+
+<Scope-And-Risk-Layer>: One composite envelope, rendered per gate, makes scope and reversibility evidence-backed instead of in-context judgment alone.
+  (1) [Scope-At-Design]
+  (2) [Risk-Before-Action]
+  (3) [Impact-At-Completion]
+  -----
+  (4) The forward spine gains structured scope/risk surfacing without replacing its gates.
+
 // --- Decision spine: passive capture that returns rationale to future work ---
 
 [Passive-Capture]: Hooks capture operator decisions (MADR markdown) and agent observations (JSONL) automatically — no skill is modified and no one has to remember to log.
+[Audit-Envelope-Capture]: The blast-radius audit hook appends the last status envelope to observations.jsonl on operator approval and Stop (Claude Code + Cursor), reusing the approval-phrase primitive.
 [Records-Ride-With-Work]: At completion, the decision trail under docs/snowball/decisions/ is committed onto the same branch as the work it documents (preserve paths only).
 [Distilled-To-Memory]: syncing-decisions-to-memory distills the logs into codebase-memory's project ADR, owning the TRADEOFFS and PHILOSOPHY sections.
 [Future-Sessions-Recall]: recalling-project-context (plus a session-start ADR digest from disk) lets a later session recover TRADEOFFS/PHILOSOPHY and scoped MADRs before changing code.
 
 <Decision-Spine>: A passive capture loop preserves why each choice was made and feeds it back to the next agent.
   (1) [Passive-Capture]
-  (2) [Records-Ride-With-Work]
-  (3) [Distilled-To-Memory]
-  (4) [Future-Sessions-Recall]
+  (2) [Audit-Envelope-Capture]
+  (3) [Records-Ride-With-Work]
+  (4) [Distilled-To-Memory]
+  (5) [Future-Sessions-Recall]
   -----
-  (5) Rationale outlives the session that produced it and is recallable, in place, by whoever works the code next.
+  (6) Rationale outlives the session that produced it and is recallable, in place, by whoever works the code next.
 
 <Forward-Spine> +> [Trustworthy-Agent-Dev]
+<Scope-And-Risk-Layer> +> [Trustworthy-Agent-Dev]
 <Decision-Spine> +> [Trustworthy-Agent-Dev]
+
+[Risk-Before-Action] +> [Evidence-Before-Claim]
 
 // --- A tension the process deliberately holds ---
 
 [Gate-Friction]: Hard gates add ceremony, which is pure overhead on a trivially simple task.
 [Gate-Friction] - [Trustworthy-Agent-Dev]
 
-[Scaled-Ceremony]: The gates scale to the work — a "design" can be a few sentences, worktrees fall back to the current dir, and argdown / M2 brain-jam are opt-in sub-skills reached only on cross-cutting calls.
+[Scaled-Ceremony]: The gates scale to the work — a "design" can be a few sentences, worktrees fall back to the current dir, and argdown / M2 brain-jam / blast-radius are opt-in or self-gating sub-skills reached only when the work warrants them.
 [Scaled-Ceremony] - [Gate-Friction]
