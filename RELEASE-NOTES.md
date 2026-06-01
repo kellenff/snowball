@@ -1,5 +1,32 @@
 # Snowball Release Notes
 
+## Unreleased
+
+### OpenCode decision-logging + blast-radius parity
+
+The OpenCode plugin (`.opencode/plugins/snowball.js`) now runs the same
+decision-capture spine as Claude Code and Cursor, instead of only injecting the
+bootstrap and registering the skills path.
+
+- **`chat.message`** captures operator approval phrases as a decision MADR and a
+  blast-radius operator-approval audit (deduped per message id).
+- **`event: session.idle`** runs the blast-radius stop audit once per turn and
+  forks the implicit-extraction worker (detached; no-ops when the `claude` CLI
+  is absent).
+- **`experimental.session.compacting`** runs extraction before context is
+  compacted.
+- **Shared logic, single source of truth** — `user-prompt-bridge.ts` and
+  `ask-user-question-bridge.ts` were refactored to export pure handlers
+  (`handleUserPromptApproval`, `handleAskUserQuestion`) behind a `require.main`
+  guard, so the OpenCode plugin imports the same built `.cjs` the shell hooks
+  run. The git root comes from the plugin's `worktree` context, never `cwd`.
+- **AskUserQuestion capture is intentionally omitted** on OpenCode (no labeled
+  question tool); documented in `docs/README.opencode.md`.
+- **Tests** — new handler unit tests in `tests/decision-logging/handlers.test.ts`
+  and a capture integration test in `tests/opencode/test-capture.{sh,mjs}`;
+  `tests/opencode/setup.sh` now installs `hooks/` so the fake install matches a
+  real git-package layout.
+
 ## v6.0.0 (2026-05-31)
 
 Major release introducing **blast-radius analysis** — a composite change-scope, failure-impact, and action-risk envelope wired into the Snowball lifecycle.

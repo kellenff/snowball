@@ -113,3 +113,10 @@ repos:
         language: system
         files: ^skills/blast-radius/(src|scripts)/|^tests/blast-radius/|^hooks/blast-radius-audit\.(sh|cjs)$
         pass_filenames: false
+
+      - id: test-opencode-plugin
+        name: opencode plugin tests
+        entry: bash -c 'cd tests/opencode && bash run-tests.sh'
+        language: system
+        files: ^\.opencode/plugins/snowball\.js$|^tests/opencode/|^skills/decision-logging/scripts/.*\.cjs$|^hooks/blast-radius-audit\.cjs$
+        pass_filenames: false

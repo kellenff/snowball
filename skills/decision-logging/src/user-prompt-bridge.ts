@@ -13,6 +13,12 @@ interface UserPromptPayload extends BaseHookPayload {
   prompt?: string;
 }
 
+export interface UserPromptApprovalInput {
+  prompt: string;
+  sessionId: string;
+  gitRoot: string;
+}
+
 function logError(msg: string): void {
   try {
     fs.mkdirSync(path.dirname(ERROR_LOG), { recursive: true });
@@ -47,31 +53,19 @@ function isRecentAskUserQuestion(gitRoot: string): boolean {
   return /capture_mechanism:\s*ask-user-question/.test(content);
 }
 
-let raw = "";
-process.stdin.on("data", (chunk: Buffer | string) => {
-  raw += chunk;
-});
-process.stdin.on("end", () => {
-  let payload: UserPromptPayload;
-  try {
-    payload = JSON.parse(raw) as UserPromptPayload;
-  } catch (err) {
-    logError(`user-prompt-bridge: bad JSON: ${(err as Error).message}`);
-    process.exit(0);
-    return;
-  }
-
-  const prompt = payload.prompt ?? "";
-  const sessionId = resolveSessionId(payload) || "unknown";
-
-  if (!matchesApproval(prompt)) process.exit(0);
-
-  const gitRoot = detectGitRoot();
-  if (!gitRoot) process.exit(0);
-  if (isRecentAskUserQuestion(gitRoot)) process.exit(0);
+/**
+ * Pure handler: write an approval MADR when `prompt` matches an approval phrase
+ * and no recent AskUserQuestion MADR already covers this turn. `gitRoot` is
+ * required (callers must resolve it explicitly — see the OpenCode plugin, which
+ * passes the worktree root). Returns whether a MADR was written.
+ */
+export function handleUserPromptApproval(input: UserPromptApprovalInput): boolean {
+  const { prompt, sessionId, gitRoot } = input;
+  if (!matchesApproval(prompt)) return false;
+  if (isRecentAskUserQuestion(gitRoot)) return false;
 
   const isoDate = new Date().toISOString();
-  const input: MadrInput = {
+  const madr: MadrInput = {
     title: "Free-text operator approval",
     status: "accepted",
     date: isoDate,
@@ -94,10 +88,45 @@ process.stdin.on("end", () => {
   };
 
   try {
-    writeMadr(input);
+    writeMadr(madr, { gitRoot });
+    return true;
   } catch (err) {
     logError(`user-prompt-bridge: writeMadr failed: ${(err as Error).message}`);
+    return false;
   }
+}
 
-  process.exit(0);
-});
+// CLI entry: read the Claude/Cursor hook payload from stdin and capture the
+// approval. cwd is the project root (the shell shim `cd`s in), so detectGitRoot
+// resolves correctly for this short-lived process.
+function runCli(): void {
+  let raw = "";
+  process.stdin.on("data", (chunk: Buffer | string) => {
+    raw += chunk;
+  });
+  process.stdin.on("end", () => {
+    let payload: UserPromptPayload;
+    try {
+      payload = JSON.parse(raw) as UserPromptPayload;
+    } catch (err) {
+      logError(`user-prompt-bridge: bad JSON: ${(err as Error).message}`);
+      process.exit(0);
+      return;
+    }
+
+    const prompt = payload.prompt ?? "";
+    const sessionId = resolveSessionId(payload) || "unknown";
+
+    if (!matchesApproval(prompt)) process.exit(0);
+
+    const gitRoot = detectGitRoot();
+    if (!gitRoot) process.exit(0);
+
+    handleUserPromptApproval({ prompt, sessionId, gitRoot });
+    process.exit(0);
+  });
+}
+
+if (require.main === module) {
+  runCli();
+}

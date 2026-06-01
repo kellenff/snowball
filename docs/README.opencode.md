@@ -97,10 +97,37 @@ To pin a specific version, use a branch or tag:
 
 ## How It Works
 
-The plugin does two things:
+The plugin wires OpenCode's lifecycle hooks to the same snowball features that
+run on Claude Code and Cursor:
 
-1. **Injects bootstrap context** via the `experimental.chat.system.transform` hook, adding snowball awareness to every conversation.
-2. **Registers the skills directory** via the `config` hook, so OpenCode discovers all snowball skills without symlinks or manual config.
+1. **Injects bootstrap context** via the `experimental.chat.messages.transform`
+   hook, adding snowball awareness to every conversation.
+2. **Registers the skills directory** via the `config` hook, so OpenCode
+   discovers all snowball skills without symlinks or manual config.
+3. **Captures decisions and blast-radius audits** on lifecycle events:
+   - `chat.message` — when you submit an approval phrase (e.g. "lgtm", "ship
+     it"), records a decision MADR and a blast-radius operator-approval audit.
+   - `event: session.idle` — at the end of each turn, records a blast-radius
+     stop audit and runs implicit decision extraction.
+   - `experimental.session.compacting` — extracts decisions before context is
+     compacted.
+
+   Captures land in `docs/snowball/decisions/` and never block the chat path —
+   if anything fails they no-op silently.
+
+### Decision extraction requires the `claude` CLI
+
+Implicit extraction (on idle and before compaction) shells out to the `claude`
+CLI to do the LLM extraction, the same engine Claude Code and Cursor use. If
+`claude` (or a `SNOWBALL_CLAUDE_BIN` override) is not on your `PATH`, extraction
+**no-ops silently** — approval-phrase capture and blast-radius audits still work.
+
+### AskUserQuestion capture is not available on OpenCode
+
+Claude Code and Cursor capture explicit multiple-choice answers
+(`AskUserQuestion` / `AskQuestion`). OpenCode has no equivalent labeled
+question tool, so per-question decision capture is not wired here. This will be
+revisited if OpenCode adds a multiple-choice question mechanism.
 
 ### Tool Mapping
 
@@ -147,7 +174,7 @@ Then use the installed package path in `opencode.json`:
 
 ### Bootstrap not appearing
 
-1. Check OpenCode version supports `experimental.chat.system.transform` hook
+1. Check OpenCode version supports the `experimental.chat.messages.transform` hook
 2. Restart OpenCode after config changes
 
 ## Getting Help

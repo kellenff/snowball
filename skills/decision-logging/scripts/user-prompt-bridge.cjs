@@ -2,6 +2,7 @@ var __create = Object.create;
 var __getProtoOf = Object.getPrototypeOf;
 var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 function __accessProp(key) {
   return this[key];
@@ -28,8 +29,43 @@ var __toESM = (mod, isNodeMode, target) => {
     cache.set(mod, to);
   return to;
 };
+var __toCommonJS = (from) => {
+  var entry = (__moduleCache ??= new WeakMap).get(from), desc;
+  if (entry)
+    return entry;
+  entry = __defProp({}, "__esModule", { value: true });
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (var key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(entry, key))
+        __defProp(entry, key, {
+          get: __accessProp.bind(from, key),
+          enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+        });
+  }
+  __moduleCache.set(from, entry);
+  return entry;
+};
+var __moduleCache;
+var __returnValue = (v) => v;
+function __exportSetter(name, newValue) {
+  this[name] = __returnValue.bind(null, newValue);
+}
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, {
+      get: all[name],
+      enumerable: true,
+      configurable: true,
+      set: __exportSetter.bind(all, name)
+    });
+};
 
 // skills/decision-logging/src/user-prompt-bridge.ts
+var exports_user_prompt_bridge = {};
+__export(exports_user_prompt_bridge, {
+  handleUserPromptApproval: () => handleUserPromptApproval
+});
+module.exports = __toCommonJS(exports_user_prompt_bridge);
 var fs2 = __toESM(require("node:fs"));
 var path2 = __toESM(require("node:path"));
 var os = __toESM(require("node:os"));
@@ -2856,30 +2892,14 @@ function isRecentAskUserQuestion(gitRoot) {
   const content = fs2.readFileSync(latestPath, "utf8");
   return /capture_mechanism:\s*ask-user-question/.test(content);
 }
-var raw = "";
-process.stdin.on("data", (chunk) => {
-  raw += chunk;
-});
-process.stdin.on("end", () => {
-  let payload;
-  try {
-    payload = JSON.parse(raw);
-  } catch (err) {
-    logError(`user-prompt-bridge: bad JSON: ${err.message}`);
-    process.exit(0);
-    return;
-  }
-  const prompt = payload.prompt ?? "";
-  const sessionId = resolveSessionId(payload) || "unknown";
+function handleUserPromptApproval(input) {
+  const { prompt, sessionId, gitRoot } = input;
   if (!matchesApproval(prompt))
-    process.exit(0);
-  const gitRoot = detectGitRoot();
-  if (!gitRoot)
-    process.exit(0);
+    return false;
   if (isRecentAskUserQuestion(gitRoot))
-    process.exit(0);
+    return false;
   const isoDate = new Date().toISOString();
-  const input = {
+  const madr = {
     title: "Free-text operator approval",
     status: "accepted",
     date: isoDate,
@@ -2900,9 +2920,38 @@ process.stdin.on("end", () => {
     }
   };
   try {
-    writeMadr(input);
+    writeMadr(madr, { gitRoot });
+    return true;
   } catch (err) {
     logError(`user-prompt-bridge: writeMadr failed: ${err.message}`);
+    return false;
   }
-  process.exit(0);
-});
+}
+function runCli() {
+  let raw = "";
+  process.stdin.on("data", (chunk) => {
+    raw += chunk;
+  });
+  process.stdin.on("end", () => {
+    let payload;
+    try {
+      payload = JSON.parse(raw);
+    } catch (err) {
+      logError(`user-prompt-bridge: bad JSON: ${err.message}`);
+      process.exit(0);
+      return;
+    }
+    const prompt = payload.prompt ?? "";
+    const sessionId = resolveSessionId(payload) || "unknown";
+    if (!matchesApproval(prompt))
+      process.exit(0);
+    const gitRoot = detectGitRoot();
+    if (!gitRoot)
+      process.exit(0);
+    handleUserPromptApproval({ prompt, sessionId, gitRoot });
+    process.exit(0);
+  });
+}
+if (require.main == module) {
+  runCli();
+}
