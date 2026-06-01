@@ -70,12 +70,23 @@ cache_read_input_tokens, output_tokens}`; skill invocations appear as
 `tool_use{name:"Skill", input:{skill:"..."}}`).
 
 A **skill window** opens at a `Skill` tool_use (tagged with `input.skill`) and closes at the next
-`Skill` tool_use, a fresh user turn (non-`tool_result` user message), or session end. Nested skills
-use a **stack** — tokens attribute to the *innermost* active skill.
+`Skill` tool_use, a fresh user turn (non-`tool_result` user message), or session end. Segmentation
+is **flat**: a CC transcript carries no end-of-skill marker, so a nested sub-skill cannot be
+distinguished from a sequential one — it is attributed as its own sibling window. The invoking
+turn's tokens attribute to whichever window is open when the `Skill` call is made (the parent), and
+messages before the first skill in a session are unattributed root work.
 
-**Documented approximations** (stated in every render, never hidden):
-- Subagent token usage lives in a separate transcript and is attributed as a lump to the dispatching
-  window.
+> **Why not stack/innermost?** An earlier draft proposed stack-based innermost attribution. There is
+> no observable "skill returned" event in the transcript, so a stack has no reliable pop trigger.
+> Flat segmentation is what the data actually supports; the fuzziness is acceptable because Stage 1
+> only needs relative dominance, not exact spans.
+
+**Documented approximations** (stamped on every `CandidateRecord` and stated in every render, never
+hidden):
+- `flat-segmentation-no-nesting` — nested skills become sequential sibling windows; a parent's
+  post-child work is attributed to the child.
+- `subagent-lumped` — subagent token usage lives in a separate transcript and is attributed as a
+  lump to the dispatching window.
 - A user-interrupted skill closes early.
 
 These are acceptable for *triage ranking* — only relative dominance matters.
