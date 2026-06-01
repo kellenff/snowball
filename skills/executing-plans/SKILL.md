@@ -25,6 +25,23 @@ Load plan, review critically, execute all tasks, report when complete.
 ### Step 2: Execute Tasks
 
 For each task:
+
+**Blast-radius (pre-execution gate)** — before marking in_progress or running plan steps:
+
+1. Invoke `snowball:blast-radius` with preset `pre-execution`.
+2. Set `changeSet.paths` to the paths this task will touch (from the task's **Files** list).
+3. Set `changeSet.proposedAction` to the shell commands you intend to run for verification or implementation in this task (if any).
+4. Run `compute-and-persist`, then `render`, and read the report.
+5. **Surface and wait** when any of these apply:
+   - Rendered report includes `**Operator confirmation required before this step.**`
+   - `status` is `error` (unknown action risk — confirm before proceeding)
+   - `status` is `degraded` and you cannot justify proceeding on partial analysis
+6. When surfacing: show the render verbatim and wait for the operator's existing approval phrase (same primitive as decision-logging — do not invent a new confirmation UI).
+7. **Proceed without surfacing** when action risk is `low`, or `medium`/`high` is absent from the render's confirmation line and status is `success` or acceptable `degraded`.
+8. Honor explicit skip: if the operator asks to skip blast-radius for this step, call compute with `explicitSkip: true` and proceed.
+
+Then:
+
 1. Mark as in_progress
 2. Follow each step exactly (plan has bite-sized steps)
 3. Run verifications as specified

@@ -35,7 +35,17 @@ Cannot proceed with merge/PR until tests pass.
 
 Stop. Don't proceed to Step 2.
 
-**If tests pass:** Continue to Step 2.
+**If tests pass:** Continue to Step 1b.
+
+### Step 1b: Blast-radius completion summary
+
+Before presenting merge/PR options, invoke `snowball:blast-radius` with preset `completion`:
+
+1. Resolve merge base: `git merge-base HEAD main 2>/dev/null || git merge-base HEAD master 2>/dev/null`
+2. Call `compute-and-persist` with `changeSet.gitRef` set to that ref (actual diff vs base) and optional `changeSet.paths` if you already know the touched set.
+3. `render` and attach the completion summary to the options message. Use it to inform PR description bullets and review focus.
+4. **Report-only** for scope/impact — does not block the four completion options. On `error`, surface the one-line unavailable message and proceed (operator already has the diff).
+5. If the **next** chosen action will be push, force-push, or release, re-run or extend analysis with `proposedAction` describing that command so action-risk is loud per the completion preset.
 
 ### Step 2: Detect Environment
 
