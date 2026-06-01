@@ -35,14 +35,14 @@ repos:
         entry: oxlint
         language: system
         types_or: [ts, javascript]
-        exclude: ^skills/(decision-logging|structured-argumentation|syncing-decisions-to-memory|recalling-project-context|blast-radius)/scripts/
+        exclude: ^skills/(decision-logging|structured-argumentation|syncing-decisions-to-memory|recalling-project-context|blast-radius)/scripts/|^hooks/blast-radius-audit\.cjs$
 
       - id: oxfmt
         name: oxfmt
         entry: oxfmt
         language: system
         types_or: [ts, javascript, json, yaml]
-        exclude: ^skills/(decision-logging|structured-argumentation|syncing-decisions-to-memory|recalling-project-context|blast-radius)/scripts/
+        exclude: ^skills/(decision-logging|structured-argumentation|syncing-decisions-to-memory|recalling-project-context|blast-radius)/scripts/|^hooks/blast-radius-audit\.cjs$
 
       - id: build-decision-logging
         name: build decision-logging bundles
@@ -111,5 +111,5 @@ repos:
         name: bun test blast-radius
         entry: bash -c 'cd tests/blast-radius && bun test'
         language: system
-        files: ^skills/blast-radius/(src|scripts)/|^tests/blast-radius/
+        files: ^skills/blast-radius/(src|scripts)/|^tests/blast-radius/|^hooks/blast-radius-audit\.(sh|cjs)$
         pass_filenames: false

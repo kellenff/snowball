@@ -94,3 +94,14 @@ When multiple rules match, level = max(severity). Severity order: `low` < `mediu
 ## Scratch envelope path
 
 `.snowball/blast-radius/last.json` — per-session, gitignored. Written on every successful `compute` invocation.
+
+## Audit observation extension
+
+When the audit hook fires (Stop or operator-approval phrase), it appends to `docs/snowball/decisions/observations.jsonl` with the standard observation fields plus:
+
+| Field | Type | Description |
+|---|---|---|
+| `blast_radius_envelope` | status envelope object | Most recent envelope from `.snowball/blast-radius/last.json` |
+| `capture_trigger` | `stop` \| `operator-approval` | Which hook event captured the envelope |
+
+Operator-approval uses the same phrase matcher as `skills/decision-logging` (`approval-phrases.ts`). Phase 1 wiring: Claude Code (`hooks/hooks.json`) and Cursor (`hooks/hooks-cursor.json`) via `hooks/blast-radius-audit.sh`.

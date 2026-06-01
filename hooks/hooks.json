@@ -31,6 +31,11 @@
             "type": "command",
             "command": "\"${CLAUDE_PLUGIN_ROOT}/skills/decision-logging/scripts/on-user-prompt.sh\"",
             "async": false
+          },
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/blast-radius-audit.sh\" operator-approval",
+            "async": false
           }
         ]
       }
@@ -41,6 +46,11 @@
           {
             "type": "command",
             "command": "\"${CLAUDE_PLUGIN_ROOT}/skills/decision-logging/scripts/on-stop.sh\"",
+            "async": false
+          },
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/blast-radius-audit.sh\" stop",
             "async": false
           }
         ]

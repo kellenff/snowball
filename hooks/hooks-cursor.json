@@ -15,11 +15,17 @@
     "beforeSubmitPrompt": [
       {
         "command": "./skills/decision-logging/scripts/on-user-prompt.sh"
+      },
+      {
+        "command": "./hooks/blast-radius-audit.sh operator-approval"
       }
     ],
     "stop": [
       {
         "command": "./skills/decision-logging/scripts/on-stop.sh"
+      },
+      {
+        "command": "./hooks/blast-radius-audit.sh stop"
       }
     ],
     "preCompact": [

@@ -11,14 +11,22 @@ if ! command -v bun >/dev/null 2>&1; then
   exit 1
 fi
 
-tmp="$(mktemp)"
-bun build "$SRC_DIR/compute.ts" --target=node --format=cjs --outfile="$tmp"
-dest="$OUT_DIR/compute.cjs"
-mkdir -p "$OUT_DIR"
-if ! diff -q "$tmp" "$dest" >/dev/null 2>&1; then
-  mv "$tmp" "$dest"
-else
-  rm "$tmp"
-fi
+ENTRIES=(
+  "compute:$OUT_DIR/compute.cjs"
+  "audit-hook:$SCRIPT_DIR/hooks/blast-radius-audit.cjs"
+)
 
-echo "built compute.cjs into $OUT_DIR/"
+for spec in "${ENTRIES[@]}"; do
+  entry="${spec%%:*}"
+  dest="${spec#*:}"
+  tmp="$(mktemp)"
+  bun build "$SRC_DIR/$entry.ts" --target=node --format=cjs --outfile="$tmp"
+  mkdir -p "$(dirname "$dest")"
+  if ! diff -q "$tmp" "$dest" >/dev/null 2>&1; then
+    mv "$tmp" "$dest"
+  else
+    rm "$tmp"
+  fi
+done
+
+echo "built ${#ENTRIES[@]} blast-radius bundles"
