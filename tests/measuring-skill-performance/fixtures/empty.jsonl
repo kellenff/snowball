@@ -1,0 +1,1 @@
+{"type":"assistant","sessionId":"x","message":{"usage":{"input_tokens":1,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":1},"content":[{"type":"text","text":"hi"}]}}
