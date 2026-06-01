@@ -16,9 +16,9 @@ Composite blast-radius analysis for Snowball lifecycle gates. Produces a **statu
 1. **Resolve repo root.** `git rev-parse --show-toplevel`. Stop if not a git repo.
 
 2. **Build `changeSet`.** Per gate:
-   - **Design (brainstorming):** projected paths for each approach being presented.
-   - **Pre-execution (Plan 2):** paths the step will touch + `proposedAction` command text if any.
-   - **Completion (Plan 2):** actual diff paths (`gitRef` defaults to merge base / HEAD as appropriate).
+   - **Design (brainstorming, writing-plans):** projected paths for each approach or for all paths listed in the plan's file structure.
+   - **Pre-execution (executing-plans):** paths the step will touch + `proposedAction` command text if any.
+   - **Completion (finishing-a-development-branch):** actual diff via `gitRef` (merge base) plus optional explicit `paths`.
 
 3. **Compute and persist.** Pipe JSON to the CLI:
 
