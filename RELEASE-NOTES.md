@@ -1,5 +1,26 @@
 # Snowball Release Notes
 
+## v6.0.0 (2026-05-31)
+
+Major release introducing **blast-radius analysis** — a composite change-scope, failure-impact, and action-risk envelope wired into the Snowball lifecycle.
+
+### Blast-radius analysis (Plan 1)
+
+New `snowball:blast-radius` skill computes a single status envelope and renders it per gate (design, pre-execution, completion):
+
+- **Envelope contract** — `success | degraded | error` with honest `backend` (`graph | heuristic | none`), closed reason enums in `SCHEMA.md`, persistence to `.snowball/blast-radius/last.json`.
+- **Heuristic backend** — git-diff and path heuristics for change-scope and action-risk; graph backend stub returns `graph-unavailable` and falls back cleanly.
+- **Lens presets** — `design.md`, `pre-execution.md`, `completion.md` shape operator-facing output per lifecycle moment.
+- **Bundled CLI** — `scripts/build-blast-radius.sh` produces `skills/blast-radius/scripts/compute.cjs` (`compute`, `compute-and-persist`, `render` subcommands).
+- **Brainstorming integration** — `skills/brainstorming/SKILL.md` invokes blast-radius at "Propose 2-3 approaches".
+- **Tests** — 16 unit tests under `tests/blast-radius/`; pre-commit hooks for build and test.
+
+Plans 2–4 (lifecycle skill coverage, codebase-memory graph backend, audit-channel hook on Claude Code + Cursor) follow the accepted four-plan decomposition.
+
+### Version
+
+All plugin manifests and `package.json` bumped to **6.0.0** (major: new skill surface and envelope contract).
+
 ## v5.2.0 (2026-05-27)
 
 First Snowball-branded release after forking from `obra/superpowers` v5.1.0 on 2026-05-25. Adds GitLab Duo as a seventh supported harness, a hook-driven decision-logging pipeline, structured argumentation via Argdown, and a Bun/TypeScript build toolchain.
