@@ -70,6 +70,7 @@ The fork is at **v5.4.0**. It began as a near-mirror of `superpowers` v5.1.0 and
 | v5.3.0 | M2 brain-jam companion: an optional second-model (MiniMax) brainstorming partner |
 | v5.4.0 | `decision-logging` (hook-driven capture) and `syncing-decisions-to-memory` (ADR distillation) |
 | in progress | `recalling-project-context` (ADR/MADR recall loop) + completion-flow decision trail |
+| in progress | chorus companion: brainstorming's second-model partner now delegates to the multi-model `chorus:chorus` skill, replacing the M2/MiniMax brain-jam |
 
 Everything else tracks upstream closely. Skill content, the bootstrap design, and the multi-harness adapter pattern all originate there.
 

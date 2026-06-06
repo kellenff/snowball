@@ -23,7 +23,7 @@ You MUST create a task for each of these items and complete them in order:
 
 1. **Explore project context** — when the task is non-trivial, invoke `snowball:recalling-project-context` first (if installed) to recover ADR rationale and scoped decision logs; then check files, docs, recent commits
 2. **Offer visual companion** (if topic will involve visual questions) — this is its own message, not combined with a clarifying question. See the Visual Companion section below.
-3. **Offer M2 brain-jam companion** (if the `m2-brainstorm` CLI is installed and the topic may involve cross-cutting trade-offs) — its own message, like the visual companion offer. See the M2 Brain-Jam Companion section below.
+3. **Offer chorus companion** (if the `chorus:chorus` skill is available and the topic may involve cross-cutting trade-offs) — its own message, like the visual companion offer. See the Chorus Companion section below.
 4. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
 5. **Propose 2-3 approaches** — with trade-offs and your recommendation; once alternatives are stable, invoke `snowball:blast-radius` with the `design` preset and attach per-approach scope/impact estimates (see Blast-Radius at design-time below)
 6. **Present design** — in sections scaled to their complexity, get user approval after each section
@@ -39,8 +39,8 @@ digraph brainstorming {
     "Explore project context" [shape=box];
     "Visual questions ahead?" [shape=diamond];
     "Offer Visual Companion\n(own message, no other content)" [shape=box];
-    "Offer M2 brain-jam?" [shape=diamond];
-    "Offer M2 brain-jam\n(own message)" [shape=box];
+    "Offer chorus?" [shape=diamond];
+    "Offer chorus\n(own message)" [shape=box];
     "Ask clarifying questions" [shape=box];
     "Propose 2-3 approaches" [shape=box];
     "Present design sections" [shape=box];
@@ -52,11 +52,11 @@ digraph brainstorming {
 
     "Explore project context" -> "Visual questions ahead?";
     "Visual questions ahead?" -> "Offer Visual Companion\n(own message, no other content)" [label="yes"];
-    "Visual questions ahead?" -> "Offer M2 brain-jam?" [label="no"];
-    "Offer Visual Companion\n(own message, no other content)" -> "Offer M2 brain-jam?";
-    "Offer M2 brain-jam?" -> "Offer M2 brain-jam\n(own message)" [label="yes"];
-    "Offer M2 brain-jam?" -> "Ask clarifying questions" [label="no"];
-    "Offer M2 brain-jam\n(own message)" -> "Ask clarifying questions";
+    "Visual questions ahead?" -> "Offer chorus?" [label="no"];
+    "Offer Visual Companion\n(own message, no other content)" -> "Offer chorus?";
+    "Offer chorus?" -> "Offer chorus\n(own message)" [label="yes"];
+    "Offer chorus?" -> "Ask clarifying questions" [label="no"];
+    "Offer chorus\n(own message)" -> "Ask clarifying questions";
     "Ask clarifying questions" -> "Propose 2-3 approaches";
     "Propose 2-3 approaches" -> "Present design sections";
     "Present design sections" -> "User approves design?";
@@ -90,7 +90,7 @@ digraph brainstorming {
 - Present options conversationally with your recommendation and reasoning
 - Lead with your recommended option and explain why
 - **OPTIONAL SUB-SKILL:** Once the alternatives are stable and their pros/cons cross-cut (the same consideration applies to multiple options, no single option clearly wins), use `snowball:structured-argumentation` to externalize the option/trade-off graph as a sibling `.argdown` file next to the spec. The graph surfaces the structure of the reasoning you've already done in prose — it does not replace prose deliberation. Skip for simple either/or choices.
-- **OPTIONAL SUB-SKILL (second-model perspective):** At the same decision point, if the M2 brain-jam companion was offered and accepted this session, you may delegate to `m2-brainstorm:brain-jam` for a second-model perspective on the stable alternatives. See the M2 Brain-Jam Companion section below. Complementary to structured-argumentation: argdown structures your own reasoning, the jam brings MiniMax's.
+- **OPTIONAL SUB-SKILL (multi-model perspective):** At the same decision point, if the chorus companion was offered and accepted this session, you may delegate to `chorus:chorus` for a multi-model debate on the stable alternatives. See the Chorus Companion section below. Complementary to structured-argumentation: argdown structures your own reasoning, chorus brings several models' (and an optional Argdown critic's).
 - **OPTIONAL SUB-SKILL (scope sizing):** At the same decision point, invoke `snowball:blast-radius` with preset `design`. For each approach, pass projected `changeSet.paths` to `compute-and-persist`, render, and attach the scope/impact summary to the approach presentation. Report-only at this gate — it right-sizes the decision before the user picks. Skip for trivial brainstorms (same self-gating as the blast-radius skill). If the operator skips, use `explicitSkip: true`.
 
 **Presenting the design:**
@@ -173,29 +173,23 @@ A question about a UI topic is not automatically a visual question. "What does p
 If they agree to the companion, read the detailed guide before proceeding:
 `skills/brainstorming/visual-companion.md`
 
-## M2 Brain-Jam Companion
+## Chorus Companion
 
-A second-model brainstorming partner: the `m2-brainstorm` plugin's `brain-jam` skill runs a multi-round dialogue with MiniMax (a skeptical pragmatist plus a technical enthusiast) and often surfaces angles a single model misses. Available as an optional tool when the plugin is installed — not a mode. Accepting the offer means it's *available* for hard decisions; it does NOT route every decision through MiniMax.
+A multi-model brainstorming partner: the `chorus:chorus` skill runs an N-participant round-robin dialogue across several AI models (anthropic/openai/gemini/minimax), with an optional Argdown critic that surfaces which arguments survive. It often finds angles a single model misses. Available as an optional tool when the skill is installed — not a mode. Accepting the offer means it's *available* for hard decisions; it does NOT route every decision through chorus.
 
-**Detecting availability:** Before offering, check whether the `m2-brainstorm` CLI is installed:
+**Detecting availability:** Before offering, check whether the `chorus:chorus` skill is available to you — it appears in your list of available skills. If it isn't listed, say nothing and proceed with normal brainstorming. The offer never appears when chorus isn't installed. No binary check is needed: chorus owns its CLI and handles missing API keys or runtime errors itself.
 
-```bash
-[ -x "$HOME/.config/m2-brainstorm/bin/m2-brainstorm" ]
-```
+**Offering the companion:** When chorus is available AND the brainstorm is substantive enough that cross-cutting trade-offs are plausible, offer it once — the same topic-conditional spirit as the Visual Companion. Skip the offer for trivially-simple brainstorms where no real alternatives will arise; chorus being installed is necessary but not sufficient.
 
-If the binary is absent or not executable, say nothing and proceed with normal brainstorming. The offer never appears when the plugin isn't installed.
-
-**Offering the companion:** When the binary is detected AND the brainstorm is substantive enough that cross-cutting trade-offs are plausible, offer it once — the same topic-conditional spirit as the Visual Companion. Skip the offer for trivially-simple brainstorms where no real alternatives will arise; the binary being installed is necessary but not sufficient.
-
-> "I can bring in MiniMax (M2) as a second brainstorming partner through the m2-brainstorm plugin. When we hit a genuinely cross-cutting trade-off, it role-plays a skeptical pragmatist and a technical enthusiast across a few rounds and often surfaces angles I'd miss alone. It's token-intensive and needs a MiniMax API key. Want it available for this session? I'll only reach for it on hard, cross-cutting calls — not every question."
+> "I can bring in chorus as a multi-model brainstorming partner. When we hit a genuinely cross-cutting trade-off, it runs a few rounds of round-robin debate across several AI models — with an optional critic that surfaces which arguments survive — and often finds angles I'd miss alone. It's token-intensive and needs API keys for the models in the cast (the default cast uses MiniMax). Want it available for this session? I'll only reach for it on hard, cross-cutting calls — not every question."
 
 **This offer MUST be its own message.** Do not combine it with clarifying questions, context summaries, or any other content. When both companions apply, make the Visual Companion offer first, then this one — each its own standalone message — before clarifying questions begin. If the user declines, proceed with normal brainstorming.
 
-**When to reach for it:** Only at the "Propose 2-3 approaches" step, once alternatives are stable and their pros/cons cross-cut (the same condition that gates the `snowball:structured-argumentation` sub-skill). Not for from-scratch ideation — that's what the rest of this skill is for.
+**When to reach for it:** Only at the "Propose 2-3 approaches" step, once alternatives are stable and their pros/cons cross-cut (the same condition that gates the `snowball:structured-argumentation` sub-skill). Not for from-scratch ideation — that's what the rest of this skill is for, and it's exactly what chorus's own guidance defers back here.
 
-**How to run it — delegate, then reclaim control:** Invoke `m2-brainstorm:brain-jam` via the Skill tool, framed as *a second perspective on these specific, already-stable alternatives*. That framing satisfies brain-jam's valid-use criteria and sidesteps its "NOT for from-scratch exploration" guard. When brain-jam reaches its hand-off step ("draft a design doc, hand back to `snowball:brainstorming`, or keep digging?"), always hand the synthesized angles back to brainstorming and continue presenting approaches. Brainstorming stays the driver; brain-jam is a sub-routine that returns angles. If the jam fails (missing API key, CLI error), note it and continue text-only — it never blocks design progress.
+**How to run it — delegate, then reclaim control:** Invoke `chorus:chorus` via the Skill tool, framed as *a multi-model debate on these specific, already-stable alternatives*. That framing matches chorus's valid-use criteria (a cross-cutting trade-off several models argue out) and sidesteps its "not for open-ended ideation" guard. Chorus runs the dialogue and writes a transcript; when it returns, read the surviving arguments and the synthesized angles, hand them back to brainstorming, and continue presenting approaches. Brainstorming stays the driver; chorus is a sub-routine that returns angles. If chorus fails (missing API key, CLI error), note it and continue text-only — it never blocks design progress.
 
-**Relationship to structured-argumentation:** Complementary, can chain. Argdown externalizes the structure of *your own* reasoning; brain-jam injects a *second model's* reasoning. A natural combination: jam to surface angles, then argdown to structure the resulting option/trade-off graph.
+**Relationship to structured-argumentation:** Complementary, can chain. Argdown externalizes the structure of *your own* reasoning; chorus injects *several models'* reasoning (and its own Argdown critic already structures the debate). A natural combination: chorus to surface angles, then argdown to structure the resulting option/trade-off graph.
 
 ## Blast-Radius at design-time
 

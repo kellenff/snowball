@@ -174,11 +174,11 @@ These aren't lifecycle stages; they're reached *within* a stage on demand:
 - [`recalling-project-context`](../../skills/recalling-project-context/SKILL.md) —
   recovers ADR rationale and scoped decision logs at session start or before
   non-trivial design work. Self-gates when codebase-memory is absent.
-- **M2 brain-jam** (when the `m2-brainstorm` CLI is installed) — a second-model
-  (MiniMax) perspective offered once per substantive brainstorm, reached only at
-  the "propose 2-3 approaches" step on genuinely cross-cutting trade-offs.
-  Complementary to argdown: argdown structures *your* reasoning; the jam injects
-  *another model's*.
+- **Chorus** (when the `chorus:chorus` skill is installed) — a multi-model
+  (cross-provider round-robin, with an optional Argdown critic) perspective
+  offered once per substantive brainstorm, reached only at the "propose 2-3
+  approaches" step on genuinely cross-cutting trade-offs. Complementary to
+  argdown: argdown structures *your* reasoning; chorus injects *several models'*.
 
 ## Steelman analysis — does the process survive its strongest objections?
 
