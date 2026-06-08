@@ -25,7 +25,7 @@ Snowball is two interlocking processes.
 
 The **forward spine** is a chain of gates that carries work from idea to merged code. Each gate refuses to advance until its precondition is met, so the agent cannot run ahead of its own justification.
 
-The **decision spine** runs underneath, passively. Hooks watch the events the skills already emit and record each decision, with no skill modified and nobody having to remember to log. At completion the records are committed onto the same branch as the code, distilled into a codebase-memory project ADR, and recalled at the next session via `recalling-project-context` plus a session-start ADR digest.
+The **decision spine** runs underneath, passively. Hooks watch the events the skills already emit and record each decision, with no skill modified and nobody having to remember to log. At completion the records are committed onto the same branch as the code, distilled into a codebase-memory project ADR (plus a local disk cache), and **recalled at cycle start** via a session-start excerpt and `recalling-project-context`.
 
 ```mermaid
 flowchart TD
@@ -46,6 +46,7 @@ flowchart TD
   B -.->|emits decisions| H1
   G -.->|emits decisions| H1
   H -->|"commit records, then offer ADR sync"| H2
+  H4 -.->|cycle start| A
 ```
 
 The full write-up of the two spines lives in [docs/design/snowball-process.md](docs/design/snowball-process.md).
@@ -69,7 +70,7 @@ The fork is at **v5.4.0**. It began as a near-mirror of `superpowers` v5.1.0 and
 | v5.2.0 | `structured-argumentation`: argdown as an intermediate representation, with a bundled parser-validator |
 | v5.3.0 | M2 brain-jam companion: an optional second-model (MiniMax) brainstorming partner |
 | v5.4.0 | `decision-logging` (hook-driven capture) and `syncing-decisions-to-memory` (ADR distillation) |
-| in progress | `recalling-project-context` (ADR/MADR recall loop) + completion-flow decision trail |
+| v6.1.0 | `recalling-project-context` — cycle-start recall loop (tier-0 hook + tier-1 skill, staleness in `prepare`, sync disk cache); completion-flow decision trail in `finishing-a-development-branch` |
 | in progress | chorus companion: brainstorming's second-model partner now delegates to the multi-model `chorus:chorus` skill, replacing the M2/MiniMax brain-jam |
 
 Everything else tracks upstream closely. Skill content, the bootstrap design, and the multi-harness adapter pattern all originate there.
@@ -126,7 +127,7 @@ These are real artifacts that have not been reconciled with the fork's posture. 
 
 - [`decision-logging`](skills/decision-logging/SKILL.md): reference documentation for the hook-driven capture system. Four Claude Code hooks emit operator MADRs and agent observations; the agent does not invoke this skill, the hooks do the work.
 - [`syncing-decisions-to-memory`](skills/syncing-decisions-to-memory/SKILL.md): distills the decision logs into a codebase-memory project ADR via the `manage_adr` MCP tool. It owns the TRADEOFFS and PHILOSOPHY sections and is idempotent.
-- [`recalling-project-context`](skills/recalling-project-context/SKILL.md): recovers ADR rationale and scoped decision logs at session start or before non-trivial design work. Session-start hook injects a capped ADR excerpt from disk; the skill adds live MCP recall and subsystem-scoped MADR filtering.
+- [`recalling-project-context`](skills/recalling-project-context/SKILL.md): **cycle-start recall** — tier-0 session hook excerpt plus tier-1 active gate before non-trivial work (live MCP, scoped MADRs, staleness). Closes the capture → commit → distill → recall loop.
 - [`structured-argumentation`](skills/structured-argumentation/SKILL.md): argdown as an intermediate representation for the structure of an argument (option comparison, hypothesis elimination, claim decomposition). Ships a parser-only validator bundled from `@argdown/core`.
 
 ### Infrastructure
@@ -151,7 +152,7 @@ Capture hooks are registered for Claude Code and Cursor. Claude uses `AskUserQue
 
 At completion, `finishing-a-development-branch` commits the records under `docs/snowball/decisions/` onto the same branch as the work, then offers to run `syncing-decisions-to-memory`. That step is self-gating: if codebase-memory is unreachable or the repo is not indexed, it stops cleanly, so completion never breaks on a missing dependency.
 
-At the next session, the bootstrap hook injects a capped ADR excerpt from `.codebase-memory/adr.md` when present. For live recall and scoped decision logs, invoke `recalling-project-context` before non-trivial design work — it falls back to on-disk MADRs when MCP is absent.
+At the next session, the bootstrap hook injects a capped ADR excerpt from `.codebase-memory/adr.md` when present (written by `syncing-decisions-to-memory` after ADR sync). For live recall and scoped decision logs at cycle start, invoke `recalling-project-context` before non-trivial design work — it falls back to on-disk MADRs when MCP is absent.
 
 ## Per-harness adapters
 
