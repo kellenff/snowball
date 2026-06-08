@@ -25,7 +25,7 @@
 
 # Rebuttals
 
-<Scaled-Ceremony>: The enforced gate is only "present a design + get approval" — explicitly a few sentences for simple work; worktrees fall back to cwd, argdown and the M2 jam and blast-radius are opt-in or self-gating, and user instructions outrank every skill, so the floor is one sentence the operator can lower further while still leaving a reviewable artifact.
+<Scaled-Ceremony>: The enforced gate is only "present a design + get approval" — explicitly a few sentences for simple work; worktrees fall back to cwd, argdown and chorus and blast-radius are opt-in or self-gating, and user instructions outrank every skill, so the floor is one sentence the operator can lower further while still leaving a reviewable artifact.
 <Artifacts-Expose-Theater>: Every gate emits an inspectable artifact — shown command output rather than a claim, a reviewable diff, on-disk MADRs, blast-radius envelopes with honest backend — so ritual without rigor produces evidence a reviewer can catch; the floor rises even though rigor is never guaranteed.
 <Filtered-Two-Stream>: High-confidence MADRs and low-confidence JSONL are separated by design; syncing-decisions-to-memory filters observations before distilling, owns only TRADEOFFS and PHILOSOPHY, and is idempotent, while privacy has a documented review-and-gitignore escape hatch.
 <Graceful-Degradation>: The forward spine runs on seven harnesses; the decision spine and blast-radius skill are additive — their absence breaks nothing; where AskUserQuestion is unavailable the Stop/PreCompact worker still runs, MADRs can be hand-authored, and blast-radius still surfaces at gates without audit capture; capture degrades rather than collapses.
