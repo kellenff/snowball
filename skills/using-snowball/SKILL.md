@@ -84,6 +84,8 @@ digraph skill_flow {
 }
 ```
 
+**Cycle-start recall:** For non-trivial work, invoke `recalling-project-context` before other skills — it opens the current cycle by recovering rationale distilled from prior cycles. The session-start hook already injected a passive tier-0 excerpt; tier-1 adds live MCP recall, scoped MADRs, and staleness.
+
 ## Red Flags
 
 These thoughts mean STOP—you're rationalizing:

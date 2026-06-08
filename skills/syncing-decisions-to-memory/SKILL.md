@@ -50,7 +50,15 @@ Run these steps in order. The deterministic work is done by `scripts/sync-decisi
 
 8. **Write.** Call `manage_adr(project=<name>, mode="update", content=<rendered document>)` — one atomic write.
 
-9. **Report.** Tell the user which sections were updated and echo any warnings from step 4.
+9. **Write disk cache.** After a successful `manage_adr(update)`, pipe the rendered document to the disk cache CLI:
+
+   ```bash
+   echo '<json>' | node skills/syncing-decisions-to-memory/scripts/sync-decisions.cjs write-cache
+   ```
+
+   where `<json>` is `{"gitRoot": "<repo root>", "content": "<rendered document from step 7>"}`. If this fails (permissions), report a warning — MCP write succeeded; tier-0 session-start may miss the cache until the next successful sync on this machine.
+
+10. **Report.** Tell the user which sections were updated and echo any warnings from step 4.
 
 ## Notes
 
