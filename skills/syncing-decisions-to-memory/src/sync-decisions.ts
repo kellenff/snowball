@@ -1,6 +1,7 @@
 import { gatherDecisions } from "./gather";
 import { filterRecords } from "./filter";
 import { computeDigest } from "./digest";
+import { writeDiskCache } from "./disk-cache";
 import {
   parseAdrSections,
   extractDigest,
@@ -73,9 +74,19 @@ export interface RenderCliInput {
   digest: string;
 }
 
+export interface WriteCacheInput {
+  gitRoot: string;
+  content: string;
+}
+
+export function writeCache(input: WriteCacheInput): void {
+  writeDiskCache(input.gitRoot, input.content);
+}
+
 // CLI:
-//   node sync-decisions.cjs prepare   < {gitRoot, adrContent}        > PrepareOutput JSON
-//   node sync-decisions.cjs render    < {preserved,tradeoffs,...}    > ADR document text
+//   node sync-decisions.cjs prepare      < {gitRoot, adrContent}        > PrepareOutput JSON
+//   node sync-decisions.cjs render       < {preserved,tradeoffs,...}    > ADR document text
+//   node sync-decisions.cjs write-cache  < {gitRoot, content}           > (writes disk cache)
 if (require.main === module) {
   const sub = process.argv[2];
   let raw = "";
@@ -88,9 +99,11 @@ if (require.main === module) {
         process.stdout.write(JSON.stringify(prepare(JSON.parse(raw) as PrepareInput)));
       } else if (sub === "render") {
         process.stdout.write(renderAdr(JSON.parse(raw) as RenderCliInput));
+      } else if (sub === "write-cache") {
+        writeCache(JSON.parse(raw) as WriteCacheInput);
       } else {
         process.stderr.write(
-          `unknown subcommand: ${String(sub)} (expected 'prepare' or 'render')\n`,
+          `unknown subcommand: ${String(sub)} (expected 'prepare', 'render', or 'write-cache')\n`,
         );
         process.exit(2);
       }
