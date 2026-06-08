@@ -1,3 +1,6 @@
+> **Superseded** by [2026-06-07-chorus-companion-design.md](./2026-06-07-chorus-companion-design.md).
+> Retained for historical context. The live companion is `chorus:chorus`.
+
 # M2 Brain-Jam Companion in Brainstorming
 
 **Date:** 2026-05-30
