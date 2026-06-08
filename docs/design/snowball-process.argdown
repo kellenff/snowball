@@ -69,5 +69,5 @@
 [Gate-Friction]: Hard gates add ceremony, which is pure overhead on a trivially simple task.
 [Gate-Friction] - [Trustworthy-Agent-Dev]
 
-[Scaled-Ceremony]: The gates scale to the work — a "design" can be a few sentences, worktrees fall back to the current dir, and argdown / M2 brain-jam / blast-radius are opt-in or self-gating sub-skills reached only when the work warrants them.
+[Scaled-Ceremony]: The gates scale to the work — a "design" can be a few sentences, worktrees fall back to the current dir, and argdown / chorus / blast-radius are opt-in or self-gating sub-skills reached only when the work warrants them.
 [Scaled-Ceremony] - [Gate-Friction]
