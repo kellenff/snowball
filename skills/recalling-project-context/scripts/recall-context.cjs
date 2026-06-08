@@ -70,92 +70,9 @@ module.exports = __toCommonJS(exports_recall_context);
 var fs3 = __toESM(require("node:fs"));
 var path3 = __toESM(require("node:path"));
 
-// skills/syncing-decisions-to-memory/src/adr.ts
-var CANONICAL_SECTIONS = [
-  "PURPOSE",
-  "STACK",
-  "ARCHITECTURE",
-  "PATTERNS",
-  "TRADEOFFS",
-  "PHILOSOPHY"
-];
-var CANONICAL_SET = new Set(CANONICAL_SECTIONS);
-var DIGEST_RE = /<!--\s*snowball:decisions-digest:sha256:([0-9a-f]{16})\s*-->/;
-function digestMarker(digest) {
-  return `<!-- snowball:decisions-digest:sha256:${digest} -->`;
-}
-function extractDigest(adrContent) {
-  const m = adrContent.match(DIGEST_RE);
-  return m ? m[1] : null;
-}
-function tryCanonicalHeader(line) {
-  if (!line.startsWith("## "))
-    return null;
-  const name = line.slice(3).replace(/[ \t\r]+$/, "");
-  return CANONICAL_SET.has(name) ? name : null;
-}
-function parseAdrSections(content) {
-  const result = {};
-  if (!content)
-    return result;
-  let current = null;
-  let buf = [];
-  const save = () => {
-    if (current)
-      result[current] = buf.join(`
-`).trim();
-  };
-  for (const line of content.split(`
-`)) {
-    const header = tryCanonicalHeader(line);
-    if (header) {
-      save();
-      current = header;
-      buf = [];
-    } else if (current !== null) {
-      buf.push(line);
-    }
-  }
-  save();
-  return result;
-}
-
-// skills/recalling-project-context/src/adr-excerpt.ts
-var RECALL_SECTIONS = [
-  "PURPOSE",
-  "ARCHITECTURE",
-  "TRADEOFFS",
-  "PHILOSOPHY"
-];
-var DEFAULT_SECTION_CHAR_CAP = 1500;
-function excerptAdrSections(content, cap = DEFAULT_SECTION_CHAR_CAP) {
-  const parsed = parseAdrSections(content);
-  const sections = {};
-  const truncated = [];
-  const digest = extractDigest(content);
-  const digestLine = digest ? digestMarker(digest) : null;
-  for (const name of RECALL_SECTIONS) {
-    let body = parsed[name];
-    if (!body)
-      continue;
-    if (digestLine) {
-      body = body.replace(digestLine, "").trim();
-    }
-    if (!body)
-      continue;
-    if (body.length > cap) {
-      sections[name] = `${body.slice(0, cap).trimEnd()}…`;
-      truncated.push(name);
-    } else {
-      sections[name] = body;
-    }
-  }
-  return { sections, truncated, digest };
-}
-
-// skills/recalling-project-context/src/recall-madrs.ts
-var fs2 = __toESM(require("node:fs"));
-var path2 = __toESM(require("node:path"));
+// skills/syncing-decisions-to-memory/src/gather.ts
+var fs = __toESM(require("node:fs"));
+var path = __toESM(require("node:path"));
 
 // node_modules/js-yaml/dist/js-yaml.mjs
 /*! js-yaml 4.1.1 https://github.com/nodeca/js-yaml @license MIT */
@@ -2805,8 +2722,6 @@ var safeLoadAll = renamed("safeLoadAll", "loadAll");
 var safeDump = renamed("safeDump", "dump");
 
 // skills/syncing-decisions-to-memory/src/gather.ts
-var fs = __toESM(require("node:fs"));
-var path = __toESM(require("node:path"));
 var FRONTMATTER_RE = /^---\n([\s\S]*?)\n---\n?([\s\S]*)$/;
 function parseMadr(filename, raw) {
   const m = raw.match(FRONTMATTER_RE);
@@ -2901,7 +2816,110 @@ function filterRecords(input) {
   };
 }
 
+// skills/syncing-decisions-to-memory/src/digest.ts
+var import_node_crypto = require("node:crypto");
+function sha256(s) {
+  return import_node_crypto.createHash("sha256").update(s, "utf8").digest("hex");
+}
+function computeDigest(input) {
+  const lines = [];
+  for (const m of input.madrs) {
+    lines.push(`madr:${m.sourceEventId}:${sha256(m.body)}`);
+  }
+  for (const o of input.observations) {
+    lines.push(`obs:${o.sessionId}|${o.timestamp}:${sha256(o.content)}`);
+  }
+  lines.sort();
+  return sha256(lines.join(`
+`)).slice(0, 16);
+}
+
+// skills/syncing-decisions-to-memory/src/adr.ts
+var CANONICAL_SECTIONS = [
+  "PURPOSE",
+  "STACK",
+  "ARCHITECTURE",
+  "PATTERNS",
+  "TRADEOFFS",
+  "PHILOSOPHY"
+];
+var CANONICAL_SET = new Set(CANONICAL_SECTIONS);
+var DIGEST_RE = /<!--\s*snowball:decisions-digest:sha256:([0-9a-f]{16})\s*-->/;
+function digestMarker(digest) {
+  return `<!-- snowball:decisions-digest:sha256:${digest} -->`;
+}
+function extractDigest(adrContent) {
+  const m = adrContent.match(DIGEST_RE);
+  return m ? m[1] : null;
+}
+function tryCanonicalHeader(line) {
+  if (!line.startsWith("## "))
+    return null;
+  const name = line.slice(3).replace(/[ \t\r]+$/, "");
+  return CANONICAL_SET.has(name) ? name : null;
+}
+function parseAdrSections(content) {
+  const result = {};
+  if (!content)
+    return result;
+  let current = null;
+  let buf = [];
+  const save = () => {
+    if (current)
+      result[current] = buf.join(`
+`).trim();
+  };
+  for (const line of content.split(`
+`)) {
+    const header = tryCanonicalHeader(line);
+    if (header) {
+      save();
+      current = header;
+      buf = [];
+    } else if (current !== null) {
+      buf.push(line);
+    }
+  }
+  save();
+  return result;
+}
+
+// skills/recalling-project-context/src/adr-excerpt.ts
+var RECALL_SECTIONS = [
+  "PURPOSE",
+  "ARCHITECTURE",
+  "TRADEOFFS",
+  "PHILOSOPHY"
+];
+var DEFAULT_SECTION_CHAR_CAP = 1500;
+function excerptAdrSections(content, cap = DEFAULT_SECTION_CHAR_CAP) {
+  const parsed = parseAdrSections(content);
+  const sections = {};
+  const truncated = [];
+  const digest = extractDigest(content);
+  const digestLine = digest ? digestMarker(digest) : null;
+  for (const name of RECALL_SECTIONS) {
+    let body = parsed[name];
+    if (!body)
+      continue;
+    if (digestLine) {
+      body = body.replace(digestLine, "").trim();
+    }
+    if (!body)
+      continue;
+    if (body.length > cap) {
+      sections[name] = `${body.slice(0, cap).trimEnd()}…`;
+      truncated.push(name);
+    } else {
+      sections[name] = body;
+    }
+  }
+  return { sections, truncated, digest };
+}
+
 // skills/recalling-project-context/src/recall-madrs.ts
+var fs2 = __toESM(require("node:fs"));
+var path2 = __toESM(require("node:path"));
 var FRONTMATTER_RE2 = /^---\n([\s\S]*?)\n---\n?([\s\S]*)$/;
 function madrTags(raw) {
   const m = raw.match(FRONTMATTER_RE2);
@@ -2966,9 +2984,27 @@ function recallMadrs(input) {
   return { madrs, warnings: gathered.warnings };
 }
 
+// skills/recalling-project-context/src/staleness.ts
+function computeStaleness(adrDigest, currentDigest) {
+  if (!adrDigest)
+    return "unknown";
+  return adrDigest === currentDigest ? "current" : "stale";
+}
+
 // skills/recalling-project-context/src/recall-context.ts
 function defaultAdrPath(gitRoot) {
   return path3.join(gitRoot, ".codebase-memory", "adr.md");
+}
+function stalenessFields(gitRoot, adrContent) {
+  const filtered = filterRecords(gatherDecisions(gitRoot));
+  const currentDigest = computeDigest(filtered);
+  const adrDigest = adrContent ? extractDigest(adrContent) : null;
+  return {
+    adrDigest,
+    currentDigest,
+    staleness: computeStaleness(adrDigest, currentDigest),
+    digest: adrDigest
+  };
 }
 function prepare(input) {
   const adrPath = defaultAdrPath(input.gitRoot);
@@ -2990,22 +3026,23 @@ function prepare(input) {
     warnings: madrResult.warnings
   };
   if (!fs3.existsSync(adrPath)) {
+    const stale = stalenessFields(input.gitRoot, null);
     if (base.madrs.length === 0) {
       return {
         source: "empty",
         adrPath: null,
-        digest: null,
         sections: {},
         sectionsTruncated: [],
+        ...stale,
         ...base
       };
     }
     return {
       source: "madrs-only",
       adrPath: null,
-      digest: null,
       sections: {},
       sectionsTruncated: [],
+      ...stale,
       ...base
     };
   }
@@ -3014,9 +3051,9 @@ function prepare(input) {
   return {
     source: "adr-file",
     adrPath,
-    digest: excerpt.digest,
     sections: excerpt.sections,
     sectionsTruncated: excerpt.truncated,
+    ...stalenessFields(input.gitRoot, adrContent),
     ...base
   };
 }
@@ -3034,12 +3071,21 @@ function renderExcerptForHook(input) {
     return lines.join(`
 `);
   }
-  if (out.digest) {
-    lines.push(`ADR last synced from decision logs: ${out.digest}`);
-    lines.push("Re-run syncing-decisions-to-memory if new decisions were merged since this digest.");
+  if (out.staleness === "current" && out.adrDigest) {
+    lines.push(`ADR is current (digest: ${out.adrDigest}).`);
+    lines.push("");
+  } else if (out.staleness === "stale") {
+    lines.push("ADR may be stale — run syncing-decisions-to-memory to refresh.");
+    if (out.adrDigest) {
+      lines.push(`Last synced digest: ${out.adrDigest}; current decisions digest: ${out.currentDigest}.`);
+    }
     lines.push("");
   } else if (out.source === "madrs-only") {
     lines.push("No local ADR file — showing recent on-disk MADRs only.", "Run syncing-decisions-to-memory after finish to populate .codebase-memory/adr.md.");
+    lines.push("");
+  } else if (out.digest) {
+    lines.push(`ADR last synced from decision logs: ${out.digest}`);
+    lines.push("Re-run syncing-decisions-to-memory if new decisions were merged since this digest.");
     lines.push("");
   }
   for (const name of RECALL_SECTIONS) {

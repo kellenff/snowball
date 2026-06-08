@@ -63,6 +63,7 @@ var __export = (target, all) => {
 // skills/syncing-decisions-to-memory/src/sync-decisions.ts
 var exports_sync_decisions = {};
 __export(exports_sync_decisions, {
+  writeCache: () => writeCache,
   prepare: () => prepare
 });
 module.exports = __toCommonJS(exports_sync_decisions);
@@ -2831,6 +2832,20 @@ function computeDigest(input) {
 `)).slice(0, 16);
 }
 
+// skills/syncing-decisions-to-memory/src/disk-cache.ts
+var fs2 = __toESM(require("node:fs"));
+var path2 = __toESM(require("node:path"));
+function diskCachePath(gitRoot) {
+  return path2.join(gitRoot, ".codebase-memory", "adr.md");
+}
+function writeDiskCache(gitRoot, content) {
+  const target = diskCachePath(gitRoot);
+  fs2.mkdirSync(path2.dirname(target), { recursive: true });
+  const tmp = `${target}.tmp`;
+  fs2.writeFileSync(tmp, content, "utf8");
+  fs2.renameSync(tmp, target);
+}
+
 // skills/syncing-decisions-to-memory/src/adr.ts
 var CANONICAL_SECTIONS = [
   "PURPOSE",
@@ -2936,6 +2951,9 @@ function prepare(input) {
     ...base
   };
 }
+function writeCache(input) {
+  writeDiskCache(input.gitRoot, input.content);
+}
 if (require.main == module) {
   const sub = process.argv[2];
   let raw = "";
@@ -2948,8 +2966,10 @@ if (require.main == module) {
         process.stdout.write(JSON.stringify(prepare(JSON.parse(raw))));
       } else if (sub === "render") {
         process.stdout.write(renderAdr(JSON.parse(raw)));
+      } else if (sub === "write-cache") {
+        writeCache(JSON.parse(raw));
       } else {
-        process.stderr.write(`unknown subcommand: ${String(sub)} (expected 'prepare' or 'render')
+        process.stderr.write(`unknown subcommand: ${String(sub)} (expected 'prepare', 'render', or 'write-cache')
 `);
         process.exit(2);
       }

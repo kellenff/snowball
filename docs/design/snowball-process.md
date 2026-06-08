@@ -64,6 +64,7 @@ flowchart TD
     B -.emits decisions.-> H1
     H -.emits decisions.-> H1
     I -->|"preserve path → commit, then offer ADR sync"| H2
+    H4 -.->|cycle start| A
 ```
 
 ## Forward spine — the lifecycle gates
@@ -142,7 +143,7 @@ project **ADR** via the `manage_adr` MCP tool. It owns the **TRADEOFFS** and
 **PHILOSOPHY** sections and is idempotent — a no-change re-run is a no-op.
 
 **Recall** — [`recalling-project-context`](../../skills/recalling-project-context/SKILL.md)
-closes the loop:
+closes the loop and **opens** the forward spine at cycle start: tier-0 passive excerpt at session bootstrap, tier-1 active gate before non-trivial design work (`using-snowball` → `recalling-project-context` → `brainstorming`).
 
 1. **Session start** — the bootstrap hook injects a capped excerpt from
    `.codebase-memory/adr.md` (when present on disk) plus a pointer to the recall
@@ -172,8 +173,7 @@ These aren't lifecycle stages; they're reached *within* a stage on demand:
   attach its `.argdown` map via `snowball.argdown_path` (schema v1.1). This very
   document's companion map is an example.
 - [`recalling-project-context`](../../skills/recalling-project-context/SKILL.md) —
-  recovers ADR rationale and scoped decision logs at session start or before
-  non-trivial design work. Self-gates when codebase-memory is absent.
+  cycle-start recall: tier-0 session excerpt + tier-1 active gate before non-trivial work. Self-gates when codebase-memory is absent.
 - **Chorus** (when the `chorus:chorus` skill is installed) — a multi-model
   (cross-provider round-robin, with an optional Argdown critic) perspective
   offered once per substantive brainstorm, reached only at the "propose 2-3

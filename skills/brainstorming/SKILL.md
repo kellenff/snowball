@@ -21,7 +21,7 @@ Every project goes through this process. A todo list, a single-function utility,
 
 You MUST create a task for each of these items and complete them in order:
 
-1. **Explore project context** — when the task is non-trivial, invoke `snowball:recalling-project-context` first (if installed) to recover ADR rationale and scoped decision logs; then check files, docs, recent commits
+1. **Explore project context** — when the task is non-trivial, invoke `snowball:recalling-project-context` first (if installed) to recover **prior-cycle rationale** before exploring this cycle's design; then check files, docs, recent commits
 2. **Offer visual companion** (if topic will involve visual questions) — this is its own message, not combined with a clarifying question. See the Visual Companion section below.
 3. **Offer chorus companion** (if the `chorus:chorus` skill is available and the topic may involve cross-cutting trade-offs) — its own message, like the visual companion offer. See the Chorus Companion section below.
 4. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
@@ -75,7 +75,7 @@ digraph brainstorming {
 
 **Understanding the idea:**
 
-- For non-trivial work, invoke `snowball:recalling-project-context` (when installed) before deep exploration — it surfaces ADR TRADEOFFS/PHILOSOPHY and scoped MADRs from prior sessions
+- For non-trivial work, invoke `snowball:recalling-project-context` (when installed) before deep exploration — it surfaces prior-cycle ADR TRADEOFFS/PHILOSOPHY and scoped MADRs from prior sessions
 - Check out the current project state (files, docs, recent commits)
 - Before asking detailed questions, assess scope: if the request describes multiple independent subsystems (e.g., "build a platform with chat, file storage, billing, and analytics"), flag this immediately. Don't spend questions refining details of a project that needs to be decomposed first.
 - If the project is too large for a single spec, help the user decompose into sub-projects: what are the independent pieces, how do they relate, what order should they be built? Then brainstorm the first sub-project through the normal design flow. Each sub-project gets its own spec → plan → implementation cycle.

@@ -1,7 +1,12 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { gatherDecisions } from "../../syncing-decisions-to-memory/src/gather";
+import { filterRecords } from "../../syncing-decisions-to-memory/src/filter";
+import { computeDigest } from "../../syncing-decisions-to-memory/src/digest";
+import { extractDigest } from "../../syncing-decisions-to-memory/src/adr";
 import { excerptAdrSections, DEFAULT_SECTION_CHAR_CAP, RECALL_SECTIONS } from "./adr-excerpt";
 import { recallMadrs } from "./recall-madrs";
+import { computeStaleness, type Staleness } from "./staleness";
 
 export interface PrepareInput {
   gitRoot: string;
@@ -14,6 +19,9 @@ export interface PrepareOutput {
   source: "adr-file" | "madrs-only" | "empty";
   adrPath: string | null;
   digest: string | null;
+  adrDigest: string | null;
+  currentDigest: string;
+  staleness: Staleness;
   sections: Record<string, string>;
   sectionsTruncated: string[];
   madrs: Array<{
@@ -28,6 +36,21 @@ export interface PrepareOutput {
 
 function defaultAdrPath(gitRoot: string): string {
   return path.join(gitRoot, ".codebase-memory", "adr.md");
+}
+
+function stalenessFields(
+  gitRoot: string,
+  adrContent: string | null,
+): Pick<PrepareOutput, "adrDigest" | "currentDigest" | "staleness" | "digest"> {
+  const filtered = filterRecords(gatherDecisions(gitRoot));
+  const currentDigest = computeDigest(filtered);
+  const adrDigest = adrContent ? extractDigest(adrContent) : null;
+  return {
+    adrDigest,
+    currentDigest,
+    staleness: computeStaleness(adrDigest, currentDigest),
+    digest: adrDigest,
+  };
 }
 
 export function prepare(input: PrepareInput): PrepareOutput {
@@ -53,22 +76,23 @@ export function prepare(input: PrepareInput): PrepareOutput {
   };
 
   if (!fs.existsSync(adrPath)) {
+    const stale = stalenessFields(input.gitRoot, null);
     if (base.madrs.length === 0) {
       return {
         source: "empty",
         adrPath: null,
-        digest: null,
         sections: {},
         sectionsTruncated: [],
+        ...stale,
         ...base,
       };
     }
     return {
       source: "madrs-only",
       adrPath: null,
-      digest: null,
       sections: {},
       sectionsTruncated: [],
+      ...stale,
       ...base,
     };
   }
@@ -79,9 +103,9 @@ export function prepare(input: PrepareInput): PrepareOutput {
   return {
     source: "adr-file",
     adrPath,
-    digest: excerpt.digest,
     sections: excerpt.sections as Record<string, string>,
     sectionsTruncated: excerpt.truncated,
+    ...stalenessFields(input.gitRoot, adrContent),
     ...base,
   };
 }
@@ -104,16 +128,27 @@ export function renderExcerptForHook(input: PrepareInput): string {
     return lines.join("\n");
   }
 
-  if (out.digest) {
-    lines.push(`ADR last synced from decision logs: ${out.digest}`);
-    lines.push(
-      "Re-run syncing-decisions-to-memory if new decisions were merged since this digest.",
-    );
+  if (out.staleness === "current" && out.adrDigest) {
+    lines.push(`ADR is current (digest: ${out.adrDigest}).`);
+    lines.push("");
+  } else if (out.staleness === "stale") {
+    lines.push("ADR may be stale — run syncing-decisions-to-memory to refresh.");
+    if (out.adrDigest) {
+      lines.push(
+        `Last synced digest: ${out.adrDigest}; current decisions digest: ${out.currentDigest}.`,
+      );
+    }
     lines.push("");
   } else if (out.source === "madrs-only") {
     lines.push(
       "No local ADR file — showing recent on-disk MADRs only.",
       "Run syncing-decisions-to-memory after finish to populate .codebase-memory/adr.md.",
+    );
+    lines.push("");
+  } else if (out.digest) {
+    lines.push(`ADR last synced from decision logs: ${out.digest}`);
+    lines.push(
+      "Re-run syncing-decisions-to-memory if new decisions were merged since this digest.",
     );
     lines.push("");
   }

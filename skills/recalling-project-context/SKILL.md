@@ -1,18 +1,20 @@
 ---
 name: recalling-project-context
-description: Use at session start or before non-trivial design work to recover project rationale from codebase-memory's ADR and on-disk snowball decision logs. Skip for pure typo/formatting tasks. Self-gates when codebase-memory is absent — falls back to recent MADRs on disk.
+description: Use at the start of a non-trivial snowball cycle to recover project rationale from codebase-memory's ADR and on-disk decision logs. Skip for pure typo/formatting tasks. Self-gates when codebase-memory is absent — falls back to recent MADRs on disk.
 ---
 
 # Recalling Project Context
 
-Recover distilled rationale before design or implementation work. This closes the decision spine's recall loop: decisions captured passively during prior sessions are readable here without grepping `docs/snowball/decisions/`.
+Recover distilled rationale at the **start of a non-trivial snowball cycle** — before brainstorming, plan mode, or design work. This closes the decision spine's recall loop: decisions captured in prior cycles are readable here without grepping `docs/snowball/decisions/`.
+
+**Cycle-start recall:** tier-0 passive excerpt is injected at session start via the bootstrap hook; tier-1 is this skill (live MCP + scoped MADRs + staleness).
 
 **Skip when:** the task is trivial (typo, formatting, one-line fix with no design tradeoffs).
 
 ## What this reads
 
 - **Primary:** codebase-memory project ADR via `manage_adr(mode="get")` — TRADEOFFS, PHILOSOPHY, and optionally PURPOSE/ARCHITECTURE when present.
-- **Fallback:** `.codebase-memory/adr.md` on disk (same file MCP writes; may exist after a prior sync on this machine).
+- **Fallback:** `.codebase-memory/adr.md` on disk (written by `syncing-decisions-to-memory` after MCP update; read by the session-start hook).
 - **Point decisions:** recent MADRs under `docs/snowball/decisions/`, optionally scoped to a subsystem path or keyword.
 
 Session start may already inject a capped ADR excerpt from disk via the bootstrap hook. This skill adds live MCP resolution, scoped MADR filtering, and targeted graph queries.
@@ -31,7 +33,7 @@ Run in order. Deterministic prep uses `scripts/recall-context.cjs`; you orchestr
    echo '<json>' | node skills/recalling-project-context/scripts/recall-context.cjs prepare
    ```
 
-   where `<json>` is `{"gitRoot": "<repo root>", "scope": "<optional scope>"}`. Read the JSON result. Surface any `warnings`.
+   where `<json>` is `{"gitRoot": "<repo root>", "scope": "<optional scope>"}`. Read the JSON result. Use `staleness`, `adrDigest`, and `currentDigest` from the JSON — do not recompute digest comparison by hand. Surface any `warnings`.
 
 4. **Try live ADR via MCP (when available).**
    - Call `list_projects`. Find the entry whose `root_path` equals the repo root; use its `name`.
@@ -47,7 +49,7 @@ Run in order. Deterministic prep uses `scripts/recall-context.cjs`; you orchestr
    - Recurring principles (PHILOSOPHY)
    - Relevant tradeoffs and constraints (TRADEOFFS + scoped MADRs)
    - Structural context if PURPOSE/ARCHITECTURE exist
-   - ADR digest staleness: if `prepare.digest` or live ADR digest differs from recent commits under `docs/snowball/decisions/`, note that `syncing-decisions-to-memory` may be due
+   - ADR staleness: report `prepare.staleness` (`current` / `stale` / `unknown`); when live MCP ADR is available, compare its digest to `prepare.currentDigest` the same way
    - Pointers to full MADRs on disk for point-decision detail
 
 7. **Report** the summary to the user before continuing design or implementation.
