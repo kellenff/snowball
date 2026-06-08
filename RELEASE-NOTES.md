@@ -1,5 +1,12 @@
 # Snowball Release Notes
 
+## v6.2.0 (2026-06-07)
+
+Documentation release marking the **chorus companion** swap as shipped.
+
+- **Brainstorming** — already delegates to `chorus:chorus` for multi-model debate on cross-cutting trade-offs (replaces M2 brain-jam). Degrades silently when the chorus skill is not installed.
+- **Docs** — README changelog, argdown process maps, and the chorus companion design spec brought into alignment with the live skill wiring.
+
 ## v6.0.0 (2026-05-31)
 
 Major release introducing **blast-radius analysis** — a composite change-scope, failure-impact, and action-risk envelope wired into the Snowball lifecycle.
