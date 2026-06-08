@@ -127,3 +127,49 @@ test("prepare reports staleness unknown for madrs-only source", () => {
     cleanupTempRepo(repo);
   }
 });
+
+test("renderExcerptForHook surfaces stale ADR warning", () => {
+  const repo = makeTempRepo();
+  try {
+    const adrDir = path.join(repo, ".codebase-memory");
+    fs.mkdirSync(adrDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(adrDir, "adr.md"),
+      `## PHILOSOPHY\n\nStale.\n\n${digestMarker("deadbeefdeadbeef")}`,
+    );
+    writeDecisionFile(
+      repo,
+      "2026-06-07T1300-d.md",
+      madrFixture({ title: "Newer", status: "accepted" }),
+    );
+    const text = renderExcerptForHook({ gitRoot: repo });
+    expect(text).toContain("ADR may be stale");
+    expect(text).toContain("syncing-decisions-to-memory");
+  } finally {
+    cleanupTempRepo(repo);
+  }
+});
+
+test("renderExcerptForHook surfaces current ADR line", () => {
+  const repo = makeTempRepo();
+  try {
+    writeDecisionFile(
+      repo,
+      "2026-06-07T1301-e.md",
+      madrFixture({ title: "Synced", status: "accepted", body: "In sync." }),
+    );
+    const filtered = filterRecords(gatherDecisions(repo));
+    const digest = computeDigest(filtered);
+    const adrDir = path.join(repo, ".codebase-memory");
+    fs.mkdirSync(adrDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(adrDir, "adr.md"),
+      `## PHILOSOPHY\n\nCurrent.\n\n${digestMarker(digest)}`,
+    );
+    const text = renderExcerptForHook({ gitRoot: repo });
+    expect(text).toContain("ADR is current");
+    expect(text).toContain(digest);
+  } finally {
+    cleanupTempRepo(repo);
+  }
+});

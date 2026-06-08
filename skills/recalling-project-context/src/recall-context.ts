@@ -128,16 +128,27 @@ export function renderExcerptForHook(input: PrepareInput): string {
     return lines.join("\n");
   }
 
-  if (out.digest) {
-    lines.push(`ADR last synced from decision logs: ${out.digest}`);
-    lines.push(
-      "Re-run syncing-decisions-to-memory if new decisions were merged since this digest.",
-    );
+  if (out.staleness === "current" && out.adrDigest) {
+    lines.push(`ADR is current (digest: ${out.adrDigest}).`);
+    lines.push("");
+  } else if (out.staleness === "stale") {
+    lines.push("ADR may be stale — run syncing-decisions-to-memory to refresh.");
+    if (out.adrDigest) {
+      lines.push(
+        `Last synced digest: ${out.adrDigest}; current decisions digest: ${out.currentDigest}.`,
+      );
+    }
     lines.push("");
   } else if (out.source === "madrs-only") {
     lines.push(
       "No local ADR file — showing recent on-disk MADRs only.",
       "Run syncing-decisions-to-memory after finish to populate .codebase-memory/adr.md.",
+    );
+    lines.push("");
+  } else if (out.digest) {
+    lines.push(`ADR last synced from decision logs: ${out.digest}`);
+    lines.push(
+      "Re-run syncing-decisions-to-memory if new decisions were merged since this digest.",
     );
     lines.push("");
   }
