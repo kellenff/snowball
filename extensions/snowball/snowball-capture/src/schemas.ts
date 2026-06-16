@@ -1,20 +1,25 @@
 import { z } from "zod";
 
-export const MadrCaptureInput = z.object({
-  question: z.string().min(1).max(2000),
-  options: z
-    .array(
-      z.object({
-        name: z.string().min(1).max(200),
-        description: z.string().min(1).max(2000),
-      }),
-    )
-    .min(2)
-    .max(8),
-  chosen: z.string().min(1).max(200),
-  context: z.string().max(5000).optional(),
-  tags: z.array(z.string().min(1).max(50)).max(10).optional(),
-});
+export const MadrCaptureInput = z
+  .object({
+    question: z.string().min(1).max(2000),
+    options: z
+      .array(
+        z.object({
+          name: z.string().min(1).max(200),
+          description: z.string().min(1).max(2000),
+        }),
+      )
+      .min(2)
+      .max(8),
+    chosen: z.string().min(1).max(200),
+    context: z.string().max(5000).optional(),
+    tags: z.array(z.string().min(1).max(50)).max(10).optional(),
+  })
+  .refine((v) => v.options.some((o) => o.name === v.chosen), {
+    message: "chosen must match one of the option names",
+    path: ["chosen"],
+  });
 export type MadrCaptureInput = z.infer<typeof MadrCaptureInput>;
 
 export const ApprovalPhraseRecordInput = z.object({
