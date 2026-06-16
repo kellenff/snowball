@@ -87,3 +87,47 @@ describe("madr_capture (integration)", () => {
     }
   });
 });
+
+// ─── approval_phrase_record ─────────────────────────────────────────
+
+const APPROVAL_TOOL_SRC = path.join(
+  PROJECT_ROOT,
+  "extensions/snowball/snowball-capture/src/tools/approval-phrase-record.ts",
+);
+
+function runApprovalTool(input: unknown): {
+  stdout: string;
+  stderr: string;
+  status: number;
+} {
+  const r = spawnSync("bun", ["run", APPROVAL_TOOL_SRC], {
+    input: JSON.stringify(input),
+    encoding: "utf8",
+  });
+  return { stdout: r.stdout, stderr: r.stderr, status: r.status ?? -1 };
+}
+
+describe("approval_phrase_record (integration)", () => {
+  it("writes a MADR with user-prompt-pattern mechanism on a matching phrase", () => {
+    const result = runApprovalTool({
+      phrase: "lgtm",
+      action: "approving the design",
+    });
+    expect(result.status).toBe(0);
+    const out = JSON.parse(result.stdout);
+    expect(out.ok).toBe(true);
+    const content = fs.readFileSync(out.data.path, "utf8");
+    expect(content).toContain("user-prompt-pattern");
+    expect(content).toContain("approving the design");
+  });
+
+  it("returns NOT_AN_APPROVAL on a non-matching phrase", () => {
+    const result = runApprovalTool({
+      phrase: "do that thing you mentioned earlier",
+      action: "trying to capture a non-approval",
+    });
+    const out = JSON.parse(result.stdout);
+    expect(out.ok).toBe(false);
+    expect(out.code).toBe("NOT_AN_APPROVAL");
+  });
+});
