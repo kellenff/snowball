@@ -106,15 +106,20 @@ Expected: the symlink resolves to the 18-skill `skills/` directory at the repo r
 
 - [ ] **Step 3: Copy the `using-snowball` text into `.junie/AGENTS.md`**
 
-Read `skills/using-snowball/SKILL.md` (it is the canonical source of truth for the bootstrap). Create `extensions/snowball/.junie/AGENTS.md` with two sections:
+The bootstrap is the verbatim contents of `skills/using-snowball/SKILL.md` wrapped in `BEGIN`/`END` markers, with a skill index appended. Use a `cat` heredoc to keep the source-of-truth relationship explicit:
 
-```markdown
+```bash
+cat > extensions/snowball/.junie/AGENTS.md <<'AGENTS_MD'
 <!-- BEGIN SNOWBALL BOOTSTRAP (mirror of skills/using-snowball/SKILL.md) -->
 <!-- If you change the source, change this and the test in tests/snowball-capture/ -->
 
-# Using Snowball
+AGENTS_MD
 
-<full text of skills/using-snowball/SKILL.md verbatim>
+# Read the source-of-truth bootstrap and inline it
+cat skills/using-snowball/SKILL.md >> extensions/snowball/.junie/AGENTS.md
+
+# Append the skill index and close the marker
+cat >> extensions/snowball/.junie/AGENTS.md <<'AGENTS_MD'
 
 ## Skill Index
 
@@ -140,9 +145,10 @@ The following skills are available in this Junie extension. Invoke by name when 
 - `using-snowball` — this skill.
 
 <!-- END SNOWBALL BOOTSTRAP -->
+AGENTS_MD
 ```
 
-The placeholder `<full text of skills/using-snowball/SKILL.md verbatim>` is replaced with the actual file content in this step (no `TBD`). The drift guard test lives in Task 11.
+The drift-guard test in Task 9 asserts that the full text of `skills/using-snowball/SKILL.md` is contained between the markers.
 
 - [ ] **Step 4: Verify the layout**
 
@@ -1755,7 +1761,7 @@ git commit -m "feat(extensions/junie): add capture rules to AGENTS.md + drift te
 
 ## Task 10: `mcp/.mcp.json` wiring with real paths
 
-**Goal:** Replace the placeholder `.mcp.json` (created in Task 1) with a real wiring that points at the bundled `snowball-capture` server, the existing `argdown` MCP server, and the existing `codebase-memory` MCP server. Use absolute paths the user can adjust.
+**Goal:** Create `mcp/.mcp.json` (the directory was made in Task 1) with a real wiring that points at the bundled `snowball-capture` server, the existing `argdown` MCP server, and the existing `codebase-memory` MCP server. Use absolute paths the user can adjust.
 
 **Files:**
 
