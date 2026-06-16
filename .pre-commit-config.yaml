@@ -35,14 +35,14 @@ repos:
         entry: oxlint
         language: system
         types_or: [ts, javascript]
-        exclude: ^skills/(decision-logging|structured-argumentation|syncing-decisions-to-memory|recalling-project-context|blast-radius)/scripts/|^hooks/blast-radius-audit\.cjs$
+        exclude: ^skills/(decision-logging|structured-argumentation|syncing-decisions-to-memory|recalling-project-context|blast-radius)/scripts/|^hooks/blast-radius-audit\.cjs$|^extensions/snowball/snowball-capture/dist/
 
       - id: oxfmt
         name: oxfmt
         entry: oxfmt
         language: system
         types_or: [ts, javascript, json, yaml]
-        exclude: ^skills/(decision-logging|structured-argumentation|syncing-decisions-to-memory|recalling-project-context|blast-radius)/scripts/|^hooks/blast-radius-audit\.cjs$
+        exclude: ^skills/(decision-logging|structured-argumentation|syncing-decisions-to-memory|recalling-project-context|blast-radius)/scripts/|^hooks/blast-radius-audit\.cjs$|^extensions/snowball/snowball-capture/dist/
 
       - id: build-decision-logging
         name: build decision-logging bundles
@@ -126,4 +126,18 @@ repos:
         entry: bash -c 'cd tests/measuring-skill-performance && bun test'
         language: system
         files: ^skills/measuring-skill-performance/(src|scripts)/|^tests/measuring-skill-performance/
+        pass_filenames: false
+
+      - id: build-snowball-capture
+        name: build snowball-capture bundle
+        entry: scripts/build-snowball-capture.sh
+        language: system
+        files: ^extensions/snowball/snowball-capture/src/.*\.ts$
+        pass_filenames: false
+
+      - id: bun-test-snowball-capture
+        name: bun test snowball-capture
+        entry: bash -c 'cd tests/snowball-capture && bun test'
+        language: system
+        files: ^extensions/snowball/snowball-capture/(src|dist)|^tests/snowball-capture/
         pass_filenames: false
