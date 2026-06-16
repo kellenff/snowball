@@ -1,6 +1,4 @@
-<!-- markdownlint-disable -->
 <!-- BEGIN SNOWBALL BOOTSTRAP (mirror of skills/using-snowball/SKILL.md) -->
-<!-- If you change the source, change this and the test in tests/snowball-capture/ -->
 
 ---
 name: using-snowball
@@ -135,6 +133,7 @@ Instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows.
 
 The following skills are available in this Junie extension. Invoke by name when a task fits:
 
+- `blast-radius` — composite change-scope / failure-impact / action-risk analysis at lifecycle gates.
 - `brainstorming` — gated design exploration. Use before any creative work.
 - `writing-plans` — produces an implementation plan before code is written.
 - `executing-plans` — runs an existing plan with review checkpoints.
@@ -142,6 +141,7 @@ The following skills are available in this Junie extension. Invoke by name when 
 - `systematic-debugging` — root-cause-first debugging.
 - `verification-before-completion` — show verification output before claiming success.
 - `finishing-a-development-branch` — structured merge / PR / cleanup.
+- `measuring-skill-performance` — ranks snowball skills as port candidates by token cost and reliability.
 - `requesting-code-review` — produces review-ready output.
 - `receiving-code-review` — responds to feedback with technical rigor.
 - `subagent-driven-development` — orchestrates implementation across subagents.
@@ -155,4 +155,3 @@ The following skills are available in this Junie extension. Invoke by name when 
 - `using-snowball` — this skill.
 
 <!-- END SNOWBALL BOOTSTRAP -->
-<!-- markdownlint-enable -->

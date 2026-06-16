@@ -9,6 +9,18 @@
   "MD033": false,
   "MD041": false,
 
+  // MD003: Heading style — `extensions/snowball/.junie/AGENTS.md` wraps a
+  // verbatim copy of `skills/using-snowball/SKILL.md` (with `---` frontmatter)
+  // between BEGIN/END markers, so markdownlint no longer recognises the
+  // wrapper's leading `---` as a frontmatter delimiter and would otherwise
+  // flag every ATX heading inside the body.
+  "MD003": false,
+
+  // MD022: Blanks around headings — same root cause as MD003: the wrapper
+  // breaks frontmatter detection, so the body line directly under `---`
+  // (the source's `name:` key) is treated as a missing-blanks heading.
+  "MD022": false,
+
   // MD026: Trailing punctuation in headings — colons are intentional in
   // definition-style headings throughout skills and plans docs.
   "MD026": false,
