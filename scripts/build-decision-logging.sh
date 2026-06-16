@@ -17,6 +17,7 @@ ENTRIES=(
   append-observation
   ask-user-question-bridge
   user-prompt-bridge
+  approval-phrases
 )
 
 for entry in "${ENTRIES[@]}"; do
