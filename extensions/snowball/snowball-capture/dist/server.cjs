@@ -43,7 +43,7 @@ var __export = (target, all) => {
     });
 };
 
-// node_modules/ajv/dist/compile/codegen/code.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/compile/codegen/code.js
 var require_code = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   exports2.regexpCode = exports2.getEsmExportName = exports2.getProperty = exports2.safeStringify = exports2.stringify = exports2.strConcat = exports2.addCodeArg = exports2.str = exports2._ = exports2.nil = exports2._Code = exports2.Name = exports2.IDENTIFIER = exports2._CodeOrName = undefined;
@@ -197,7 +197,7 @@ var require_code = __commonJS((exports2) => {
   exports2.regexpCode = regexpCode;
 });
 
-// node_modules/ajv/dist/compile/codegen/scope.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/compile/codegen/scope.js
 var require_scope = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   exports2.ValueScope = exports2.ValueScopeName = exports2.Scope = exports2.varKinds = exports2.UsedValueState = undefined;
@@ -343,7 +343,7 @@ var require_scope = __commonJS((exports2) => {
   exports2.ValueScope = ValueScope;
 });
 
-// node_modules/ajv/dist/compile/codegen/index.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/compile/codegen/index.js
 var require_codegen = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   exports2.or = exports2.and = exports2.not = exports2.CodeGen = exports2.operators = exports2.varKinds = exports2.ValueScopeName = exports2.ValueScope = exports2.Scope = exports2.Name = exports2.regexpCode = exports2.stringify = exports2.getProperty = exports2.nil = exports2.strConcat = exports2.str = exports2._ = undefined;
@@ -1053,7 +1053,7 @@ var require_codegen = __commonJS((exports2) => {
   }
 });
 
-// node_modules/ajv/dist/compile/util.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/compile/util.js
 var require_util = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   exports2.checkStrictMode = exports2.getErrorPath = exports2.Type = exports2.useFunc = exports2.setEvaluated = exports2.evaluatedPropsToName = exports2.mergeEvaluated = exports2.eachItem = exports2.unescapeJsonPointer = exports2.escapeJsonPointer = exports2.escapeFragment = exports2.unescapeFragment = exports2.schemaRefOrVal = exports2.schemaHasRulesButRef = exports2.schemaHasRules = exports2.checkUnknownRules = exports2.alwaysValidSchema = exports2.toHash = undefined;
@@ -1217,7 +1217,7 @@ var require_util = __commonJS((exports2) => {
   exports2.checkStrictMode = checkStrictMode;
 });
 
-// node_modules/ajv/dist/compile/names.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/compile/names.js
 var require_names = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var codegen_1 = require_codegen();
@@ -1242,7 +1242,7 @@ var require_names = __commonJS((exports2) => {
   exports2.default = names;
 });
 
-// node_modules/ajv/dist/compile/errors.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/compile/errors.js
 var require_errors = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   exports2.extendErrors = exports2.resetErrorsCount = exports2.reportExtraError = exports2.reportError = exports2.keyword$DataError = exports2.keywordError = undefined;
@@ -1360,7 +1360,7 @@ var require_errors = __commonJS((exports2) => {
   }
 });
 
-// node_modules/ajv/dist/compile/validate/boolSchema.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/compile/validate/boolSchema.js
 var require_boolSchema = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   exports2.boolOrEmptySchema = exports2.topBoolOrEmptySchema = undefined;
@@ -1408,7 +1408,7 @@ var require_boolSchema = __commonJS((exports2) => {
   }
 });
 
-// node_modules/ajv/dist/compile/rules.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/compile/rules.js
 var require_rules = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   exports2.getRules = exports2.isJSONType = undefined;
@@ -1436,7 +1436,7 @@ var require_rules = __commonJS((exports2) => {
   exports2.getRules = getRules;
 });
 
-// node_modules/ajv/dist/compile/validate/applicability.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/compile/validate/applicability.js
 var require_applicability = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   exports2.shouldUseRule = exports2.shouldUseGroup = exports2.schemaHasRulesForType = undefined;
@@ -1456,7 +1456,7 @@ var require_applicability = __commonJS((exports2) => {
   exports2.shouldUseRule = shouldUseRule;
 });
 
-// node_modules/ajv/dist/compile/validate/dataType.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/compile/validate/dataType.js
 var require_dataType = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   exports2.reportTypeError = exports2.checkDataTypes = exports2.checkDataType = exports2.coerceAndCheckDataType = exports2.getJSONTypes = exports2.getSchemaTypes = exports2.DataType = undefined;
@@ -1637,7 +1637,7 @@ var require_dataType = __commonJS((exports2) => {
   }
 });
 
-// node_modules/ajv/dist/compile/validate/defaults.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/compile/validate/defaults.js
 var require_defaults = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   exports2.assignDefaults = undefined;
@@ -1671,7 +1671,7 @@ var require_defaults = __commonJS((exports2) => {
   }
 });
 
-// node_modules/ajv/dist/vocabularies/code.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/code.js
 var require_code2 = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   exports2.validateUnion = exports2.validateArray = exports2.usePattern = exports2.callValidateCode = exports2.schemaProperties = exports2.allSchemaProperties = exports2.noPropertyInData = exports2.propertyInData = exports2.isOwnProperty = exports2.hasPropFunc = exports2.reportMissingProp = exports2.checkMissingProp = exports2.checkReportMissingProp = undefined;
@@ -1800,7 +1800,7 @@ var require_code2 = __commonJS((exports2) => {
   exports2.validateUnion = validateUnion;
 });
 
-// node_modules/ajv/dist/compile/validate/keyword.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/compile/validate/keyword.js
 var require_keyword = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   exports2.validateKeywordUsage = exports2.validSchemaType = exports2.funcKeywordCode = exports2.macroKeywordCode = undefined;
@@ -1915,7 +1915,7 @@ var require_keyword = __commonJS((exports2) => {
   exports2.validateKeywordUsage = validateKeywordUsage;
 });
 
-// node_modules/ajv/dist/compile/validate/subschema.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/compile/validate/subschema.js
 var require_subschema = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   exports2.extendSubschemaMode = exports2.extendSubschemaData = exports2.getSubschema = undefined;
@@ -1995,7 +1995,7 @@ var require_subschema = __commonJS((exports2) => {
   exports2.extendSubschemaMode = extendSubschemaMode;
 });
 
-// node_modules/fast-deep-equal/index.js
+// extensions/snowball/snowball-capture/node_modules/fast-deep-equal/index.js
 var require_fast_deep_equal = __commonJS((exports2, module2) => {
   module2.exports = function equal(a, b) {
     if (a === b)
@@ -2037,7 +2037,7 @@ var require_fast_deep_equal = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/json-schema-traverse/index.js
+// extensions/snowball/snowball-capture/node_modules/json-schema-traverse/index.js
 var require_json_schema_traverse = __commonJS((exports2, module2) => {
   var traverse = module2.exports = function(schema, opts, cb) {
     if (typeof opts == "function") {
@@ -2120,7 +2120,7 @@ var require_json_schema_traverse = __commonJS((exports2, module2) => {
   }
 });
 
-// node_modules/ajv/dist/compile/resolve.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/compile/resolve.js
 var require_resolve = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   exports2.getSchemaRefs = exports2.resolveUrl = exports2.normalizeId = exports2._getFullPath = exports2.getFullPath = exports2.inlineRef = undefined;
@@ -2273,7 +2273,7 @@ var require_resolve = __commonJS((exports2) => {
   exports2.getSchemaRefs = getSchemaRefs;
 });
 
-// node_modules/ajv/dist/compile/validate/index.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/compile/validate/index.js
 var require_validate = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   exports2.getData = exports2.KeywordCxt = exports2.validateFunctionCode = undefined;
@@ -2778,7 +2778,7 @@ var require_validate = __commonJS((exports2) => {
   exports2.getData = getData;
 });
 
-// node_modules/ajv/dist/runtime/validation_error.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/runtime/validation_error.js
 var require_validation_error = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
 
@@ -2792,7 +2792,7 @@ var require_validation_error = __commonJS((exports2) => {
   exports2.default = ValidationError;
 });
 
-// node_modules/ajv/dist/compile/ref_error.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/compile/ref_error.js
 var require_ref_error = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var resolve_1 = require_resolve();
@@ -2807,7 +2807,7 @@ var require_ref_error = __commonJS((exports2) => {
   exports2.default = MissingRefError;
 });
 
-// node_modules/ajv/dist/compile/index.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/compile/index.js
 var require_compile = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   exports2.resolveSchema = exports2.getCompilingSchema = exports2.resolveRef = exports2.compileSchema = exports2.SchemaEnv = undefined;
@@ -3028,7 +3028,7 @@ var require_compile = __commonJS((exports2) => {
   }
 });
 
-// node_modules/ajv/dist/refs/data.json
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/refs/data.json
 var require_data = __commonJS((exports2, module2) => {
   module2.exports = {
     $id: "https://raw.githubusercontent.com/ajv-validator/ajv/master/lib/refs/data.json#",
@@ -3045,7 +3045,7 @@ var require_data = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/fast-uri/lib/utils.js
+// extensions/snowball/snowball-capture/node_modules/fast-uri/lib/utils.js
 var require_utils = __commonJS((exports2, module2) => {
   var isUUID = RegExp.prototype.test.bind(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/iu);
   var isIPv4 = RegExp.prototype.test.bind(/^(?:(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)$/u);
@@ -3356,7 +3356,7 @@ var require_utils = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/fast-uri/lib/schemes.js
+// extensions/snowball/snowball-capture/node_modules/fast-uri/lib/schemes.js
 var require_schemes = __commonJS((exports2, module2) => {
   var { isUUID } = require_utils();
   var URN_REG = /([\da-z][\d\-a-z]{0,31}):((?:[\w!$'()*+,\-.:;=@]|%[\da-f]{2})+)/iu;
@@ -3530,7 +3530,7 @@ var require_schemes = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/fast-uri/index.js
+// extensions/snowball/snowball-capture/node_modules/fast-uri/index.js
 var require_fast_uri = __commonJS((exports2, module2) => {
   var { normalizeIPv6, removeDotSegments, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, escapePreservingEscapes, reescapeHostDelimiters, isIPv4, nonSimpleDomain } = require_utils();
   var { SCHEMES, getSchemeHandler } = require_schemes();
@@ -3812,7 +3812,7 @@ var require_fast_uri = __commonJS((exports2, module2) => {
   module2.exports.fastUri = fastUri;
 });
 
-// node_modules/ajv/dist/runtime/uri.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/runtime/uri.js
 var require_uri = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var uri = require_fast_uri();
@@ -3820,7 +3820,7 @@ var require_uri = __commonJS((exports2) => {
   exports2.default = uri;
 });
 
-// node_modules/ajv/dist/core.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/core.js
 var require_core = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   exports2.CodeGen = exports2.Name = exports2.nil = exports2.stringify = exports2.str = exports2._ = exports2.KeywordCxt = undefined;
@@ -4413,7 +4413,7 @@ var require_core = __commonJS((exports2) => {
   }
 });
 
-// node_modules/ajv/dist/vocabularies/core/id.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/core/id.js
 var require_id = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var def = {
@@ -4425,7 +4425,7 @@ var require_id = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/vocabularies/core/ref.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/core/ref.js
 var require_ref = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   exports2.callRef = exports2.getValidate = undefined;
@@ -4544,7 +4544,7 @@ var require_ref = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/vocabularies/core/index.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/core/index.js
 var require_core2 = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var id_1 = require_id();
@@ -4562,7 +4562,7 @@ var require_core2 = __commonJS((exports2) => {
   exports2.default = core2;
 });
 
-// node_modules/ajv/dist/vocabularies/validation/limitNumber.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/validation/limitNumber.js
 var require_limitNumber = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var codegen_1 = require_codegen();
@@ -4591,7 +4591,7 @@ var require_limitNumber = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/vocabularies/validation/multipleOf.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/validation/multipleOf.js
 var require_multipleOf = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var codegen_1 = require_codegen();
@@ -4616,7 +4616,7 @@ var require_multipleOf = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/runtime/ucs2length.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/runtime/ucs2length.js
 var require_ucs2length = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   function ucs2length(str) {
@@ -4639,7 +4639,7 @@ var require_ucs2length = __commonJS((exports2) => {
   ucs2length.code = 'require("ajv/dist/runtime/ucs2length").default';
 });
 
-// node_modules/ajv/dist/vocabularies/validation/limitLength.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/validation/limitLength.js
 var require_limitLength = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var codegen_1 = require_codegen();
@@ -4668,7 +4668,7 @@ var require_limitLength = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/vocabularies/validation/pattern.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/validation/pattern.js
 var require_pattern = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var code_1 = require_code2();
@@ -4702,7 +4702,7 @@ var require_pattern = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/vocabularies/validation/limitProperties.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/validation/limitProperties.js
 var require_limitProperties = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var codegen_1 = require_codegen();
@@ -4728,7 +4728,7 @@ var require_limitProperties = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/vocabularies/validation/required.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/validation/required.js
 var require_required = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var code_1 = require_code2();
@@ -4807,7 +4807,7 @@ var require_required = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/vocabularies/validation/limitItems.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/validation/limitItems.js
 var require_limitItems = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var codegen_1 = require_codegen();
@@ -4833,7 +4833,7 @@ var require_limitItems = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/runtime/equal.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/runtime/equal.js
 var require_equal = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var equal = require_fast_deep_equal();
@@ -4841,7 +4841,7 @@ var require_equal = __commonJS((exports2) => {
   exports2.default = equal;
 });
 
-// node_modules/ajv/dist/vocabularies/validation/uniqueItems.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/validation/uniqueItems.js
 var require_uniqueItems = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var dataType_1 = require_dataType();
@@ -4905,7 +4905,7 @@ var require_uniqueItems = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/vocabularies/validation/const.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/validation/const.js
 var require_const = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var codegen_1 = require_codegen();
@@ -4931,7 +4931,7 @@ var require_const = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/vocabularies/validation/enum.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/validation/enum.js
 var require_enum = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var codegen_1 = require_codegen();
@@ -4977,7 +4977,7 @@ var require_enum = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/vocabularies/validation/index.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/validation/index.js
 var require_validation = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var limitNumber_1 = require_limitNumber();
@@ -5007,7 +5007,7 @@ var require_validation = __commonJS((exports2) => {
   exports2.default = validation;
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/additionalItems.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/applicator/additionalItems.js
 var require_additionalItems = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   exports2.validateAdditionalItems = undefined;
@@ -5057,7 +5057,7 @@ var require_additionalItems = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/items.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/applicator/items.js
 var require_items = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   exports2.validateTuple = undefined;
@@ -5111,7 +5111,7 @@ var require_items = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/prefixItems.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/applicator/prefixItems.js
 var require_prefixItems = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var items_1 = require_items();
@@ -5125,7 +5125,7 @@ var require_prefixItems = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/items2020.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/applicator/items2020.js
 var require_items2020 = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var codegen_1 = require_codegen();
@@ -5157,7 +5157,7 @@ var require_items2020 = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/contains.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/applicator/contains.js
 var require_contains = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var codegen_1 = require_codegen();
@@ -5248,7 +5248,7 @@ var require_contains = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/dependencies.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/applicator/dependencies.js
 var require_dependencies = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   exports2.validateSchemaDeps = exports2.validatePropertyDeps = exports2.error = undefined;
@@ -5333,7 +5333,7 @@ var require_dependencies = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/propertyNames.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/applicator/propertyNames.js
 var require_propertyNames = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var codegen_1 = require_codegen();
@@ -5373,7 +5373,7 @@ var require_propertyNames = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/additionalProperties.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/applicator/additionalProperties.js
 var require_additionalProperties = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var code_1 = require_code2();
@@ -5476,7 +5476,7 @@ var require_additionalProperties = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/properties.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/applicator/properties.js
 var require_properties = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var validate_1 = require_validate();
@@ -5531,7 +5531,7 @@ var require_properties = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/patternProperties.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/applicator/patternProperties.js
 var require_patternProperties = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var code_1 = require_code2();
@@ -5602,7 +5602,7 @@ var require_patternProperties = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/not.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/applicator/not.js
 var require_not = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var util_1 = require_util();
@@ -5630,7 +5630,7 @@ var require_not = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/anyOf.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/applicator/anyOf.js
 var require_anyOf = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var code_1 = require_code2();
@@ -5644,7 +5644,7 @@ var require_anyOf = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/oneOf.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/applicator/oneOf.js
 var require_oneOf = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var codegen_1 = require_codegen();
@@ -5699,7 +5699,7 @@ var require_oneOf = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/allOf.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/applicator/allOf.js
 var require_allOf = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var util_1 = require_util();
@@ -5723,7 +5723,7 @@ var require_allOf = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/if.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/applicator/if.js
 var require_if = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var codegen_1 = require_codegen();
@@ -5789,7 +5789,7 @@ var require_if = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/thenElse.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/applicator/thenElse.js
 var require_thenElse = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var util_1 = require_util();
@@ -5804,7 +5804,7 @@ var require_thenElse = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/vocabularies/applicator/index.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/applicator/index.js
 var require_applicator = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var additionalItems_1 = require_additionalItems();
@@ -5847,7 +5847,7 @@ var require_applicator = __commonJS((exports2) => {
   exports2.default = getApplicator;
 });
 
-// node_modules/ajv/dist/vocabularies/format/format.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/format/format.js
 var require_format = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var codegen_1 = require_codegen();
@@ -5934,7 +5934,7 @@ var require_format = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/vocabularies/format/index.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/format/index.js
 var require_format2 = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var format_1 = require_format();
@@ -5942,7 +5942,7 @@ var require_format2 = __commonJS((exports2) => {
   exports2.default = format;
 });
 
-// node_modules/ajv/dist/vocabularies/metadata.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/metadata.js
 var require_metadata = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   exports2.contentVocabulary = exports2.metadataVocabulary = undefined;
@@ -5962,7 +5962,7 @@ var require_metadata = __commonJS((exports2) => {
   ];
 });
 
-// node_modules/ajv/dist/vocabularies/draft7.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/draft7.js
 var require_draft7 = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var core_1 = require_core2();
@@ -5981,7 +5981,7 @@ var require_draft7 = __commonJS((exports2) => {
   exports2.default = draft7Vocabularies;
 });
 
-// node_modules/ajv/dist/vocabularies/discriminator/types.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/discriminator/types.js
 var require_types = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   exports2.DiscrError = undefined;
@@ -5992,7 +5992,7 @@ var require_types = __commonJS((exports2) => {
   })(DiscrError || (exports2.DiscrError = DiscrError = {}));
 });
 
-// node_modules/ajv/dist/vocabularies/discriminator/index.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/vocabularies/discriminator/index.js
 var require_discriminator = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var codegen_1 = require_codegen();
@@ -6094,7 +6094,7 @@ var require_discriminator = __commonJS((exports2) => {
   exports2.default = def;
 });
 
-// node_modules/ajv/dist/refs/json-schema-draft-07.json
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/refs/json-schema-draft-07.json
 var require_json_schema_draft_07 = __commonJS((exports2, module2) => {
   module2.exports = {
     $schema: "http://json-schema.org/draft-07/schema#",
@@ -6249,7 +6249,7 @@ var require_json_schema_draft_07 = __commonJS((exports2, module2) => {
   };
 });
 
-// node_modules/ajv/dist/ajv.js
+// extensions/snowball/snowball-capture/node_modules/ajv/dist/ajv.js
 var require_ajv = __commonJS((exports2, module2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   exports2.MissingRefError = exports2.ValidationError = exports2.CodeGen = exports2.Name = exports2.nil = exports2.stringify = exports2.str = exports2._ = exports2.KeywordCxt = exports2.Ajv = undefined;
@@ -6317,7 +6317,7 @@ var require_ajv = __commonJS((exports2, module2) => {
   } });
 });
 
-// node_modules/ajv-formats/dist/formats.js
+// extensions/snowball/snowball-capture/node_modules/ajv-formats/dist/formats.js
 var require_formats = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   exports2.formatNames = exports2.fastFormats = exports2.fullFormats = undefined;
@@ -6494,7 +6494,7 @@ var require_formats = __commonJS((exports2) => {
   }
 });
 
-// node_modules/ajv-formats/dist/limit.js
+// extensions/snowball/snowball-capture/node_modules/ajv-formats/dist/limit.js
 var require_limit = __commonJS((exports2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   exports2.formatLimitDefinition = undefined;
@@ -6563,7 +6563,7 @@ var require_limit = __commonJS((exports2) => {
   exports2.default = formatLimitPlugin;
 });
 
-// node_modules/ajv-formats/dist/index.js
+// extensions/snowball/snowball-capture/node_modules/ajv-formats/dist/index.js
 var require_dist = __commonJS((exports2, module2) => {
   Object.defineProperty(exports2, "__esModule", { value: true });
   var formats_1 = require_formats();
@@ -6602,7 +6602,7 @@ var require_dist = __commonJS((exports2, module2) => {
   exports2.default = formatsPlugin;
 });
 
-// node_modules/zod/v3/external.js
+// extensions/snowball/snowball-capture/node_modules/zod/v3/external.js
 var exports_external = {};
 __export(exports_external, {
   void: () => voidType,
@@ -6714,7 +6714,7 @@ __export(exports_external, {
   BRAND: () => BRAND
 });
 
-// node_modules/zod/v3/helpers/util.js
+// extensions/snowball/snowball-capture/node_modules/zod/v3/helpers/util.js
 var util;
 (function(util2) {
   util2.assertEqual = (_) => {};
@@ -6845,7 +6845,7 @@ var getParsedType = (data) => {
   }
 };
 
-// node_modules/zod/v3/ZodError.js
+// extensions/snowball/snowball-capture/node_modules/zod/v3/ZodError.js
 var ZodIssueCode = util.arrayToEnum([
   "invalid_type",
   "invalid_literal",
@@ -6964,7 +6964,7 @@ ZodError.create = (issues) => {
   return error;
 };
 
-// node_modules/zod/v3/locales/en.js
+// extensions/snowball/snowball-capture/node_modules/zod/v3/locales/en.js
 var errorMap = (issue, _ctx) => {
   let message;
   switch (issue.code) {
@@ -7067,7 +7067,7 @@ var errorMap = (issue, _ctx) => {
 };
 var en_default = errorMap;
 
-// node_modules/zod/v3/errors.js
+// extensions/snowball/snowball-capture/node_modules/zod/v3/errors.js
 var overrideErrorMap = en_default;
 function setErrorMap(map) {
   overrideErrorMap = map;
@@ -7075,7 +7075,7 @@ function setErrorMap(map) {
 function getErrorMap() {
   return overrideErrorMap;
 }
-// node_modules/zod/v3/helpers/parseUtil.js
+// extensions/snowball/snowball-capture/node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
   const { data, path, errorMaps, issueData } = params;
   const fullPath = [...path, ...issueData.path || []];
@@ -7181,14 +7181,14 @@ var isAborted = (x) => x.status === "aborted";
 var isDirty = (x) => x.status === "dirty";
 var isValid = (x) => x.status === "valid";
 var isAsync = (x) => typeof Promise !== "undefined" && x instanceof Promise;
-// node_modules/zod/v3/helpers/errorUtil.js
+// extensions/snowball/snowball-capture/node_modules/zod/v3/helpers/errorUtil.js
 var errorUtil;
 (function(errorUtil2) {
   errorUtil2.errToObj = (message) => typeof message === "string" ? { message } : message || {};
   errorUtil2.toString = (message) => typeof message === "string" ? message : message?.message;
 })(errorUtil || (errorUtil = {}));
 
-// node_modules/zod/v3/types.js
+// extensions/snowball/snowball-capture/node_modules/zod/v3/types.js
 class ParseInputLazyPath {
   constructor(parent, value, path, key) {
     this._cachedPath = [];
@@ -10575,7 +10575,7 @@ var coerce = {
   date: (arg) => ZodDate.create({ ...arg, coerce: true })
 };
 var NEVER = INVALID;
-// node_modules/zod/v4/core/core.js
+// extensions/snowball/snowball-capture/node_modules/zod/v4/core/core.js
 var NEVER2 = Object.freeze({
   status: "aborted"
 });
@@ -10635,7 +10635,7 @@ function config(newConfig) {
     Object.assign(globalConfig, newConfig);
   return globalConfig;
 }
-// node_modules/zod/v4/core/util.js
+// extensions/snowball/snowball-capture/node_modules/zod/v4/core/util.js
 var exports_util = {};
 __export(exports_util, {
   unwrapMessage: () => unwrapMessage,
@@ -11149,7 +11149,7 @@ class Class {
   constructor(..._args) {}
 }
 
-// node_modules/zod/v4/core/errors.js
+// extensions/snowball/snowball-capture/node_modules/zod/v4/core/errors.js
 var initializer = (inst, def) => {
   inst.name = "$ZodError";
   Object.defineProperty(inst, "_zod", {
@@ -11223,7 +11223,7 @@ function formatError(error, _mapper) {
   return fieldErrors;
 }
 
-// node_modules/zod/v4/core/parse.js
+// extensions/snowball/snowball-capture/node_modules/zod/v4/core/parse.js
 var _parse = (_Err) => (schema, value, _ctx, _params) => {
   const ctx = _ctx ? Object.assign(_ctx, { async: false }) : { async: false };
   const result = schema._zod.run({ value, issues: [] }, ctx);
@@ -11272,7 +11272,7 @@ var _safeParseAsync = (_Err) => async (schema, value, _ctx) => {
   } : { success: true, data: result.value };
 };
 var safeParseAsync = /* @__PURE__ */ _safeParseAsync($ZodRealError);
-// node_modules/zod/v4/core/regexes.js
+// extensions/snowball/snowball-capture/node_modules/zod/v4/core/regexes.js
 var cuid = /^[cC][^\s-]{8,}$/;
 var cuid2 = /^[0-9a-z]+$/;
 var ulid = /^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$/;
@@ -11330,7 +11330,7 @@ var _null = /null/i;
 var lowercase = /^[^A-Z]*$/;
 var uppercase = /^[^a-z]*$/;
 
-// node_modules/zod/v4/core/checks.js
+// extensions/snowball/snowball-capture/node_modules/zod/v4/core/checks.js
 var $ZodCheck = /* @__PURE__ */ $constructor("$ZodCheck", (inst, def) => {
   var _a;
   inst._zod ?? (inst._zod = {});
@@ -11714,7 +11714,7 @@ var $ZodCheckOverwrite = /* @__PURE__ */ $constructor("$ZodCheckOverwrite", (ins
   };
 });
 
-// node_modules/zod/v4/core/doc.js
+// extensions/snowball/snowball-capture/node_modules/zod/v4/core/doc.js
 class Doc {
   constructor(args = []) {
     this.content = [];
@@ -11752,14 +11752,14 @@ class Doc {
   }
 }
 
-// node_modules/zod/v4/core/versions.js
+// extensions/snowball/snowball-capture/node_modules/zod/v4/core/versions.js
 var version = {
   major: 4,
   minor: 0,
   patch: 0
 };
 
-// node_modules/zod/v4/core/schemas.js
+// extensions/snowball/snowball-capture/node_modules/zod/v4/core/schemas.js
 var $ZodType = /* @__PURE__ */ $constructor("$ZodType", (inst, def) => {
   var _a;
   inst ?? (inst = {});
@@ -12990,7 +12990,7 @@ function handleRefineResult(result, payload, input, inst) {
     payload.issues.push(issue(_iss));
   }
 }
-// node_modules/zod/v4/locales/en.js
+// extensions/snowball/snowball-capture/node_modules/zod/v4/locales/en.js
 var parsedType = (data) => {
   const t = typeof data;
   switch (t) {
@@ -13107,7 +13107,7 @@ function en_default2() {
     localeError: error()
   };
 }
-// node_modules/zod/v4/core/registries.js
+// extensions/snowball/snowball-capture/node_modules/zod/v4/core/registries.js
 var $output = Symbol("ZodOutput");
 var $input = Symbol("ZodInput");
 
@@ -13157,7 +13157,7 @@ function registry() {
   return new $ZodRegistry;
 }
 var globalRegistry = /* @__PURE__ */ registry();
-// node_modules/zod/v4/core/api.js
+// extensions/snowball/snowball-capture/node_modules/zod/v4/core/api.js
 function _string(Class2, params) {
   return new Class2({
     type: "string",
@@ -13592,7 +13592,7 @@ function _refine(Class2, fn, _params) {
   });
   return schema;
 }
-// node_modules/@modelcontextprotocol/sdk/dist/esm/server/zod-compat.js
+// extensions/snowball/snowball-capture/node_modules/@modelcontextprotocol/sdk/dist/esm/server/zod-compat.js
 function isZ4Schema(s) {
   const schema = s;
   return !!schema._zod;
@@ -13654,7 +13654,7 @@ function getLiteralValue(schema) {
     return directValue;
   return;
 }
-// node_modules/zod/v4/classic/iso.js
+// extensions/snowball/snowball-capture/node_modules/zod/v4/classic/iso.js
 var exports_iso = {};
 __export(exports_iso, {
   time: () => time2,
@@ -13695,7 +13695,7 @@ function duration2(params) {
   return _isoDuration(ZodISODuration, params);
 }
 
-// node_modules/zod/v4/classic/errors.js
+// extensions/snowball/snowball-capture/node_modules/zod/v4/classic/errors.js
 var initializer2 = (inst, issues) => {
   $ZodError.init(inst, issues);
   inst.name = "ZodError";
@@ -13724,13 +13724,13 @@ var ZodRealError = $constructor("ZodError", initializer2, {
   Parent: Error
 });
 
-// node_modules/zod/v4/classic/parse.js
+// extensions/snowball/snowball-capture/node_modules/zod/v4/classic/parse.js
 var parse3 = /* @__PURE__ */ _parse(ZodRealError);
 var parseAsync2 = /* @__PURE__ */ _parseAsync(ZodRealError);
 var safeParse3 = /* @__PURE__ */ _safeParse(ZodRealError);
 var safeParseAsync2 = /* @__PURE__ */ _safeParseAsync(ZodRealError);
 
-// node_modules/zod/v4/classic/schemas.js
+// extensions/snowball/snowball-capture/node_modules/zod/v4/classic/schemas.js
 var ZodType2 = /* @__PURE__ */ $constructor("ZodType", (inst, def) => {
   $ZodType.init(inst, def);
   inst.def = def;
@@ -14335,10 +14335,10 @@ function superRefine(fn) {
 function preprocess(fn, schema) {
   return pipe(transform(fn), schema);
 }
-// node_modules/zod/v4/classic/external.js
+// extensions/snowball/snowball-capture/node_modules/zod/v4/classic/external.js
 config(en_default2());
 
-// node_modules/@modelcontextprotocol/sdk/dist/esm/types.js
+// extensions/snowball/snowball-capture/node_modules/@modelcontextprotocol/sdk/dist/esm/types.js
 var LATEST_PROTOCOL_VERSION = "2025-11-25";
 var SUPPORTED_PROTOCOL_VERSIONS = [LATEST_PROTOCOL_VERSION, "2025-06-18", "2025-03-26", "2024-11-05", "2024-10-07"];
 var RELATED_TASK_META_KEY = "io.modelcontextprotocol/related-task";
@@ -15173,16 +15173,16 @@ class UrlElicitationRequiredError extends McpError {
   }
 }
 
-// node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/interfaces.js
+// extensions/snowball/snowball-capture/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/interfaces.js
 function isTerminal(status) {
   return status === "completed" || status === "failed" || status === "cancelled";
 }
 
-// node_modules/zod-to-json-schema/dist/esm/Options.js
+// extensions/snowball/snowball-capture/node_modules/zod-to-json-schema/dist/esm/Options.js
 var ignoreOverride = Symbol("Let zodToJsonSchema decide on which parser to use");
-// node_modules/zod-to-json-schema/dist/esm/parsers/string.js
+// extensions/snowball/snowball-capture/node_modules/zod-to-json-schema/dist/esm/parsers/string.js
 var ALPHA_NUMERIC = new Set("ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvxyz0123456789");
-// node_modules/@modelcontextprotocol/sdk/dist/esm/server/zod-json-schema-compat.js
+// extensions/snowball/snowball-capture/node_modules/@modelcontextprotocol/sdk/dist/esm/server/zod-json-schema-compat.js
 function getMethodLiteral(schema) {
   const shape = getObjectShape(schema);
   const methodSchema = shape?.method;
@@ -15203,7 +15203,7 @@ function parseWithCompat(schema, data) {
   return result.data;
 }
 
-// node_modules/@modelcontextprotocol/sdk/dist/esm/shared/protocol.js
+// extensions/snowball/snowball-capture/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/protocol.js
 var DEFAULT_REQUEST_TIMEOUT_MSEC = 60000;
 
 class Protocol {
@@ -16044,7 +16044,7 @@ function mergeCapabilities(base, additional) {
   return result;
 }
 
-// node_modules/@modelcontextprotocol/sdk/dist/esm/validation/ajv-provider.js
+// extensions/snowball/snowball-capture/node_modules/@modelcontextprotocol/sdk/dist/esm/validation/ajv-provider.js
 var import_ajv = __toESM(require_ajv(), 1);
 var import_ajv_formats = __toESM(require_dist(), 1);
 function createDefaultAjvInstance() {
@@ -16084,7 +16084,7 @@ class AjvJsonSchemaValidator {
   }
 }
 
-// node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/server.js
+// extensions/snowball/snowball-capture/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/server.js
 class ExperimentalServerTasks {
   constructor(_server) {
     this._server = _server;
@@ -16162,7 +16162,7 @@ class ExperimentalServerTasks {
   }
 }
 
-// node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/helpers.js
+// extensions/snowball/snowball-capture/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/helpers.js
 function assertToolsCallTaskCapability(requests, method, entityName) {
   if (!requests) {
     throw new Error(`${entityName} does not support task creation (required for ${method})`);
@@ -16197,7 +16197,7 @@ function assertClientRequestTaskCapability(requests, method, entityName) {
   }
 }
 
-// node_modules/@modelcontextprotocol/sdk/dist/esm/server/index.js
+// extensions/snowball/snowball-capture/node_modules/@modelcontextprotocol/sdk/dist/esm/server/index.js
 class Server extends Protocol {
   constructor(_serverInfo, options) {
     super(options);
@@ -16530,10 +16530,10 @@ class Server extends Protocol {
   }
 }
 
-// node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
+// extensions/snowball/snowball-capture/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
 var import_node_process = __toESM(require("node:process"));
 
-// node_modules/@modelcontextprotocol/sdk/dist/esm/shared/stdio.js
+// extensions/snowball/snowball-capture/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/stdio.js
 class ReadBuffer {
   append(chunk) {
     this._buffer = this._buffer ? Buffer.concat([this._buffer, chunk]) : chunk;
@@ -16563,7 +16563,7 @@ function serializeMessage(message) {
 `;
 }
 
-// node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
+// extensions/snowball/snowball-capture/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
 class StdioServerTransport {
   constructor(_stdin = import_node_process.default.stdin, _stdout = import_node_process.default.stdout) {
     this._stdin = _stdin;
@@ -16621,11 +16621,11 @@ class StdioServerTransport {
   }
 }
 
-// ../../../skills/decision-logging/src/write-madr.ts
+// skills/decision-logging/src/write-madr.ts
 var fs = __toESM(require("node:fs"));
 var path = __toESM(require("node:path"));
 
-// ../../../node_modules/js-yaml/dist/js-yaml.mjs
+// node_modules/js-yaml/dist/js-yaml.mjs
 /*! js-yaml 4.1.1 https://github.com/nodeca/js-yaml @license MIT */
 function isNothing(subject) {
   return typeof subject === "undefined" || subject === null;
@@ -19272,7 +19272,7 @@ var safeLoad = renamed("safeLoad", "load");
 var safeLoadAll = renamed("safeLoadAll", "loadAll");
 var safeDump = renamed("safeDump", "dump");
 
-// ../../../skills/decision-logging/src/git-root.ts
+// skills/decision-logging/src/git-root.ts
 var import_node_child_process = require("node:child_process");
 function detectGitRoot(startDir) {
   try {
@@ -19286,7 +19286,7 @@ function detectGitRoot(startDir) {
   }
 }
 
-// ../../../skills/decision-logging/src/write-madr.ts
+// skills/decision-logging/src/write-madr.ts
 function slugify(s) {
   if (typeof s !== "string" || !s.trim())
     return "untitled";
@@ -19373,14 +19373,14 @@ function writeMadr(input, opts = {}) {
 }
 if (false) {}
 
-// src/errors.ts
+// extensions/snowball/snowball-capture/src/errors.ts
 function err(code, message) {
   return { ok: false, error: message, code };
 }
 function ok(data) {
   return { ok: true, data };
 }
-// src/schemas.ts
+// extensions/snowball/snowball-capture/src/schemas.ts
 var MadrCaptureInput = exports_external.object({
   question: exports_external.string().min(1).max(2000),
   options: exports_external.array(exports_external.object({
@@ -19417,11 +19417,11 @@ var ObservationLogInput = exports_external.object({
   timestamp: exports_external.string().datetime().optional()
 });
 
-// src/session-id.ts
+// extensions/snowball/snowball-capture/src/session-id.ts
 var import_node_crypto = require("node:crypto");
 var SESSION_ID = import_node_crypto.randomUUID();
 
-// src/tools/madr-capture.ts
+// extensions/snowball/snowball-capture/src/tools/madr-capture.ts
 var import_node_crypto2 = require("node:crypto");
 function runMadrCapture(raw) {
   const parsed = MadrCaptureInput.safeParse(raw);
@@ -19475,7 +19475,7 @@ function runMadrCapture(raw) {
 }
 if (false) {}
 
-// ../../../skills/decision-logging/src/approval-phrases.ts
+// skills/decision-logging/src/approval-phrases.ts
 var APPROVAL_PHRASES = [
   "lgtm",
   "looks good",
@@ -19506,7 +19506,7 @@ function matchesApproval(prompt) {
   return false;
 }
 
-// src/tools/approval-phrase-record.ts
+// extensions/snowball/snowball-capture/src/tools/approval-phrase-record.ts
 var import_node_crypto3 = require("node:crypto");
 function runApprovalPhraseRecord(raw) {
   const parsed = ApprovalPhraseRecordInput.safeParse(raw);
@@ -19554,7 +19554,7 @@ function runApprovalPhraseRecord(raw) {
 }
 if (false) {}
 
-// ../../../skills/decision-logging/src/append-observation.ts
+// skills/decision-logging/src/append-observation.ts
 var fs2 = __toESM(require("node:fs"));
 var path2 = __toESM(require("node:path"));
 var TYPES = ["observation", "implementation-choice", "hypothesis", "constraint"];
@@ -19639,7 +19639,7 @@ function appendObservation(obs, opts = {}) {
 }
 if (false) {}
 
-// src/tools/observation-log.ts
+// extensions/snowball/snowball-capture/src/tools/observation-log.ts
 function runObservationLog(raw) {
   const parsed = ObservationLogInput.safeParse(raw);
   if (!parsed.success)
@@ -19674,7 +19674,7 @@ function runObservationLog(raw) {
 }
 if (false) {}
 
-// src/server.ts
+// extensions/snowball/snowball-capture/src/server.ts
 var server = new Server({ name: "snowball-capture", version: "0.1.0" }, { capabilities: { tools: {} } });
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
