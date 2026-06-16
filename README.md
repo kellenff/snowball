@@ -72,6 +72,7 @@ The fork is at **v5.4.0**. It began as a near-mirror of `superpowers` v5.1.0 and
 | v5.4.0 | `decision-logging` (hook-driven capture) and `syncing-decisions-to-memory` (ADR distillation) |
 | v6.1.0 | `recalling-project-context` — cycle-start recall loop (tier-0 hook + tier-1 skill, staleness in `prepare`, sync disk cache); completion-flow decision trail in `finishing-a-development-branch` |
 | v6.2.0 | chorus companion: brainstorming delegates to `chorus:chorus` for multi-model debate (replacing M2 brain-jam) |
+| v6.3.0 | Junie (JetBrains IDE plugin) support: forward spine via skills + AGENTS.md; decision spine via `snowball-capture` MCP server (partial — Junie has no hook rail) |
 
 Everything else tracks upstream closely. Skill content, the bootstrap design, and the multi-harness adapter pattern all originate there.
 
@@ -165,6 +166,7 @@ At the next session, the bootstrap hook injects a capped ADR excerpt from `.code
 | Codex CLI / Codex App | `.codex-plugin/plugin.json` | distributed via `scripts/sync-to-codex-plugin.sh` (currently stale) | `AGENTS.md` |
 | Gemini CLI | `gemini-extension.json` | extension-managed; skills activate via `activate_skill` | `GEMINI.md` |
 | GitLab Duo | `.gitlab/duo/hooks.json` (CLI only) | `hooks.json` to `run-hook.cmd session-start`; detects `DUO_SESSION_ID` | `AGENTS.md` |
+| Junie (JetBrains IDE plugin) | `extensions/snowball/extension.json` | bundled `snowball-capture` MCP server + `.junie/AGENTS.md` for context | `AGENTS.md` |
 
 ### How the bootstrap works
 
@@ -195,6 +197,7 @@ Then install into each harness:
 - **OpenCode**: see [`docs/README.opencode.md`](docs/README.opencode.md). The plugin auto-registers its skills path; no manual symlink is needed.
 - **Cursor, Codex, Gemini CLI, Copilot CLI**: follow each harness's plugin documentation, pointing at this repo's matching manifest.
 - **GitLab Duo**: see [`docs/README.gitlab-duo.md`](docs/README.gitlab-duo.md). Short version: from inside a target project, run [`scripts/install-into-project.sh`](scripts/install-into-project.sh) from this clone. It writes per-skill files under `skills/<name>/`, symlinks `AGENTS.md`, and generates `.gitlab/duo/hooks.json` with the absolute Snowball path patched in. Duo CLI users launch with `--enable-project-hooks` so the SessionStart hook fires.
+- **Junie (JetBrains IDE plugin)**: in the IDE, install the local extension pointing at `extensions/snowball/` in this clone. Restart the IDE so Junie picks up the `mcp/.mcp.json` server definitions (replace the `<absolute-path-to-*>` placeholders with the real paths on your machine first). The `.junie/AGENTS.md` is read automatically as project guidelines.
 - **Windows**: see [`docs/windows/`](docs/windows/). The polyglot [`hooks/run-hook.cmd`](hooks/run-hook.cmd) handles Windows as long as bash is reachable (Git for Windows, MSYS2, Cygwin, or PATH).
 
 Update after a pull:
