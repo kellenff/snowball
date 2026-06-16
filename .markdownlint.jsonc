@@ -59,6 +59,14 @@
   // (e.g. `(src|scripts)/*`) are incorrectly counted as column separators.
   "MD056": false,
 
+  // MD060: Table column style — the BEGIN/END HTML comment wrapper in
+  // `extensions/snowball/.junie/AGENTS.md` (which inlines a verbatim
+  // using-snowball/SKILL.md) breaks frontmatter detection in the same way
+  // MD003/MD022 do, so the "Red Flags" table's column-style alignment
+  // escapes lint. Disabling matches the existing pattern of suppressing
+  // style rules that conflict with this wrapper layout.
+  "MD060": false,
+
   // MD025: Single title / H1 — RELEASE-NOTES.md uses multiple H1 headings,
   // one per major version section (changelog style).
   "MD025": false
