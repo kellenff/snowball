@@ -131,3 +131,67 @@ describe("approval_phrase_record (integration)", () => {
     expect(out.code).toBe("NOT_AN_APPROVAL");
   });
 });
+
+// ─── observation_log ────────────────────────────────────────────────
+
+const OBSERVATION_TOOL_SRC = path.join(
+  PROJECT_ROOT,
+  "extensions/snowball/snowball-capture/src/tools/observation-log.ts",
+);
+
+function runObservationTool(input: unknown): {
+  stdout: string;
+  stderr: string;
+  status: number;
+} {
+  const r = spawnSync("bun", ["run", OBSERVATION_TOOL_SRC], {
+    input: JSON.stringify(input),
+    encoding: "utf8",
+  });
+  return { stdout: r.stdout, stderr: r.stderr, status: r.status ?? -1 };
+}
+
+describe("observation_log (integration)", () => {
+  it("appends a single line to observations.jsonl", () => {
+    const result = runObservationTool({
+      content: "we picked approach B because the hook rail doesn't exist on Junie",
+      type: "implementation-choice",
+      confidence: "high",
+      rationale: "alternative was a wrapper script that would rot",
+      tags: ["junie", "scope"],
+    });
+    expect(result.status).toBe(0);
+    const out = JSON.parse(result.stdout);
+    expect(out.ok).toBe(true);
+    const obsPath = path.join(tmpDir, "docs/snowball/decisions/observations.jsonl");
+    expect(fs.existsSync(obsPath)).toBe(true);
+    const lines = fs.readFileSync(obsPath, "utf8").trim().split("\n");
+    expect(lines.length).toBe(1);
+    const row = JSON.parse(lines[0]);
+    expect(row.content).toContain("approach B");
+    expect(row.type).toBe("implementation-choice");
+    expect(row.confidence).toBe("high");
+    expect(row.source).toBe("agent");
+    expect(row.tags).toContain("junie");
+  });
+
+  it("two sequential calls do not interleave (single-line JSONL)", () => {
+    runObservationTool({
+      content: "first",
+      type: "observation",
+      confidence: "low",
+      rationale: "r1",
+    });
+    runObservationTool({
+      content: "second",
+      type: "observation",
+      confidence: "low",
+      rationale: "r2",
+    });
+    const obsPath = path.join(tmpDir, "docs/snowball/decisions/observations.jsonl");
+    const lines = fs.readFileSync(obsPath, "utf8").trim().split("\n");
+    expect(lines.length).toBe(2);
+    expect(JSON.parse(lines[0]).content).toBe("first");
+    expect(JSON.parse(lines[1]).content).toBe("second");
+  });
+});
