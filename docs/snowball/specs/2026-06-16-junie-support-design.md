@@ -144,7 +144,7 @@ The server is a Bun/TS project that bundles to a single `.cjs` (matching the pro
 - **Does:** appends a single observation line to `docs/snowball/decisions/observations.jsonl`.
 - **Input schema:** `{ content: string, type: "observation"|"implementation-choice"|"hypothesis"|"constraint", confidence: "high"|"medium"|"low", rationale: string, related_files?: string[], tags?: string[] }`.
 - **Output schema:** `{ ok: true, path: string } | { ok: false, error: string, code: ErrorCode }`.
-- **Depends on:** `appendObservation`. Injects `source = "agent"`, synthesizes `session_id` and `timestamp` from process-stable random or accepts them as optional inputs.
+- **Depends on:** `appendObservation`. Injects `source = "agent"`. `session_id` is a UUID generated once at MCP-server startup and held for the process lifetime, so all observations from the same Junie session share one `session_id` (matching the per-session invariant of the existing capture pipeline). `timestamp` is generated per call. Both fields can be overridden by optional inputs.
 - **Pure/impure split:** validate → call append. Identical pattern.
 
 ### Data flow
