@@ -25,6 +25,21 @@ const child = spawn(process.execPath, [resolved.path, ...process.argv.slice(2)],
   env: process.env,
 });
 
+// Forward signals the loader sends us to the child. The child's eventual
+// `exit` event will fire `process.exit` with its real code, so we don't
+// exit the wrapper here — that would race and leave the child orphaned
+// for a few ms after the parent dies. Signal-only forwarding is the
+// race-free way.
+for (const sig of ["SIGTERM", "SIGINT", "SIGHUP"]) {
+  process.on(sig, () => {
+    try {
+      child.kill(sig);
+    } catch {
+      /* child already gone */
+    }
+  });
+}
+
 // Mirror the child's exit so the loader sees the real outcome.
 child.on("exit", (code, signal) => {
   if (signal) {
