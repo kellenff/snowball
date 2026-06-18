@@ -42,7 +42,7 @@ If a project defines its own `skills/<name>/SKILL.md` with the same name as a Sn
 
 ## Platform Adaptation
 
-Skills use Claude Code tool names. Non-CC platforms: see `references/copilot-tools.md` (Copilot CLI), `references/codex-tools.md` (Codex) for tool equivalents. Gemini CLI users get the tool mapping loaded automatically via GEMINI.md.
+Skills use Claude Code tool names. Non-CC platforms: see `references/copilot-tools.md` (Copilot CLI), `references/codex-tools.md` (Codex), `references/junie-tools.md` (Junie CLI) for tool equivalents. Gemini CLI users get the tool mapping loaded automatically via GEMINI.md.
 
 # Using Skills
 
