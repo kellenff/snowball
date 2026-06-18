@@ -141,3 +141,10 @@ repos:
         language: system
         files: ^extensions/snowball/snowball-capture/(src|dist)|^tests/snowball-capture/
         pass_filenames: false
+
+      - id: validate-junie-cli-marketplace
+        name: validate junie-cli marketplace
+        entry: tests/junie-cli/validate-marketplace.sh
+        language: system
+        files: ^(\.junie-extension/marketplace\.json|extensions/snowball/extension\.json|extensions/snowball/mcp/mcp\.json)$
+        pass_filenames: false
