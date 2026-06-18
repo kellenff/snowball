@@ -1,5 +1,13 @@
 {
   "name": "snowball",
-  "version": "0.1.0",
-  "description": "Snowball skills library: agentic skills that remember why. Loads as agent context in Junie; decision-spine capture via the bundled snowball-capture MCP server."
+  "version": "6.3.0",
+  "description": "Snowball skills library: agentic skills that remember why. Loads as agent context in Junie; decision-spine capture via the bundled snowball-capture MCP server.",
+  "author": {
+    "name": "Kellen Frodelius-Fujimoto",
+    "email": "kellen@kellenfujimoto.com"
+  },
+  "homepage": "https://github.com/kellenff/snowball",
+  "repository": "https://github.com/kellenff/snowball",
+  "license": "MIT",
+  "keywords": ["skills", "tdd", "debugging", "collaboration", "decision-logging", "madr"]
 }
