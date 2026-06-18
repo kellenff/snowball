@@ -11,7 +11,7 @@
   "extensions": [
     {
       "name": "snowball",
-      "source": "./extensions/snowball",
+      "source": "../extensions/snowball",
       "description": "Snowball skills library: forward spine + snowball-capture MCP for decision spine"
     }
   ]

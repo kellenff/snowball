@@ -91,7 +91,7 @@ Thin wrapper listing one extension. The marketplace carries only discovery-level
   "extensions": [
     {
       "name": "snowball",
-      "source": "./extensions/snowball",
+      "source": "../extensions/snowball",
       "description": "Snowball skills library: forward spine + snowball-capture MCP for decision spine"
     }
   ]
@@ -101,7 +101,7 @@ Thin wrapper listing one extension. The marketplace carries only discovery-level
 Notes on field choices:
 
 - **Marketplace name = extension name = `snowball`.** Junie's user-level `extensions.json` keys marketplace entries by `<source>-<id>`, so the user sees `snowball/snowball` once installed. Acceptable for a one-extension marketplace. A rename to a more general `snowball-extensions` is a future change if more bundles ship.
-- **`source: "./extensions/snowball"`** is a relative path that Junie resolves from the marketplace file's parent directory. The leading `./` is conventional; both forms are tolerated.
+- **`source: "../extensions/snowball"`** is a relative path that Junie resolves from the marketplace file's parent directory. The `../` climbs out of `.junie-extension/` to reach the repo root, where the extension bundle actually lives. Leading `./` is conventional but optional.
 - **No `version` at the marketplace level.** The pointed-to `extension.json` carries the version; the marketplace is a list of pointers, not a versioned catalog.
 
 #### `/extensions/snowball/extension.json` (enriched)
@@ -351,9 +351,9 @@ The only end-to-end check that exercises real Junie CLI. Run on a developer mach
 
 **1. Marketplace schema field name (`extensions[]` vs `plugins[]`).** Junie's docs show the user-level `extensions.json` format (a list of installed extension *names*) and the Claude-compatible `.claude-plugin/marketplace.json` (which uses `plugins[]` for the catalog). The native `.junie-extension/marketplace.json` field for the catalog list is not explicitly documented. This spec uses `extensions[]` (objects, not strings) by inference. The manual verification step will catch a wrong field name on the first real install; if Junie rejects it, the fix is a one-character rename and the marketplace is republished.
 
-**2. Pre-existing MCP-path placeholder.** The current `extensions/snowball/mcp/.mcp.json` (and the renamed `mcp/mcp.json`) carries a `<absolute-path-to-snowball>` placeholder in the `snowball-capture` `args`. This is a pre-existing issue not introduced by this spec — the IDE-plugin install path has the same problem and is documented as a manual step in the original Junie-support design. After a marketplace install, the bundle lives at `~/.junie/extensions/<marketplace-id>/snowball/`, so the placeholder as-written is meaningless to a user who never cloned the repo. This spec does not fix the placeholder; fixing it is a separate change that needs its own design pass. The known limitation is called out in the manual verification and the README so users hit it cleanly, not by surprise. The plausible future fix is one of: (a) ship a post-install path-resolution script, (b) bundle the MCP server's run command in a small wrapper that resolves paths at start time, or (c) restructure the bundle so the MCP config is generated at install time from a template.
+**2. Pre-existing MCP-path placeholder.** *Resolved by [2026-06-17-mcp-path-resolution-fix-design.md](./2026-06-17-mcp-path-resolution-fix-design.md).* The placeholder in `extensions/snowball/mcp/mcp.json` has been replaced with a runtime-resolution scheme: a `run.cjs` wrapper around `snowball-capture` resolves the server's path at start time from `SNOWBALL_BUNDLE_DIR` or its own `__dirname`; an optional `scripts/install-path-fix.cjs` rewrites the config with absolute paths for adapters that don't resolve relative paths. After the fix lands, no manual path edit is needed after marketplace install.
 
 ## Known limitations
 
-- **MCP server paths require a one-time fix after install.** As described in Open Question 2, the `snowball-capture` MCP server's `args` contain a `<absolute-path-to-snowball>` placeholder. A user who installs via the marketplace and then runs `/mcp` will see the server fail to start until the path is fixed. Documented in the README and the manual verification path. Out of scope for this spec.
 - **Marketplace freshness is the user's responsibility.** Junie clones the marketplace repo locally; `/extensions update` is the refresh path. If the snowball repo's `main` branch changes the marketplace entry, the user's local catalog lags until they update. Standard for git-based marketplaces; not a regression.
+- **MCP-path fix landed in a follow-up spec.** The placeholder in `mcp/mcp.json` was replaced by the design in [2026-06-17-mcp-path-resolution-fix-design.md](./2026-06-17-mcp-path-resolution-fix-design.md). Junie CLI marketplace install is now drag-and-drop for the snowball-capture server. For adapters that don't resolve relative paths, the user runs `node extensions/snowball/scripts/install-path-fix.cjs` once after install (documented in that spec and the README).
