@@ -8,6 +8,7 @@ First-class support for Junie (JetBrains IDE plugin).
 - **Decision spine (partial)** — `snowball-capture` MCP server exposes `madr_capture`, `approval_phrase_record`, and `observation_log`. The Junie agent calls them at decision points; output lands in `docs/snowball/decisions/` in the same format every other harness uses.
 - **Honest constraint** — Junie has no public hook/lifecycle event API. The decision spine is best-effort (the agent has to remember to call the tools); the forward spine is fully covered.
 - **Junie CLI marketplace entry** — `.junie-extension/marketplace.json` wraps the existing `extensions/snowball/` bundle for Junie CLI discovery. Install with `/extensions marketplace add https://github.com/kellenff/snowball` then `/extensions install snowball`. Bundle's MCP config renamed to `mcp/mcp.json` (Junie's canonical filename); no content change.
+- **Runtime path resolution** — the `<absolute-path-to-snowball>` placeholder in `mcp/mcp.json` is gone. `mcp/mcp.json` now points at `../snowball-capture/run.cjs`, a thin wrapper that resolves the real server's path at start time (env var `SNOWBALL_BUNDLE_DIR` or its own `__dirname`) and forwards signals correctly. An optional `node extensions/snowball/scripts/install-path-fix.cjs` rewrites the config with absolute paths for adapters that don't resolve relative paths. Spec: `docs/snowball/specs/2026-06-17-mcp-path-resolution-fix-design.md`.
 
 ## v6.2.0 (2026-06-07)
 
