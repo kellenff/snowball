@@ -148,3 +148,10 @@ repos:
         language: system
         files: ^(\.junie-extension/marketplace\.json|extensions/snowball/extension\.json|extensions/snowball/mcp/mcp\.json)$
         pass_filenames: false
+
+      - id: junie-cli-path-resolution
+        name: junie-cli path resolution
+        entry: bash -c 'cd tests/junie-cli && for t in test-resolve-bundle-path.sh test-run-wrapper.sh test-run-wrapper-signals.sh test-install-path-fix.sh; do ./"$t" || exit 1; done'
+        language: system
+        files: ^(extensions/snowball/snowball-capture/(run|resolve-bundle-path)\.cjs|extensions/snowball/scripts/install-path-fix\.cjs|tests/junie-cli/test-.*\.sh)$
+        pass_filenames: false
