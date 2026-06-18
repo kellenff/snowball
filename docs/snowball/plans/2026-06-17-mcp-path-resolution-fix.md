@@ -1221,3 +1221,11 @@ All four tests run against the real binaries; failures point at real bugs.
 **5. Pre-commit integration:**
 
 The single hook entry added in Task 7 runs all four tests. The `files` regex matches the test files plus the four code files they exercise. The hook aborts the commit on the first failure. Existing hooks (shellcheck, shfmt, oxlint, oxfmt, markdownlint-cli2) continue to run on the new files because none of them match the `extensions/snowball/snowball-capture/dist/` exclude pattern.
+
+---
+
+## Follow-ups (must, post-execution)
+
+These are the must-followup items captured during this plan's brainstorming and execution. None block the path-resolution work landing; each is its own future task with its own spec, plan, and review.
+
+- **Add `skills/using-snowball/references/junie-tools.md`.** The `using-snowball` skill ships per-harness tool-name mapping references for the other six harnesses (`codex-tools.md`, `copilot-tools.md`, `gemini-tools.md`, `gitlab-duo-tools.md` are present; `claude-code` and `cursor` are wired through the skill itself and don't need a separate reference). Junie is the only harness in the supported matrix that has no `*-tools.md` reference. The reference should cover Junie's tool name differences (e.g. `McpTool`/`Mcp` vs the other harnesses' `mcp__*` naming, the lack of a hook rail that means decision-spine capture is opt-in not auto, the `snowball-capture` MCP server's `madr_capture` / `approval_phrase_record` / `observation_log` tool names, and any skills whose names need translation between Junie's skills system and the canonical names in `using-snowball`). Without this reference, a Junie CLI user who reads the rest of `using-snowball` will hit translation friction that the other six harnesses don't have. Owner: the next Junie-adjacent task that touches the using-snowball skill.
