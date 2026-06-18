@@ -1,0 +1,18 @@
+{
+  "name": "snowball",
+  "description": "Snowball: agentic skills that remember why. Decision-intelligent skills library with forward spine (TDD, debugging, collaboration) and decision spine (passive MADR capture).",
+  "owner": {
+    "name": "Kellen Frodelius-Fujimoto",
+    "email": "kellen@kellenfujimoto.com"
+  },
+  "homepage": "https://github.com/kellenff/snowball",
+  "repository": "https://github.com/kellenff/snowball",
+  "license": "MIT",
+  "extensions": [
+    {
+      "name": "snowball",
+      "source": "./extensions/snowball",
+      "description": "Snowball skills library: forward spine + snowball-capture MCP for decision spine"
+    }
+  ]
+}
