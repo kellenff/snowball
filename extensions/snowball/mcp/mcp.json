@@ -2,7 +2,7 @@
   "mcpServers": {
     "snowball-capture": {
       "command": "node",
-      "args": ["<absolute-path-to-snowball>/extensions/snowball/snowball-capture/dist/server.cjs"]
+      "args": ["../snowball-capture/run.cjs"]
     },
     "argdown": {
       "command": "node",
