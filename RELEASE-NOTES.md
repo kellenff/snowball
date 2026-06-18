@@ -7,6 +7,7 @@ First-class support for Junie (JetBrains IDE plugin).
 - **Forward spine** — all 18 skills load as Junie skills; the `using-snowball` bootstrap is injected via `.junie/AGENTS.md`.
 - **Decision spine (partial)** — `snowball-capture` MCP server exposes `madr_capture`, `approval_phrase_record`, and `observation_log`. The Junie agent calls them at decision points; output lands in `docs/snowball/decisions/` in the same format every other harness uses.
 - **Honest constraint** — Junie has no public hook/lifecycle event API. The decision spine is best-effort (the agent has to remember to call the tools); the forward spine is fully covered.
+- **Junie CLI marketplace entry** — `.junie-extension/marketplace.json` wraps the existing `extensions/snowball/` bundle for Junie CLI discovery. Install with `/extensions marketplace add https://github.com/kellenff/snowball` then `/extensions install snowball`. Bundle's MCP config renamed to `mcp/mcp.json` (Junie's canonical filename); no content change.
 
 ## v6.2.0 (2026-06-07)
 
