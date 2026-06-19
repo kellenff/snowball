@@ -1,4 +1,44 @@
-# Junie CLI Tool Mapping
+# Junie Tool Mapping
+
+Skills use Claude Code tool names. Junie accepts different tools depending on the surface (IDE or CLI). Use the hierarchy below to choose the best tool for the task.
+
+## Tool Hierarchy
+
+When multiple tools can achieve the same goal, follow this priority:
+
+1. **IDE-native tools** (`mcp_idea_*`) — Fastest, most reliable, and understands IDE-specific project structure (symbols, refactorings, inspections).
+2. **Codebase Memory MCP** (`mcp_codebase-memory-*`) — Use for semantic search, cross-repo intelligence, and deep relationship mapping.
+3. **Standard Unix tools** (`rg`, `fd`, `sed`, `grep`, `ls` via `bash`) — Use when IDE tools are insufficient or for complex command-line workflows.
+4. **Custom Python tools** — Use for specialized logic, data processing, or custom automation scripts.
+
+## Junie IDE (JetBrains Integration) Mapping
+
+Skills use Claude Code tool names. When running in a JetBrains IDE with Junie, use these equivalents:
+
+| Skill references | Junie IDE equivalent |
+|-----------------|----------------------|
+| `Read` (file reading) | `mcp_idea_read_file`, `mcp_idea_get_file_text_by_path` |
+| `Write` (file creation) | `mcp_idea_create_new_file` |
+| `Edit` (file editing) | `mcp_idea_replace_text_in_file`, `mcp_idea_apply_quick_fix` |
+| `Bash` (run commands) | `mcp_idea_execute_terminal_command`, `bash` |
+| `Grep` (search content) | `mcp_idea_search_in_files_by_text`, `mcp_idea_search_in_files_by_regex` |
+| `Glob` (search paths) | `mcp_idea_find_files_by_glob`, `mcp_idea_list_directory_tree` |
+| `AskUserQuestion` | `ask_user` |
+| `Skill` (invoke a skill) | (Auto-loaded via `AGENTS.md` and `.junie/skills/`) |
+| `Task` (dispatch subagent) | (Built-in subagent support) |
+
+### Additional IDE-native tools
+
+Junie in the IDE has access to powerful native features that have no direct Claude Code equivalent:
+
+- **Semantic Search:** `mcp_idea_search_symbol` to find classes, methods, or fields.
+- **Symbol Info:** `mcp_idea_get_symbol_info` for quick documentation and type information.
+- **Refactoring:** `mcp_idea_rename_refactoring` for safe, project-wide symbol renaming.
+- **Inspections:** `mcp_idea_get_inspections` and `mcp_idea_run_inspection_kts` to find code issues.
+- **Debugging:** `mcp_idea_xdebug_*` (for PHP) or JVM-based debug tools.
+- **IDE Actions:** `mcp_idea_invoke_ide_action` to trigger any IDE command programmatically.
+
+## Junie CLI Tool Mapping
 
 Skills use Claude Code tool names. Junie CLI accepts the same tool-group labels
 in subagent frontmatter and resolves them at runtime, so the table below

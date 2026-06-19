@@ -1,5 +1,14 @@
 # Snowball Release Notes
 
+## v6.5.0 (2026-06-19)
+
+Documentation release enriching Junie IDE tool mappings and establishing a tool hierarchy.
+
+- **Junie IDE Tool Mapping** — updated `junie-tools.md` to include a dedicated mapping for Junie's IDE integration (`mcp_idea_*` tools), differentiating it from the CLI tool mapping.
+- **Tool Hierarchy** — established a clear priority for tool selection: IDE-native > Codebase Memory MCP > Standard Unix tools > Custom Python tools.
+- **Enhanced IDE Capabilities** — documented powerful IDE-native features like semantic search, refactoring, and code inspections available via Junie.
+- **Skill Reference Updates** — updated `skills/using-snowball/SKILL.md` to correctly reference the expanded Junie tool mapping.
+
 ## v6.4.0 (2026-06-18)
 
 Documentation release adding a Junie CLI tool-mapping reference for skill authors.
