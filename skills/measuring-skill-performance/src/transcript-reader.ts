@@ -47,7 +47,8 @@ export class ClaudeCodeTranscriptReader implements TranscriptSource {
       } catch {
         continue;
       }
-      if (parsed.type !== "assistant" && parsed.type !== "user" && parsed.type !== "system") continue;
+      if (parsed.type !== "assistant" && parsed.type !== "user" && parsed.type !== "system")
+        continue;
 
       const content = parsed.message?.content;
       const blocks: RawContentBlock[] = Array.isArray(content) ? content : [];
@@ -59,7 +60,9 @@ export class ClaudeCodeTranscriptReader implements TranscriptSource {
         .map((b) => ({ toolUseId: b.tool_use_id ?? "", isError: b.is_error === true }));
       const hasUserText =
         parsed.type === "user" &&
-        (typeof content === "string" ? content.trim().length > 0 : blocks.some((b) => b.type === "text"));
+        (typeof content === "string"
+          ? content.trim().length > 0
+          : blocks.some((b) => b.type === "text"));
 
       messages.push({
         index: index++,

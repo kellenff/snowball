@@ -61,7 +61,9 @@ if (require.main === module) {
   const raw = fs.readFileSync(0, "utf8");
   if (cmd === "analyze") {
     const input = JSON.parse(raw || "{}") as AnalyzeOptions;
-    process.stdout.write(JSON.stringify(analyze({ ...input, emit: input.emit ?? true }), null, 2) + "\n");
+    process.stdout.write(
+      JSON.stringify(analyze({ ...input, emit: input.emit ?? true }), null, 2) + "\n",
+    );
   } else {
     process.stderr.write("usage: node skill-metrics.cjs analyze\n");
     process.exit(1);

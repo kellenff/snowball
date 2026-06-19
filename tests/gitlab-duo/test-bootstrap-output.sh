@@ -9,35 +9,35 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 BOOTSTRAP="$REPO_ROOT/hooks/session-start"
 
 if [ ! -x "$BOOTSTRAP" ] && [ ! -r "$BOOTSTRAP" ]; then
-    echo "FAIL: $BOOTSTRAP not found"
-    exit 1
+  echo "FAIL: $BOOTSTRAP not found"
+  exit 1
 fi
 
 run_bootstrap() {
-    env -i HOME="$HOME" PATH="$PATH" "$@" bash "$BOOTSTRAP"
+  env -i HOME="$HOME" PATH="$PATH" "$@" bash "$BOOTSTRAP"
 }
 
 assert_json_path() {
-    local label="$1" json="$2" path="$3" expected_substring="$4"
-    local actual
-    actual=$(printf '%s' "$json" | python3 -c "
+  local label="$1" json="$2" path="$3" expected_substring="$4"
+  local actual
+  actual=$(printf '%s' "$json" | python3 -c "
 import json, sys
 d = json.load(sys.stdin)
 for part in '''$path'''.split('.'):
     d = d[part]
 print(d)
 ")
-    case "$actual" in
-        *"$expected_substring"*)
-            echo "  [PASS] $label"
-            ;;
-        *)
-            echo "  [FAIL] $label"
-            echo "    expected substring: $expected_substring"
-            echo "    actual (truncated): ${actual:0:200}"
-            exit 1
-            ;;
-    esac
+  case "$actual" in
+    *"$expected_substring"*)
+      echo "  [PASS] $label"
+      ;;
+    *)
+      echo "  [FAIL] $label"
+      echo "    expected substring: $expected_substring"
+      echo "    actual (truncated): ${actual:0:200}"
+      exit 1
+      ;;
+  esac
 }
 
 echo "=== Test: GitLab Duo CLI bootstrap output shape ==="

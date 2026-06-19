@@ -11,12 +11,7 @@ const VALIDATOR = path.join(
   "scripts",
   "validate-argdown.cjs",
 );
-const TEMPLATES_DIR = path.join(
-  REPO_ROOT,
-  "skills",
-  "structured-argumentation",
-  "templates",
-);
+const TEMPLATES_DIR = path.join(REPO_ROOT, "skills", "structured-argumentation", "templates");
 const WORKED_EXAMPLE = path.join(
   REPO_ROOT,
   "skills",

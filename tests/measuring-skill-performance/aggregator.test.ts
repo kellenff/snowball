@@ -2,20 +2,43 @@ import { describe, expect, test } from "bun:test";
 import { aggregateCandidates } from "../../skills/measuring-skill-performance/src/aggregator";
 import type { Message, SkillWindow } from "../../skills/measuring-skill-performance/src/types";
 
-function win(skill: string, marginal: number, opts: { toolCalls?: number; toolErrors?: number } = {}): SkillWindow {
+function win(
+  skill: string,
+  marginal: number,
+  opts: { toolCalls?: number; toolErrors?: number } = {},
+): SkillWindow {
   const messages: Message[] = [
     {
       index: 0,
       sessionId: "s1",
       role: "assistant",
       timestamp: "2026-05-31T00:00:00Z",
-      usage: { input_tokens: 0, cache_creation_input_tokens: 0, cache_read_input_tokens: 0, output_tokens: marginal },
+      usage: {
+        input_tokens: 0,
+        cache_creation_input_tokens: 0,
+        cache_read_input_tokens: 0,
+        output_tokens: marginal,
+      },
       hasUserText: false,
-      toolUses: Array.from({ length: opts.toolCalls ?? 0 }, (_, i) => ({ id: `t${i}`, name: "Bash", input: { i } })),
-      toolResults: Array.from({ length: opts.toolErrors ?? 0 }, (_, i) => ({ toolUseId: `t${i}`, isError: true })),
+      toolUses: Array.from({ length: opts.toolCalls ?? 0 }, (_, i) => ({
+        id: `t${i}`,
+        name: "Bash",
+        input: { i },
+      })),
+      toolResults: Array.from({ length: opts.toolErrors ?? 0 }, (_, i) => ({
+        toolUseId: `t${i}`,
+        isError: true,
+      })),
     },
   ];
-  return { skillName: skill, sessionId: "s1", startedAt: "2026-05-31T00:00:00Z", endedAt: null, messageSpan: [0, 0], messages };
+  return {
+    skillName: skill,
+    sessionId: "s1",
+    startedAt: "2026-05-31T00:00:00Z",
+    endedAt: null,
+    messageSpan: [0, 0],
+    messages,
+  };
 }
 
 describe("aggregateCandidates", () => {

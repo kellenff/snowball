@@ -16,7 +16,10 @@ describe("ClaudeCodeTranscriptReader (contract)", () => {
     });
   });
   test("extracts Skill tool_use with skill name", () => {
-    expect(messages[0].toolUses[0]).toMatchObject({ name: "Skill", input: { skill: "snowball:brainstorming" } });
+    expect(messages[0].toolUses[0]).toMatchObject({
+      name: "Skill",
+      input: { skill: "snowball:brainstorming" },
+    });
   });
   test("flags tool errors and user-text boundaries", () => {
     expect(messages.find((m) => m.toolResults.some((r) => r.isError))).toBeDefined();

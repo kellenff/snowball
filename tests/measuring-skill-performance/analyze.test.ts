@@ -6,7 +6,10 @@ const FIX = path.join(import.meta.dir, "fixtures");
 
 describe("analyze", () => {
   test("produces ranked candidates from a transcript", () => {
-    const env = analyze({ transcriptPaths: [path.join(FIX, "sample-transcript.jsonl")], emit: false });
+    const env = analyze({
+      transcriptPaths: [path.join(FIX, "sample-transcript.jsonl")],
+      emit: false,
+    });
     expect(env.status).toBe("success");
     expect(env.candidates.map((c) => c.skill_name).sort()).toEqual([
       "snowball:blast-radius",
