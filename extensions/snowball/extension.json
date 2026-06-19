@@ -1,6 +1,6 @@
 {
   "name": "snowball",
-  "version": "6.3.0",
+  "version": "6.4.0",
   "description": "Snowball skills library: agentic skills that remember why. Loads as agent context in Junie; decision-spine capture via the bundled snowball-capture MCP server.",
   "author": {
     "name": "Kellen Frodelius-Fujimoto",

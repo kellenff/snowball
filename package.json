@@ -1,6 +1,6 @@
 {
   "name": "snowball",
-  "version": "6.0.0",
+  "version": "6.4.0",
   "type": "module",
   "main": ".opencode/plugins/snowball.js",
   "devDependencies": {

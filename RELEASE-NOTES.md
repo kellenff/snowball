@@ -1,5 +1,14 @@
 # Snowball Release Notes
 
+## v6.4.0 (2026-06-18)
+
+Documentation release adding a Junie CLI tool-mapping reference for skill authors.
+
+- **`junie-tools.md` reference** — new file at `skills/using-snowball/references/junie-tools.md`, parallel to the existing `codex/copilot/gemini/gitlab-duo` references. Maps Claude Code tool names to Junie's tool-group surface, including workarounds for the genuine gaps (no explicit `Skill` tool, no explicit `Task` tool, no `TodoWrite`, no `WebFetch`, no `EnterPlanMode`/`ExitPlanMode`).
+- **Subagent name constraint** — documents Junie's `[a-z][a-z0-9-]*` constraint on subagent `name` fields, with a Snowball-specific rename example (`snowball:impl-reviewer` → `snowball-impl-reviewer`) so the marketplace work doesn't trip on it later.
+- **Configuration locations** — table mapping `.claude/` paths to their `.junie/` equivalents, so skill authors and Junie users know where shared Snowball files go.
+- **`using-snowball` cross-reference** — `skills/using-snowball/SKILL.md` now lists `junie-tools.md` in the Platform Adaptation line, parallel to the existing `codex/copilot` references.
+
 ## v6.3.0 (2026-06-16)
 
 First-class support for Junie (JetBrains IDE plugin).
