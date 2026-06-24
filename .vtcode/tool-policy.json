@@ -186,7 +186,9 @@
   },
   "approval_cache": {
     "allowed": [],
-    "prefixes": [],
+    "prefixes": [
+      "unified_search"
+    ],
     "regexes": []
   }
 }
