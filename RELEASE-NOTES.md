@@ -1,5 +1,50 @@
 # Snowball Release Notes
 
+## Unreleased
+
+### OpenCode decision-logging + blast-radius parity
+
+The OpenCode plugin (`.opencode/plugins/snowball.js`) now runs the same
+decision-capture spine as Claude Code and Cursor, instead of only injecting the
+bootstrap and registering the skills path.
+
+- **`chat.message`** captures operator approval phrases as a decision MADR and a
+  blast-radius operator-approval audit (deduped per message id).
+- **`event: session.idle`** runs the blast-radius stop audit once per turn and
+  forks the implicit-extraction worker (detached; no-ops when the `claude` CLI
+  is absent).
+- **`experimental.session.compacting`** runs extraction before context is
+  compacted.
+- **Shared logic, single source of truth** — `user-prompt-bridge.ts` and
+  `ask-user-question-bridge.ts` were refactored to export pure handlers
+  (`handleUserPromptApproval`, `handleAskUserQuestion`) behind a `require.main`
+  guard, so the OpenCode plugin imports the same built `.cjs` the shell hooks
+  run. The git root comes from the plugin's `worktree` context, never `cwd`.
+- **AskUserQuestion capture is intentionally omitted** on OpenCode (no labeled
+  question tool); documented in `docs/README.opencode.md`.
+- **Tests** — new handler unit tests in `tests/decision-logging/handlers.test.ts`
+  and a capture integration test in `tests/opencode/test-capture.{sh,mjs}`;
+  `tests/opencode/setup.sh` now installs `hooks/` so the fake install matches a
+  real git-package layout.
+
+## v6.6.0 (2026-06-23)
+
+### VTCode harness adapter
+
+Forward spine and decision spine for [VTCode](https://github.com/vinhnx/vtcode) (Rust-based CLI coding agent).
+
+- **Bootstrap mirror** — `.vtcode/AGENTS.md` carries the `using-snowball` text verbatim inside a marker block, mirroring the Junie pattern at `extensions/snowball/.junie/AGENTS.md`. VTCode injects `AGENTS.md` as project guidelines, so the bootstrap is delivered without a `session-start` hook.
+- **Decision spine via hooks** — VTCode's lifecycle rail is Claude-Code-shaped (UserPromptSubmit, PostToolUse, SessionStart, Stop, PreCompact). `.vtcode/hooks.toml` registers the existing Snowball shell scripts at each event: `on-user-prompt.sh` (approval-phrase MADRs), `on-stop.sh` and `on-pre-compact.sh` (extraction worker), and the session-start bootstrap. PostToolUse gets a new `on-ask-user-question-vtcode.sh` wrapper around `vtcode-post-tool-use-bridge.cjs`, a thin adapter that converts VTCode's `request_user_input` response shape (`answers: { id: { selected: [label] } }`) into the existing `handleAskUserQuestion` API.
+- **Tool mapping** — new `skills/using-snowball/references/vtcode-tools.md` translates Claude Code tool names to VTCode's `unified_file` / `unified_search` / `unified_exec` family plus `apply_patch`, `request_user_input`, `task_tracker`, `start_planning` / `finish_planning`, and `web_fetch`. Added to the Platform Adaptation list in `skills/using-snowball/SKILL.md`.
+- **Install** — clone the Snowball repo, symlink `skills/*/` into `~/.agents/skills/`, drop `.vtcode/AGENTS.md` into the target project's `AGENTS.md`, and drop `.vtcode/hooks.toml` into the target project's `.vtcode/` (substituting the absolute path to your clone in the latter). Verify with `vtcode skills list` (all 18 skills should appear) and by answering a `request_user_input` prompt — a MADR should appear under `docs/snowball/decisions/`.
+- **Pre-commit test** — `tests/vtcode/validate-wiring.sh` now has five checks: the bootstrap mirror marker block, the tool mapping's expected primitives, the canonical `SKILL.md` referencing the new doc, `.vtcode/hooks.toml` parsing with the five expected hook scripts, and the decision-spine bridge artifacts (source + bundle + shell wrapper).
+
+### Known limitations
+
+- No MCP integration — the tool mapping notes `.mcp.json` for future use, but no MCP server is shipped as part of VTCode support in v6.6.0. The decision spine runs over hooks; MCP capture is the Junie workaround for missing hooks and is unnecessary here.
+- The committed `.vtcode/tool-policy.json` is a user-environment artifact, not a Snowball-managed file. Out of scope for this spec.
+- Multi-select answers (`request_user_input` returns `selected: [label, ...]`) are reduced to the first label in the MADR. A future revision can extend the MADR format for multi-select if needed.
+
 ## v6.5.0 (2026-06-19)
 
 Documentation release enriching Junie IDE tool mappings and establishing a tool hierarchy.
