@@ -27,6 +27,14 @@ bootstrap and registering the skills path.
   `tests/opencode/setup.sh` now installs `hooks/` so the fake install matches a
   real git-package layout.
 
+## v6.7.0 (2026-06-24)
+
+### VTCode tool-policy auto-approval
+
+`.vtcode/tool-policy.json`'s `approval_cache.prefixes` now includes `unified_search`. Read-only searches no longer require per-call approval.
+
+A new `tests/vtcode/tool-policy.test.ts` regression test pins the contract.
+
 ## v6.6.0 (2026-06-23)
 
 ### VTCode harness adapter

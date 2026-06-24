@@ -169,7 +169,7 @@ At the next session, the bootstrap hook injects a capped ADR excerpt from `.code
 | GitLab Duo | `.gitlab/duo/hooks.json` (CLI only) | `hooks.json` to `run-hook.cmd session-start`; detects `DUO_SESSION_ID` | `AGENTS.md` |
 | Aider | `.aider.conf.yml` | `read` entry in config | `AGENTS.md` |
 | Junie (JetBrains IDE + CLI) | `extensions/snowball/extension.json` + `.junie-extension/marketplace.json` (CLI only) | bundled `snowball-capture` MCP server + `.junie/AGENTS.md` for context; CLI users register the repo as a custom Junie marketplace | `AGENTS.md` |
-| VTCode | `.vtcode/AGENTS.md` (bootstrap mirror) | project guidelines via `AGENTS.md`; skills symlinked into `.agents/skills/` | `AGENTS.md` |
+| VTCode | `.vtcode/AGENTS.md` (bootstrap mirror) | project guidelines via `AGENTS.md`; skills symlinked into `.agents/skills/`; unified_search auto-approved via prefix cache | `AGENTS.md` |
 
 ### How the bootstrap works
 
