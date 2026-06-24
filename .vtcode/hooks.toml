@@ -26,7 +26,8 @@ hooks = [
 
 [[hooks.lifecycle.session_start]]
 hooks = [
-  { command = "/absolute/path/to/snowball/hooks/run-hook.cmd session-start" }
+  { command = "/absolute/path/to/snowball/hooks/run-hook.cmd session-start" },
+  { command = "/absolute/path/to/snowball/skills/decision-logging/scripts/on-session-start-cron.sh" }
 ]
 
 [[hooks.lifecycle.stop]]

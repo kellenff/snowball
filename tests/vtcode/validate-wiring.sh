@@ -86,6 +86,13 @@ for script in "session-start" "on-user-prompt.sh" "on-ask-user-question-vtcode.s
 done
 pass ".vtcode/hooks.toml is valid TOML with [hooks.lifecycle] and references the five expected scripts"
 
+# --- 4d. cron-bootstrap script is wired ---
+
+if ! grep -q "on-session-start-cron.sh" "$HOOKS_TOML"; then
+  fail ".vtcode/hooks.toml does not reference on-session-start-cron.sh"
+fi
+pass ".vtcode/hooks.toml wires the cron-bootstrap into session-start"
+
 # --- 5. Decision-spine bridge artifacts exist ---
 
 [ -f "$BRIDGE_SRC" ] || fail "decision-logging bridge source missing at $BRIDGE_SRC"
