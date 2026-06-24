@@ -195,24 +195,24 @@ This repo installs by clone-and-link, not marketplace distribution.
 If you'd rather skip the clone step, the bootstrap installer can be piped straight from the repo's raw branch:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kellenff/snowball/main/scripts/bootstrap.sh | bash
+curl -fsSL https://raw.githubusercontent.com/kellenff/snowball/main/scripts/install.sh | bash -s -- vtcode --target /path/to/your/project
 ```
 
 Read it first if you're cautious about piping curl to bash:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kellenff/snowball/main/scripts/bootstrap.sh | less
+curl -fsSL https://raw.githubusercontent.com/kellenff/snowball/main/scripts/install.sh | less
 ```
 
 Pass arguments after `--`:
 
 ```bash
 # Pick a provider and a target project in one shot
-curl -fsSL https://raw.githubusercontent.com/kellenff/snowball/main/scripts/bootstrap.sh \
+curl -fsSL https://raw.githubusercontent.com/kellenff/snowball/main/scripts/install.sh \
   | bash -s -- --provider vtcode --target /path/to/your/project
 
-# Update an existing clone and refresh a project
-curl -fsSL https://raw.githubusercontent.com/kellenff/snowball/main/scripts/bootstrap.sh \
+# Pull the latest Snowball and refresh a project
+curl -fsSL https://raw.githubusercontent.com/kellenff/snowball/main/scripts/install.sh \
   | bash -s -- --provider vtcode --target /path/to/your/project --update
 ```
 
@@ -271,7 +271,7 @@ The bundles under `skills/*/scripts/*.cjs` are built outputs. Edit the TypeScrip
 
 | Path                                                                                       | What lives here                                                                                                                                                         |
 | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `skills/`                                                                                  | The 18 skills (see the Skills index). Each is a directory with a `SKILL.md` plus optional `references/`, `scripts/`, and `src/`.                                        |
+| `skills/`                                                                                  | The 20 skills (see the Skills index). Each is a directory with a `SKILL.md` plus optional `references/`, `scripts/`, and `src/`.                                        |
 | `hooks/`                                                                                   | `session-start` (the bash bootstrap), `run-hook.cmd` (polyglot bash/batch wrapper), `hooks.json` (Claude Code registration), `hooks-cursor.json` (Cursor registration). |
 | `.claude-plugin/`                                                                          | Claude Code plugin manifest plus the dev marketplace manifest.                                                                                                          |
 | `.codex-plugin/`, `.cursor-plugin/`, `.opencode/`, `gemini-extension.json`, `.gitlab/duo/` | Per-harness manifests and plugins.                                                                                                                                      |

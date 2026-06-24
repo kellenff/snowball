@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 #
 # install.sh — Install Snowball into a single provider, walking through the
-# steps documented in the README's Setup section. Pass the provider name
-# as the first argument.
+# steps documented in the README's Setup section. Pass the provider as the
+# first positional argument, or via --provider.
 #
 # Usage:
 #   install.sh <provider> [options]
+#   install.sh --provider <provider> [options]
 #
 # Providers (named exactly as the README uses them):
 #   claude-code   Register a local marketplace and install the plugin.
@@ -21,15 +22,24 @@
 #   vtcode        Symlink skills and bootstrap mirror into a project.
 #
 # Options (provider-specific; see --help):
+#   --provider NAME    Same as the leading positional argument. The
+#                      positional form is the curl-pipe-friendly default;
+#                      --provider NAME is the form documented in the README.
 #   --target DIR       Project directory (defaults to $PWD).
 #   --clone-root DIR   Snowball clone (defaults: this script's parent).
 #   --force            Overwrite existing files / symlinks (vtcode, duo, aider).
 #   --uninstall        Reverse the install (vtcode, duo, aider).
+#   --update           git pull the clone at --clone-root before installing.
+#                      Requires --clone-root to be a git working tree.
 #   -h, --help         Show this help.
 #
 # Notes:
-#   - This script does not clone Snowball for you. Clone it first
+#   - This script does not clone Snowball for you (except with --update on
+#     an existing clone). Clone it first
 #     (README: `git clone https://github.com/kellenff/snowball.git`).
+#   - When invoked without a provider (or via curl-pipe with no args), the
+#     default is `vtcode` because it's the only harness whose install is
+#     fully shell-scriptable end-to-end.
 #   - Claude Code, Cursor, Codex, Gemini, Copilot, Junie IDE, and Junie CLI
 #     need to be installed from inside their own host application; this
 #     script prints the exact commands rather than shelling into a closed
@@ -66,12 +76,21 @@ target=""
 clone_root="$SNOWBALL_ROOT_DEFAULT"
 force=0
 uninstall=0
+update=0
 
 while [ $# -gt 0 ]; do
   case "$1" in
     -h | --help)
       usage
       exit 0
+      ;;
+    --provider)
+      shift
+      provider="${1:-}"
+      [ -n "$provider" ] || {
+        echo "error: --provider requires a name" >&2
+        exit 2
+      }
       ;;
     --target)
       shift
@@ -91,6 +110,7 @@ while [ $# -gt 0 ]; do
       ;;
     --force) force=1 ;;
     --uninstall) uninstall=1 ;;
+    --update) update=1 ;;
     --)
       shift
       target="${1:-}"
@@ -114,10 +134,11 @@ while [ $# -gt 0 ]; do
   shift
 done
 
+# Default provider when invoked from curl-pipe with no args. vtcode is the
+# only harness whose install is fully shell-scriptable end-to-end, so it's
+# the only sensible no-arg default; the others would just print commands.
 if [ -z "$provider" ]; then
-  usage >&2
-  echo "error: provider is required (e.g. claude-code, vtcode, duo)" >&2
-  exit 2
+  provider="vtcode"
 fi
 
 # Normalize aliases the README uses informally.
@@ -131,6 +152,22 @@ if [ ! -d "$clone_root" ]; then
   exit 1
 fi
 clone_root="$(cd "$clone_root" && pwd)"
+
+# --update pulls the latest Snowball into --clone-root before installing.
+# Only valid for an actual git working tree; not for tarball/curl-pipe with
+# no clone yet (which would need --update --clone-root to be a clone).
+if [ "$update" -eq 1 ]; then
+  if [ ! -d "$clone_root/.git" ]; then
+    echo "error: --update requires --clone-root to be a git working tree: $clone_root" >&2
+    exit 1
+  fi
+  echo "Updating Snowball clone at $clone_root ..."
+  if ! (cd "$clone_root" && git pull --ff-only); then
+    echo "error: git pull failed in $clone_root (dirty tree? rebase or stash and retry)" >&2
+    exit 1
+  fi
+  echo
+fi
 
 # Providers whose install happens entirely inside a host app. These
 # have no shell-automatable step, so we print the README's exact commands.
@@ -324,18 +361,23 @@ install_vtcode() {
   local skills_dst="$HOME/.agents/skills"
   mkdir -p "$skills_dst"
   local copied=0
+  local preserved=0
+  local total=0
   for skill in "$clone_root/skills"/*/; do
     [ -d "$skill" ] || continue
+    total=$((total + 1))
     local name
     name="$(basename "$skill")"
     if [ -e "$skills_dst/$name" ] && [ "$force" -ne 1 ]; then
-      echo "  preserving existing ~/$skills_dst/$name (re-run with --force to replace)"
+      echo "  preserving existing $skills_dst/$name (re-run with --force to replace)"
+      preserved=$((preserved + 1))
       continue
     fi
     ln -sfn "$skill" "$skills_dst/$name"
     copied=$((copied + 1))
   done
-  echo "  linked $copied skill(s) into $skills_dst/"
+  echo "  $total skill(s) in $clone_root/skills/ ($copied linked, $preserved preserved)"
+  echo "  skills_dst: $skills_dst/"
 
   # 2. Bootstrap mirror as the project's AGENTS.md.
   mkdir -p "$target/.vtcode"
@@ -354,7 +396,7 @@ install_vtcode() {
   echo "Next steps:"
   echo "  1. Edit $target/.vtcode/hooks.toml and replace"
   echo "     /absolute/path/to/snowball with: $clone_root"
-  echo "  2. Verify with: vtcode skills list   (all 18 skills should appear)"
+  echo "  2. Verify with: vtcode skills list   (the count printed above should match)"
   echo "  3. Answer a request_user_input prompt — a MADR should land under"
   echo "     docs/snowball/decisions/ in the target repo."
   echo
