@@ -18,7 +18,7 @@ mkdir -p "$DIGEST_DIR"
 
 if [ ! -d "$DECISIONS" ]; then
   # No decisions yet — write an empty digest and exit.
-  : > "$DIGEST"
+  : >"$DIGEST"
   exit 0
 fi
 
@@ -28,7 +28,7 @@ trap 'rm -f "$TMP"' EXIT
 for f in "$DECISIONS"/*.md; do
   [ -f "$f" ] || continue
   title="$(awk '/^# / {sub(/^# /, ""); print; exit}' "$f" || true)"
-  printf '%s\t%s\n' "$(basename "$f")" "${title:-untitled}" >> "$TMP"
+  printf '%s\t%s\n' "$(basename "$f")" "${title:-untitled}" >>"$TMP"
 done
 
 # Atomic write: only replace if contents differ.

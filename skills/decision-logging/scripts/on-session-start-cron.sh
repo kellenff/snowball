@@ -30,4 +30,4 @@ fi
 # shell-callable binary). The agent on next turn sees the marker and
 # issues the cron_create call.
 mkdir -p "$(dirname "$STATE")"
-echo "{\"requested\":\"snowball-madr-digest-refresh\",\"template\":\"$TEMPLATE\"}" > "$STATE"
+echo "{\"requested\":\"snowball-madr-digest-refresh\",\"template\":\"$TEMPLATE\"}" >"$STATE"
