@@ -348,6 +348,8 @@ These came up during exploration but need follow-on before they belong in this c
 7. **Test surface.** `tests/vtcode/validate-wiring.sh` is wiring-only. Per-item acceptance criteria need new tests, likely under `tests/vtcode/` paralleling `tests/decision-logging/`. Design deferred to writing-plans.
 8. **`.vtcode/hooks.toml` is currently deleted in the working tree** (as of 2026-06-24). The validate-wiring script asserts the file exists. May want to restore or update the script. Out of scope for this catalog.
 
+9. **B2.1 async hook support in VTCode TOML (resolved 2026-06-24).** Researched against `https://github.com/vinhnx/vtcode/blob/main/docs/config/CONFIG_FIELD_REFERENCE.md` (the canonical hook schema lives there, not in `docs/hooks.md`). The `[[hooks.lifecycle.<event>.hooks]]` entry shape supports exactly three fields: `command` (required string), `timeout_seconds` (optional int|null), and `type` (optional, currently only `"command"`). The parent group supports `matcher` (optional regex) and `quiet_success_output` (optional bool). **No `async` / `run_async` / `background` field is documented on either the group or the entry level.** Hook execution is described as strictly synchronous: commands execute sequentially within each group. The `background` namespace that does appear in the config is under `subagents.background.*`, which controls background subagent toggling — unrelated to hook lifecycle. **Conclusion: B2.1 is dropped from v6.7.0; revisit when VTCode ships async hook support.** The implementation plan's Tasks 9–10 are skipped.
+
 ---
 
 ## Out of scope (not in this catalog)

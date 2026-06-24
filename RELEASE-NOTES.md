@@ -45,6 +45,16 @@ Nightly MADR digest refresh via VTCode's `cron_create` primitive.
 - See `docs/snowball/cron-automation.md` for the full lifecycle and idempotency story.
 - Idempotency: VTCode's `cron_create` is not idempotent at the tool layer (task IDs are timestamp-derived); the bootstrap dedupes via `.vtcode/.snowball-cron-state.json` and the agent's own check before issuing the call.
 
+### VTCode apply_patch coverage & safety hooks
+
+Forward spine and decision spine deepened for VTCode. Three new hook-rail extensions:
+
+- **PostToolUse on `apply_patch`** (B1.1) writes a `kind: file-edit` observation to `docs/snowball/decisions/observations.jsonl` per patch invocation. Pure handler in `skills/decision-logging/src/apply-patch-bridge.ts`; bundle `apply-patch-bridge.cjs`; shell shim `on-apply-patch-vtcode.sh`.
+- **PreToolUse on `apply_patch`** (B1.5) runs blast-radius classification via `classifyPatchRisk`; exits 2 (blocks) for lockfile or >10-file patches, warns for medium-risk single-reason changes. Honor `SNOWBALL_BLAST_RADIUS=off` to disable.
+- **Async hook entries** (B2.1) marked in `.vtcode/hooks.toml` where VTCode supports the `async` flag.
+
+Tests: 7 new unit tests in `tests/decision-logging/apply-patch-{bridge,blast-radius}.test.ts` plus 2 shell integration tests. `validate-wiring.sh` extended with 4b and 4c assertions.
+
 ## v6.6.0 (2026-06-23)
 
 ### VTCode harness adapter

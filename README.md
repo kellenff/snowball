@@ -65,15 +65,15 @@ The decision trail behind Snowball was captured by Snowball.
 
 The fork is at **v5.4.0**. It began as a near-mirror of `superpowers` v5.1.0 and has since diverged along one axis: decision intelligence. These additions are fork-original and are not in upstream.
 
-| Version | Fork-original addition |
-| --- | --- |
-| v5.2.0 | `structured-argumentation`: argdown as an intermediate representation, with a bundled parser-validator |
-| v5.3.0 | M2 brain-jam companion: an optional second-model (MiniMax) brainstorming partner |
-| v5.4.0 | `decision-logging` (hook-driven capture) and `syncing-decisions-to-memory` (ADR distillation) |
-| v6.1.0 | `recalling-project-context` — cycle-start recall loop (tier-0 hook + tier-1 skill, staleness in `prepare`, sync disk cache); completion-flow decision trail in `finishing-a-development-branch` |
-| v6.2.0 | chorus companion: brainstorming delegates to `chorus:chorus` for multi-model debate (replacing M2 brain-jam) |
-| v6.3.0 | Junie (JetBrains IDE plugin) support: forward spine via skills + AGENTS.md; decision spine via `snowball-capture` MCP server (partial — Junie has no hook rail). Junie CLI discoverability: `.junie-extension/marketplace.json` lets Junie CLI users `/extensions marketplace add https://github.com/kellenff/snowball` and install via `/extensions install snowball`. Runtime path resolution: `run.cjs` wrapper around `snowball-capture` resolves the server's path at start time, replacing the `<absolute-path-to-snowball>` placeholder; `install-path-fix.cjs` is an optional cross-platform rewriter for adapters that don't resolve relative paths. |
-| v6.6.0 | VTCode harness adapter: forward spine via `.vtcode/AGENTS.md` bootstrap mirror + `skills/using-snowball/references/vtcode-tools.md` tool mapping; skills are symlinked into VTCode's `.agents/skills/` discovery path. Decision spine via `.vtcode/hooks.toml` (UserPromptSubmit, PostToolUse on `request_user_input`, SessionStart, Stop, PreCompact) — same hook rail Claude Code, Cursor, and OpenCode use. |
+| Version | Fork-original addition                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| v5.2.0  | `structured-argumentation`: argdown as an intermediate representation, with a bundled parser-validator                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| v5.3.0  | M2 brain-jam companion: an optional second-model (MiniMax) brainstorming partner                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| v5.4.0  | `decision-logging` (hook-driven capture) and `syncing-decisions-to-memory` (ADR distillation)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| v6.1.0  | `recalling-project-context` — cycle-start recall loop (tier-0 hook + tier-1 skill, staleness in `prepare`, sync disk cache); completion-flow decision trail in `finishing-a-development-branch`                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| v6.2.0  | chorus companion: brainstorming delegates to `chorus:chorus` for multi-model debate (replacing M2 brain-jam)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| v6.3.0  | Junie (JetBrains IDE plugin) support: forward spine via skills + AGENTS.md; decision spine via `snowball-capture` MCP server (partial — Junie has no hook rail). Junie CLI discoverability: `.junie-extension/marketplace.json` lets Junie CLI users `/extensions marketplace add https://github.com/kellenff/snowball` and install via `/extensions install snowball`. Runtime path resolution: `run.cjs` wrapper around `snowball-capture` resolves the server's path at start time, replacing the `<absolute-path-to-snowball>` placeholder; `install-path-fix.cjs` is an optional cross-platform rewriter for adapters that don't resolve relative paths. |
+| v6.6.0  | VTCode harness adapter: forward spine via `.vtcode/AGENTS.md` bootstrap mirror + `skills/using-snowball/references/vtcode-tools.md` tool mapping; skills are symlinked into VTCode's `.agents/skills/` discovery path. Decision spine via `.vtcode/hooks.toml` (UserPromptSubmit, PostToolUse on `request_user_input`, SessionStart, Stop, PreCompact) — same hook rail Claude Code, Cursor, and OpenCode use.                                                                                                                                                                                                                                                |
 
 Everything else tracks upstream closely. Skill content, the bootstrap design, and the multi-harness adapter pattern all originate there.
 
@@ -141,12 +141,12 @@ These are real artifacts that have not been reconciled with the fork's posture. 
 
 Capture is passive. No skill is modified, and the operator never has to remember to log. The brainstorming, planning, and review skills generate the events; the hooks observe them.
 
-| Hook | Trigger | Produces |
-| --- | --- | --- |
-| PostToolUse on `AskUserQuestion` | Operator picks an option | One MADR per question-answer pair |
-| UserPromptSubmit (pattern match) | Operator submits an approval phrase | One MADR, deduped against recent captures |
-| Stop, detached worker | Session ends | Headless `claude -p` extracts observations from the transcript tail into `observations.jsonl` |
-| PreCompact, detached worker | Auto-compaction is imminent | The same worker, run before the context window is summarized |
+| Hook                             | Trigger                             | Produces                                                                                      |
+| -------------------------------- | ----------------------------------- | --------------------------------------------------------------------------------------------- |
+| PostToolUse on `AskUserQuestion` | Operator picks an option            | One MADR per question-answer pair                                                             |
+| UserPromptSubmit (pattern match) | Operator submits an approval phrase | One MADR, deduped against recent captures                                                     |
+| Stop, detached worker            | Session ends                        | Headless `claude -p` extracts observations from the transcript tail into `observations.jsonl` |
+| PreCompact, detached worker      | Auto-compaction is imminent         | The same worker, run before the context window is summarized                                  |
 
 All hooks no-op silently outside a git repo. `Stop` and `PreCompact` coordinate through a per-session cursor and a non-blocking `flock`, so each transcript region is fed to `claude -p` exactly once. Even a long session abandoned after compacting still emits its pre-compaction observations.
 
@@ -158,18 +158,18 @@ At the next session, the bootstrap hook injects a capped ADR excerpt from `.code
 
 ## Per-harness adapters
 
-| Harness | Manifest | Bootstrap loader | Context file |
-| --- | --- | --- | --- |
-| Claude Code | `.claude-plugin/plugin.json` | `hooks/hooks.json` to `hooks/run-hook.cmd session-start` | none yet (bootstrap injects via hook) |
-| Cursor | `.cursor-plugin/plugin.json` | `hooks/hooks-cursor.json` to the same script | `AGENTS.md` |
-| GitHub Copilot CLI | `.claude-plugin/plugin.json` (shared) | same script; detects `COPILOT_CLI=1` and emits SDK-standard JSON | `AGENTS.md` |
-| OpenCode | `.opencode/plugins/snowball.js` | JS plugin, `experimental.chat.messages.transform` hook | `AGENTS.md` |
-| Codex CLI / Codex App | `.codex-plugin/plugin.json` | distributed via `scripts/sync-to-codex-plugin.sh` (currently stale) | `AGENTS.md` |
-| Gemini CLI | `gemini-extension.json` | extension-managed; skills activate via `activate_skill` | `GEMINI.md` |
-| GitLab Duo | `.gitlab/duo/hooks.json` (CLI only) | `hooks.json` to `run-hook.cmd session-start`; detects `DUO_SESSION_ID` | `AGENTS.md` |
-| Aider | `.aider.conf.yml` | `read` entry in config | `AGENTS.md` |
-| Junie (JetBrains IDE + CLI) | `extensions/snowball/extension.json` + `.junie-extension/marketplace.json` (CLI only) | bundled `snowball-capture` MCP server + `.junie/AGENTS.md` for context; CLI users register the repo as a custom Junie marketplace | `AGENTS.md` |
-| VTCode | `.vtcode/AGENTS.md` (bootstrap mirror) | project guidelines via `AGENTS.md`; skills symlinked into `.agents/skills/`; unified_search auto-approved via prefix cache | `AGENTS.md` |
+| Harness                     | Manifest                                                                              | Bootstrap loader                                                                                                                                                       | Context file                          |
+| --------------------------- | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| Claude Code                 | `.claude-plugin/plugin.json`                                                          | `hooks/hooks.json` to `hooks/run-hook.cmd session-start`                                                                                                               | none yet (bootstrap injects via hook) |
+| Cursor                      | `.cursor-plugin/plugin.json`                                                          | `hooks/hooks-cursor.json` to the same script                                                                                                                           | `AGENTS.md`                           |
+| GitHub Copilot CLI          | `.claude-plugin/plugin.json` (shared)                                                 | same script; detects `COPILOT_CLI=1` and emits SDK-standard JSON                                                                                                       | `AGENTS.md`                           |
+| OpenCode                    | `.opencode/plugins/snowball.js`                                                       | JS plugin, `experimental.chat.messages.transform` hook                                                                                                                 | `AGENTS.md`                           |
+| Codex CLI / Codex App       | `.codex-plugin/plugin.json`                                                           | distributed via `scripts/sync-to-codex-plugin.sh` (currently stale)                                                                                                    | `AGENTS.md`                           |
+| Gemini CLI                  | `gemini-extension.json`                                                               | extension-managed; skills activate via `activate_skill`                                                                                                                | `GEMINI.md`                           |
+| GitLab Duo                  | `.gitlab/duo/hooks.json` (CLI only)                                                   | `hooks.json` to `run-hook.cmd session-start`; detects `DUO_SESSION_ID`                                                                                                 | `AGENTS.md`                           |
+| Aider                       | `.aider.conf.yml`                                                                     | `read` entry in config                                                                                                                                                 | `AGENTS.md`                           |
+| Junie (JetBrains IDE + CLI) | `extensions/snowball/extension.json` + `.junie-extension/marketplace.json` (CLI only) | bundled `snowball-capture` MCP server + `.junie/AGENTS.md` for context; CLI users register the repo as a custom Junie marketplace                                      | `AGENTS.md`                           |
+| VTCode                      | `.vtcode/AGENTS.md` (bootstrap mirror)                                                | project guidelines via `AGENTS.md`; skills symlinked into `.agents/skills/`; unified_search auto-approved via prefix cache; apply_patch observation+blast-radius hooks | `AGENTS.md`                           |
 
 ### How the bootstrap works
 
@@ -269,20 +269,20 @@ The bundles under `skills/*/scripts/*.cjs` are built outputs. Edit the TypeScrip
 
 ## Repository map
 
-| Path | What lives here |
-| --- | --- |
-| `skills/` | The 18 skills (see the Skills index). Each is a directory with a `SKILL.md` plus optional `references/`, `scripts/`, and `src/`. |
-| `hooks/` | `session-start` (the bash bootstrap), `run-hook.cmd` (polyglot bash/batch wrapper), `hooks.json` (Claude Code registration), `hooks-cursor.json` (Cursor registration). |
-| `.claude-plugin/` | Claude Code plugin manifest plus the dev marketplace manifest. |
-| `.codex-plugin/`, `.cursor-plugin/`, `.opencode/`, `gemini-extension.json`, `.gitlab/duo/` | Per-harness manifests and plugins. |
-| `docs/design/` | The two-spine process write-up and its argdown rationale and steelman maps. |
-| `docs/snowball/decisions/` | Captured decision trail: MADR markdown plus `observations.jsonl`. |
-| `docs/snowball/specs/`, `docs/snowball/plans/` | Design specs and implementation plans. |
-| `docs/` | Setup notes (`README.opencode.md`, `README.gitlab-duo.md`, `windows/`) and testing notes (`testing.md`). |
-| `tests/` | 11 test groupings: per-harness bootstrap tests, Codex-sync verification, skill-triggering evals, decision-logging and decision-sync tests, SDD end-to-end runs. |
-| `scripts/` | `bump-version.sh`, `install-into-project.sh`, and `sync-to-codex-plugin.sh` (currently stale). |
-| `AGENTS.md`, `GEMINI.md` | Per-harness context files. No `CLAUDE.md` in this fork yet. |
-| `RELEASE-NOTES.md` | Snowball's own release history from v5.2.0 onward. |
+| Path                                                                                       | What lives here                                                                                                                                                         |
+| ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `skills/`                                                                                  | The 18 skills (see the Skills index). Each is a directory with a `SKILL.md` plus optional `references/`, `scripts/`, and `src/`.                                        |
+| `hooks/`                                                                                   | `session-start` (the bash bootstrap), `run-hook.cmd` (polyglot bash/batch wrapper), `hooks.json` (Claude Code registration), `hooks-cursor.json` (Cursor registration). |
+| `.claude-plugin/`                                                                          | Claude Code plugin manifest plus the dev marketplace manifest.                                                                                                          |
+| `.codex-plugin/`, `.cursor-plugin/`, `.opencode/`, `gemini-extension.json`, `.gitlab/duo/` | Per-harness manifests and plugins.                                                                                                                                      |
+| `docs/design/`                                                                             | The two-spine process write-up and its argdown rationale and steelman maps.                                                                                             |
+| `docs/snowball/decisions/`                                                                 | Captured decision trail: MADR markdown plus `observations.jsonl`.                                                                                                       |
+| `docs/snowball/specs/`, `docs/snowball/plans/`                                             | Design specs and implementation plans.                                                                                                                                  |
+| `docs/`                                                                                    | Setup notes (`README.opencode.md`, `README.gitlab-duo.md`, `windows/`) and testing notes (`testing.md`).                                                                |
+| `tests/`                                                                                   | 11 test groupings: per-harness bootstrap tests, Codex-sync verification, skill-triggering evals, decision-logging and decision-sync tests, SDD end-to-end runs.         |
+| `scripts/`                                                                                 | `bump-version.sh`, `install-into-project.sh`, and `sync-to-codex-plugin.sh` (currently stale).                                                                          |
+| `AGENTS.md`, `GEMINI.md`                                                                   | Per-harness context files. No `CLAUDE.md` in this fork yet.                                                                                                             |
+| `RELEASE-NOTES.md`                                                                         | Snowball's own release history from v5.2.0 onward.                                                                                                                      |
 
 ## Pointers
 

@@ -15,6 +15,8 @@ fi
 ENTRIES=(
   write-madr
   append-observation
+  apply-patch-blast-radius
+  apply-patch-bridge
   ask-user-question-bridge
   user-prompt-bridge
   approval-phrases

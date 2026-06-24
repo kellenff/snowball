@@ -86,6 +86,26 @@ for script in "session-start" "on-user-prompt.sh" "on-ask-user-question-vtcode.s
 done
 pass ".vtcode/hooks.toml is valid TOML with [hooks.lifecycle] and references the five expected scripts"
 
+# --- 4b. apply_patch PostToolUse matcher is wired ---
+
+if ! grep -q 'matcher = "apply_patch"' "$HOOKS_TOML"; then
+  fail ".vtcode/hooks.toml missing matcher = \"apply_patch\" entry"
+fi
+if ! grep -q "on-apply-patch-vtcode.sh" "$HOOKS_TOML"; then
+  fail ".vtcode/hooks.toml does not reference on-apply-patch-vtcode.sh"
+fi
+pass ".vtcode/hooks.toml has PostToolUse matcher for apply_patch → on-apply-patch-vtcode.sh"
+
+# --- 4c. apply_patch PreToolUse blast-radius is wired ---
+
+if ! grep -q "pre_tool_use" "$HOOKS_TOML"; then
+  fail ".vtcode/hooks.toml missing [[hooks.lifecycle.pre_tool_use]] section"
+fi
+if ! grep -q "on-pre-tool-use-vtcode.sh" "$HOOKS_TOML"; then
+  fail ".vtcode/hooks.toml does not reference on-pre-tool-use-vtcode.sh"
+fi
+pass ".vtcode/hooks.toml has PreToolUse section for apply_patch blast-radius"
+
 # --- 4d. cron-bootstrap script is wired ---
 
 if ! grep -q "on-session-start-cron.sh" "$HOOKS_TOML"; then

@@ -29,6 +29,16 @@ When multiple tools can achieve the same goal, follow this priority:
 | `EnterPlanMode` | `start_planning` |
 | `ExitPlanMode` | `finish_planning` |
 
+## `apply_patch` blast-radius pre-audit
+
+Snowball wires a `PreToolUse` matcher on `apply_patch` to `on-pre-tool-use-vtcode.sh`, which classifies each patch before VTCode applies it. The classifier reads the unified diff, extracts touched paths, and returns one of three verdicts:
+
+- **low** — patch is allowed silently (exit 0).
+- **medium** — patch is allowed but a warning is written to stderr; review before committing (exit 0).
+- **high** — patch is blocked with exit 2. Triggers: any lockfile modification (`package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `Cargo.lock`, `go.sum`, `composer.lock`, `.terraform.lock.hcl`), any change under `hooks/`, `.vtcode/hooks.toml`, or `.github/`, or a patch touching 10 or more files.
+
+Set `SNOWBALL_BLAST_RADIUS=off` in the environment to bypass the audit (lockfiles will no longer be blocked). The PostToolUse mirror (`on-apply-patch-vtcode.sh`) still records the file-edit observation in `docs/snowball/decisions/observations.jsonl` either way.
+
 ## Skill loading
 
 VTCode has no explicit `Skill` tool. Skills auto-load: the agent scans `.agents/skills/<skill-name>/SKILL.md` (project, nearest CWD first) and `~/.agents/skills/<skill-name>/SKILL.md` (user) at session start, then selects skills whose frontmatter `name` and `description` match the current task. Reference a skill by name in your prompt and VTCode activates it.
