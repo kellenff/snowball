@@ -155,3 +155,17 @@ repos:
         language: system
         files: ^(extensions/snowball/snowball-capture/(run|resolve-bundle-path)\.cjs|extensions/snowball/scripts/install-path-fix\.cjs|tests/junie-cli/test-.*\.sh)$
         pass_filenames: false
+
+      - id: test-opencode-plugin
+        name: opencode plugin tests
+        entry: bash -c 'cd tests/opencode && bash run-tests.sh'
+        language: system
+        files: ^\.opencode/plugins/snowball\.js$|^tests/opencode/|^skills/decision-logging/scripts/.*\.cjs$|^hooks/blast-radius-audit\.cjs$
+        pass_filenames: false
+
+      - id: validate-vtcode-wiring
+        name: validate vtcode wiring
+        entry: tests/vtcode/validate-wiring.sh
+        language: system
+        files: ^\.vtcode/(AGENTS|hooks)\.md?$|^skills/using-snowball/references/vtcode-tools\.md$|^skills/using-snowball/SKILL\.md$|^skills/decision-logging/src/vtcode-post-tool-use-bridge\.ts$|^skills/decision-logging/scripts/vtcode-post-tool-use-bridge\.cjs$|^skills/decision-logging/scripts/on-ask-user-question-vtcode\.sh$
+        pass_filenames: false
