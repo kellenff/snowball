@@ -297,6 +297,52 @@ These came up during exploration but need follow-on before they belong in this c
 2. **VTCode plugin runtime (JS surface).** OpenCode has `experimental.chat.messages.transform`; if VTCode ships a JS hook runtime, half of B4 (subagents) becomes more capable and the catalog should be re-cut.
 3. **`approval_cache` precedence semantics.** Need to know whether `regexes` overrides `prefixes` or vice versa before B6.3 is safe.
 4. **`cron_create` token cost.** Each scheduled prompt burns input tokens. Budget impact on free-tier VTCode users unknown.
+
+   _Research note (2026-06-24, Plan B Task 0):_ Verified against `vinhnx/vtcode` `main` — docs at `docs/user-guide/scheduled-tasks.md` and source at `vtcode-utility-tool-specs/src/lib.rs::cron_create_parameters` plus `vtcode-core/src/tools/registry/executors.rs::cron_create_executor`.
+
+   Canonical `cron_create` parameter schema:
+
+   ```json
+   {
+     "type": "object",
+     "required": ["prompt"],
+     "additionalProperties": false,
+     "properties": {
+       "prompt": {
+         "type": "string",
+         "description": "Prompt to run when the task fires."
+       },
+       "name": {
+         "type": "string",
+         "description": "Optional short label for the task."
+       },
+       "cron": {
+         "type": "string",
+         "description": "Five-field cron expression for recurring tasks."
+       },
+       "delay_minutes": {
+         "type": "integer",
+         "description": "Fixed recurring interval in minutes."
+       },
+       "run_at": {
+         "type": "string",
+         "description": "One-shot fire time in RFC3339 or local datetime form."
+       }
+     }
+   }
+   ```
+
+   Findings:
+
+   - **Required field:** `prompt` (string, non-empty). Schema rejects empty prompts.
+   - **Scheduling:** exactly one of `cron` (5-field cron expression, e.g. `"0 3 * * *"`), `delay_minutes` (integer ≥ 1), or `run_at` (RFC3339 / local datetime). Sending zero or more than one returns `Choose exactly one of cron, delay_minutes, or run_at`.
+   - **Label:** `name` is optional. When omitted, VTCode derives one from the prompt.
+   - **Aliases:** `cron_create` accepts the same payload under `schedule_task` and `loop_create`. Sibling tools: `cron_list` (no args) and `cron_delete` (requires `id`).
+   - **Idempotency:** NOT automatic. `create_session_prompt_task` keys tasks by `id = generate_task_id(name, prompt_summary, created_at)`, and `created_at = Utc::now()` is set by the executor. Two calls with the same `name` and `prompt` at different timestamps produce different IDs and **duplicate tasks**. The bootstrap must dedupe before calling.
+   - **Dedupe mechanism:** Snowball's bootstrap uses a sidecar state file (`.vtcode/.snowball-cron-state.json`) checked by the shell script before requesting the cron registration; the agent on next turn reads the marker and only then issues `cron_create`. The first idempotency layer is in shell; the second layer is in the agent's prompt (which sees the marker and decides whether to call `cron_create`).
+   - **Lifecycle:** session-scoped tasks live in memory only and disappear when the VT Code process exits. Durable scheduling is a separate path (`vtcode schedule create` CLI / `vtcode-utility-tool-specs` durable store). Snowball's B3.1 chooses the session-scoped primitive because the digest is a per-session recall accelerator, not a long-running service.
+   - **Token cost:** still unknown. The 5-field cron expression and prompt are the only input per fire; the cost is the LLM call VTCode makes when the prompt fires. Will be measured during v6.7.0 dogfood.
+
 5. **Skill auto-loading path.** Today we symlink into `.agents/skills/`. If VTCode adds marketplace-style install, the symlink model breaks. Out of scope here; tracked separately.
 6. **v6.6.0 → v6.7.0 migration.** `tool-policy.json` shape may change (B6). Need a migration note for users on `kellenff/snowball` v6.6.0.
 7. **Test surface.** `tests/vtcode/validate-wiring.sh` is wiring-only. Per-item acceptance criteria need new tests, likely under `tests/vtcode/` paralleling `tests/decision-logging/`. Design deferred to writing-plans.
