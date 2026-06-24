@@ -2,6 +2,7 @@ var __create = Object.create;
 var __getProtoOf = Object.getPrototypeOf;
 var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 function __accessProp(key) {
   return this[key];
@@ -28,8 +29,43 @@ var __toESM = (mod, isNodeMode, target) => {
     cache.set(mod, to);
   return to;
 };
+var __toCommonJS = (from) => {
+  var entry = (__moduleCache ??= new WeakMap).get(from), desc;
+  if (entry)
+    return entry;
+  entry = __defProp({}, "__esModule", { value: true });
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (var key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(entry, key))
+        __defProp(entry, key, {
+          get: __accessProp.bind(from, key),
+          enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+        });
+  }
+  __moduleCache.set(from, entry);
+  return entry;
+};
+var __moduleCache;
+var __returnValue = (v) => v;
+function __exportSetter(name, newValue) {
+  this[name] = __returnValue.bind(null, newValue);
+}
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, {
+      get: all[name],
+      enumerable: true,
+      configurable: true,
+      set: __exportSetter.bind(all, name)
+    });
+};
 
 // skills/decision-logging/src/ask-user-question-bridge.ts
+var exports_ask_user_question_bridge = {};
+__export(exports_ask_user_question_bridge, {
+  handleAskUserQuestion: () => handleAskUserQuestion
+});
+module.exports = __toCommonJS(exports_ask_user_question_bridge);
 var fs2 = __toESM(require("node:fs"));
 var path2 = __toESM(require("node:path"));
 var os = __toESM(require("node:os"));
@@ -2777,7 +2813,7 @@ var safeDump = renamed("safeDump", "dump");
 
 // skills/decision-logging/src/git-root.ts
 var import_node_child_process = require("node:child_process");
-function detectGitRoot(startDir) {
+function detectGitRoot2(startDir) {
   try {
     const out = import_node_child_process.execFileSync("git", ["rev-parse", "--show-toplevel"], {
       cwd: startDir || process.cwd(),
@@ -2857,7 +2893,7 @@ function timestampPrefix(isoDate) {
   return `${m[1]}T${m[2]}${m[3]}`;
 }
 function writeMadr(input, opts = {}) {
-  const gitRoot = opts.gitRoot ?? detectGitRoot();
+  const gitRoot = opts.gitRoot ?? detectGitRoot2();
   if (!gitRoot)
     throw new Error("not in a git repo");
   const dir = path.join(gitRoot, "docs", "snowball", "decisions");
@@ -2885,24 +2921,10 @@ function logError(msg) {
 `);
   } catch {}
 }
-var raw = "";
-process.stdin.on("data", (chunk) => {
-  raw += chunk;
-});
-process.stdin.on("end", () => {
-  let payload;
-  try {
-    payload = JSON.parse(raw);
-  } catch (err) {
-    logError(`ask-user-question-bridge: bad JSON payload: ${err.message}`);
-    process.exit(0);
-    return;
-  }
-  const questions = normalizeQuestions(payload.tool_input);
-  const answers = normalizeAnswers(questions, payload.tool_response, payload.tool_output);
-  const sessionId = resolveSessionId(payload) || "unknown";
-  const sourceEventId = payload.tool_use_id ?? "unknown";
+function handleAskUserQuestion(input) {
+  const { questions, answers, sessionId, sourceEventId, gitRoot } = input;
   const isoDate = new Date().toISOString();
+  let written = 0;
   for (const q of questions) {
     const answer = answers[q.question];
     if (!answer)
@@ -2911,7 +2933,7 @@ process.stdin.on("end", () => {
       label: answer,
       description: ""
     };
-    const input = {
+    const madr = {
       title: String(q.question).replace(/\?+$/, ""),
       status: "accepted",
       date: isoDate,
@@ -2936,10 +2958,40 @@ process.stdin.on("end", () => {
       }
     };
     try {
-      writeMadr(input);
+      writeMadr(madr, { gitRoot });
+      written += 1;
     } catch (err) {
       logError(`ask-user-question-bridge: writeMadr failed: ${err.message}`);
     }
   }
-  process.exit(0);
-});
+  return written;
+}
+function runCli() {
+  let raw = "";
+  process.stdin.on("data", (chunk) => {
+    raw += chunk;
+  });
+  process.stdin.on("end", () => {
+    let payload;
+    try {
+      const parsed = JSON.parse(raw);
+      payload = parsed;
+    } catch (err) {
+      logError(`ask-user-question-bridge: bad JSON payload: ${err.message}`);
+      process.exit(0);
+      return;
+    }
+    const questions = normalizeQuestions(payload.tool_input);
+    const answers = normalizeAnswers(questions, payload.tool_response, payload.tool_output);
+    const sessionId = resolveSessionId(payload) || "unknown";
+    const sourceEventId = payload.tool_use_id ?? "unknown";
+    const gitRoot = detectGitRoot();
+    if (!gitRoot)
+      process.exit(0);
+    handleAskUserQuestion({ questions, answers, sessionId, sourceEventId, gitRoot });
+    process.exit(0);
+  });
+}
+if (require.main == module || require.main == module) {
+  runCli();
+}

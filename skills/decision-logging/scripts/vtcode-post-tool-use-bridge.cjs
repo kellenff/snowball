@@ -60,51 +60,63 @@ var __export = (target, all) => {
     });
 };
 
-// skills/decision-logging/src/user-prompt-bridge.ts
-var exports_user_prompt_bridge = {};
-__export(exports_user_prompt_bridge, {
-  handleUserPromptApproval: () => handleUserPromptApproval
+// skills/decision-logging/src/vtcode-post-tool-use-bridge.ts
+var exports_vtcode_post_tool_use_bridge = {};
+__export(exports_vtcode_post_tool_use_bridge, {
+  normalizeVtcodeAnswers: () => normalizeVtcodeAnswers,
+  handleVtcodePostToolUse: () => handleVtcodePostToolUse
 });
-module.exports = __toCommonJS(exports_user_prompt_bridge);
-var fs2 = __toESM(require("node:fs"));
-var path2 = __toESM(require("node:path"));
-var os = __toESM(require("node:os"));
-
-// skills/decision-logging/src/approval-phrases.ts
-var APPROVAL_PHRASES = [
-  "lgtm",
-  "looks good",
-  "ship it",
-  "approved",
-  "approve",
-  "go ahead",
-  "let's do that",
-  "yes do that",
-  "merge it",
-  "do it"
-];
-function matchesApproval(prompt) {
-  if (typeof prompt !== "string")
-    return false;
-  const trimmed = prompt.trim().toLowerCase();
-  if (!trimmed)
-    return false;
-  for (const phrase of APPROVAL_PHRASES) {
-    if (trimmed === phrase)
-      return true;
-    if (trimmed.startsWith(phrase)) {
-      const next = trimmed[phrase.length];
-      if (/[\s.,;:!?]/.test(next))
-        return true;
-    }
-  }
-  return false;
-}
+module.exports = __toCommonJS(exports_vtcode_post_tool_use_bridge);
+var fs3 = __toESM(require("node:fs"));
+var path3 = __toESM(require("node:path"));
+var os2 = __toESM(require("node:os"));
 
 // skills/decision-logging/src/hook-payload.ts
 function resolveSessionId(payload) {
   return (payload.session_id ?? payload.conversation_id ?? "").toString();
 }
+function normalizeQuestions(toolInput) {
+  if (!toolInput || typeof toolInput !== "object")
+    return [];
+  const raw = toolInput.questions;
+  if (!Array.isArray(raw))
+    return [];
+  const out = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object")
+      continue;
+    const q = item;
+    const question = String(q.question ?? q.prompt ?? "").trim();
+    if (!question)
+      continue;
+    const optionsRaw = q.options;
+    const options = Array.isArray(optionsRaw) ? optionsRaw.map((opt) => {
+      if (!opt || typeof opt !== "object")
+        return null;
+      const o = opt;
+      const label = String(o.label ?? o.id ?? "").trim();
+      if (!label)
+        return null;
+      return {
+        id: typeof o.id === "string" ? o.id : undefined,
+        label,
+        description: typeof o.description === "string" ? o.description : ""
+      };
+    }).filter((opt) => opt !== null) : undefined;
+    out.push({
+      id: typeof q.id === "string" ? q.id : undefined,
+      question,
+      header: typeof q.header === "string" ? q.header : undefined,
+      options
+    });
+  }
+  return out;
+}
+
+// skills/decision-logging/src/ask-user-question-bridge.ts
+var fs2 = __toESM(require("node:fs"));
+var path2 = __toESM(require("node:path"));
+var os = __toESM(require("node:os"));
 
 // skills/decision-logging/src/write-madr.ts
 var fs = __toESM(require("node:fs"));
@@ -2759,7 +2771,7 @@ var safeDump = renamed("safeDump", "dump");
 
 // skills/decision-logging/src/git-root.ts
 var import_node_child_process = require("node:child_process");
-function detectGitRoot(startDir) {
+function detectGitRoot2(startDir) {
   try {
     const out = import_node_child_process.execFileSync("git", ["rev-parse", "--show-toplevel"], {
       cwd: startDir || process.cwd(),
@@ -2839,7 +2851,7 @@ function timestampPrefix(isoDate) {
   return `${m[1]}T${m[2]}${m[3]}`;
 }
 function writeMadr(input, opts = {}) {
-  const gitRoot = opts.gitRoot ?? detectGitRoot();
+  const gitRoot = opts.gitRoot ?? detectGitRoot2();
   if (!gitRoot)
     throw new Error("not in a git repo");
   const dir = path.join(gitRoot, "docs", "snowball", "decisions");
@@ -2858,9 +2870,8 @@ function writeMadr(input, opts = {}) {
 }
 if (false) {}
 
-// skills/decision-logging/src/user-prompt-bridge.ts
+// skills/decision-logging/src/ask-user-question-bridge.ts
 var ERROR_LOG = path2.join(os.homedir(), ".snowball", "decision-logging-errors.log");
-var DEDUP_WINDOW_MS = 60 * 1000;
 function logError(msg) {
   try {
     fs2.mkdirSync(path2.dirname(ERROR_LOG), { recursive: true });
@@ -2868,64 +2879,94 @@ function logError(msg) {
 `);
   } catch {}
 }
-function isRecentAskUserQuestion(gitRoot) {
-  const dir = path2.join(gitRoot, "docs", "snowball", "decisions");
-  if (!fs2.existsSync(dir))
-    return false;
-  const files = fs2.readdirSync(dir).filter((f) => f.endsWith(".md"));
-  if (!files.length)
-    return false;
-  let latestPath = null;
-  let latestMtime = -Infinity;
-  for (const f of files) {
-    const p = path2.join(dir, f);
-    const stat = fs2.statSync(p);
-    if (stat.mtimeMs > latestMtime) {
-      latestMtime = stat.mtimeMs;
-      latestPath = p;
-    }
-  }
-  if (!latestPath)
-    return false;
-  if (Date.now() - latestMtime > DEDUP_WINDOW_MS)
-    return false;
-  const content = fs2.readFileSync(latestPath, "utf8");
-  return /capture_mechanism:\s*ask-user-question/.test(content);
-}
-function handleUserPromptApproval(input) {
-  const { prompt, sessionId, gitRoot } = input;
-  if (!matchesApproval(prompt))
-    return false;
-  if (isRecentAskUserQuestion(gitRoot))
-    return false;
+function handleAskUserQuestion(input) {
+  const { questions, answers, sessionId, sourceEventId, gitRoot } = input;
   const isoDate = new Date().toISOString();
-  const madr = {
-    title: "Free-text operator approval",
-    status: "accepted",
-    date: isoDate,
-    deciders: [process.env.USER ?? "unknown"],
-    snowball: {
-      schema_version: "1.0",
-      source: "operator",
-      confidence: "high",
-      capture_mechanism: "user-prompt-pattern",
-      session_id: sessionId,
-      source_event_id: `prompt-${Date.now()}`,
-      supersedes: null,
-      tags: ["ambient"]
-    },
-    body: {
-      context: `Operator submitted approval phrase: "${prompt.trim()}"`,
-      decision_outcome: "Approved the agent's most recent proposal. (Body is a stub; operator may expand with specifics.)"
+  let written = 0;
+  for (const q of questions) {
+    const answer = answers[q.question];
+    if (!answer)
+      continue;
+    const chosen = q.options?.find((o) => o.label === answer) ?? {
+      label: answer,
+      description: ""
+    };
+    const madr = {
+      title: String(q.question).replace(/\?+$/, ""),
+      status: "accepted",
+      date: isoDate,
+      deciders: [process.env.USER ?? "unknown"],
+      snowball: {
+        schema_version: "1.0",
+        source: "operator",
+        confidence: "high",
+        capture_mechanism: "ask-user-question",
+        session_id: sessionId,
+        source_event_id: sourceEventId,
+        supersedes: null,
+        tags: ["ambient"]
+      },
+      body: {
+        context: q.header ? `Question category: ${q.header}.` : "",
+        considered_options: (q.options ?? []).map((o) => ({
+          name: o.label,
+          description: o.description ?? ""
+        })),
+        decision_outcome: `Chose **${chosen.label}**. ${chosen.description ?? ""}`
+      }
+    };
+    try {
+      writeMadr(madr, { gitRoot });
+      written += 1;
+    } catch (err) {
+      logError(`ask-user-question-bridge: writeMadr failed: ${err.message}`);
     }
-  };
-  try {
-    writeMadr(madr, { gitRoot });
-    return true;
-  } catch (err) {
-    logError(`user-prompt-bridge: writeMadr failed: ${err.message}`);
-    return false;
   }
+  return written;
+}
+if (false) {}
+
+// skills/decision-logging/src/vtcode-post-tool-use-bridge.ts
+var ERROR_LOG2 = path3.join(os2.homedir(), ".snowball", "decision-logging-errors.log");
+function logError2(msg) {
+  try {
+    fs3.mkdirSync(path3.dirname(ERROR_LOG2), { recursive: true });
+    fs3.appendFileSync(ERROR_LOG2, `[${new Date().toISOString()}] ${msg}
+`);
+  } catch {}
+}
+function normalizeVtcodeAnswers(questions, rawAnswers) {
+  if (!rawAnswers || typeof rawAnswers !== "object")
+    return {};
+  const answers = rawAnswers.answers;
+  if (!answers || typeof answers !== "object")
+    return {};
+  const out = {};
+  for (const q of questions) {
+    if (!q.id)
+      continue;
+    const answer = answers[q.id];
+    if (!answer || typeof answer !== "object")
+      continue;
+    const selected = answer.selected;
+    const other = answer.other;
+    const label = Array.isArray(selected) && typeof selected[0] === "string" ? selected[0] : typeof other === "string" && other.trim() ? other : null;
+    if (!label)
+      continue;
+    out[q.question] = label;
+  }
+  return out;
+}
+function handleVtcodePostToolUse(input) {
+  const questions = normalizeQuestions(input.toolInput);
+  const answers = normalizeVtcodeAnswers(questions, input.toolResponse);
+  return handleAskUserQuestion({
+    questions,
+    answers,
+    sessionId: input.sessionId,
+    sourceEventId: input.sourceEventId,
+    gitRoot: input.gitRoot
+  });
 }
 function runCli() {
   let raw = "";
@@ -2935,21 +2976,26 @@ function runCli() {
   process.stdin.on("end", () => {
     let payload;
     try {
-      const parsed = JSON.parse(raw);
-      payload = parsed;
+      payload = JSON.parse(raw);
     } catch (err) {
-      logError(`user-prompt-bridge: bad JSON: ${err.message}`);
+      logError2(`vtcode-post-tool-use-bridge: bad JSON: ${err.message}`);
       process.exit(0);
       return;
     }
-    const prompt = payload.prompt ?? "";
-    const sessionId = resolveSessionId(payload) || "unknown";
-    if (!matchesApproval(prompt))
+    if (payload.tool_name && payload.tool_name !== "request_user_input") {
       process.exit(0);
-    const gitRoot = detectGitRoot();
+      return;
+    }
+    const gitRoot = detectGitRoot2();
     if (!gitRoot)
       process.exit(0);
-    handleUserPromptApproval({ prompt, sessionId, gitRoot });
+    handleVtcodePostToolUse({
+      toolInput: payload.tool_input,
+      toolResponse: payload.tool_response,
+      sessionId: resolveSessionId(payload) || "unknown",
+      sourceEventId: payload.tool_use_id ?? "unknown",
+      gitRoot
+    });
     process.exit(0);
   });
 }

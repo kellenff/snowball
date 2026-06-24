@@ -18,6 +18,7 @@ ENTRIES=(
   ask-user-question-bridge
   user-prompt-bridge
   approval-phrases
+  vtcode-post-tool-use-bridge
 )
 
 for entry in "${ENTRIES[@]}"; do
