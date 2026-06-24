@@ -12,22 +12,32 @@ When multiple tools can achieve the same goal, follow this priority:
 
 ## Mapping
 
-| Skill references                | VTCode equivalent                                              |
-| ------------------------------- | -------------------------------------------------------------- |
-| `Read` (file reading)           | `unified_file` (read action)                                   |
-| `Write` (file creation)         | `unified_file` (write action)                                  |
-| `Edit` (file editing)           | `apply_patch` or `unified_file` (edit action)                  |
-| `Bash` (run shell commands)     | `unified_exec`                                                 |
-| `Grep` (search content)         | `unified_search` (text mode)                                   |
-| `Glob` (search paths)           | `unified_search` (glob mode)                                   |
-| `WebSearch` (web search)        | `web_fetch` (when not in restricted sandbox)                   |
-| `WebFetch` (URL fetch)          | `web_fetch`                                                    |
-| `AskUserQuestion` (user prompt) | `request_user_input`                                           |
-| `TodoWrite` (task tracking)     | `task_tracker`                                                 |
-| `Skill` (invoke a skill)        | No explicit tool — see [Skill loading](#skill-loading)         |
-| `Task` (dispatch subagent)      | No explicit tool — see [Subagent dispatch](#subagent-dispatch) |
-| `EnterPlanMode`                 | `start_planning`                                               |
-| `ExitPlanMode`                  | `finish_planning`                                              |
+| Skill references | VTCode equivalent |
+|------------------|-------------------|
+| `Read` (file reading) | `unified_file` (read action) |
+| `Write` (file creation) | `unified_file` (write action) |
+| `Edit` (file editing) | `apply_patch` or `unified_file` (edit action) |
+| `Bash` (run shell commands) | `unified_exec` |
+| `Grep` (search content) | `unified_search` (text mode) |
+| `Glob` (search paths) | `unified_search` (glob mode) |
+| `WebSearch` (web search) | `web_fetch` (when not in restricted sandbox) |
+| `WebFetch` (URL fetch) | `web_fetch` |
+| `AskUserQuestion` (user prompt) | `request_user_input` |
+| `TodoWrite` (task tracking) | `task_tracker` |
+| `Skill` (invoke a skill) | No explicit tool — see [Skill loading](#skill-loading) |
+| `Task` (dispatch subagent) | No explicit tool — see [Subagent dispatch](#subagent-dispatch) |
+| `EnterPlanMode` | `start_planning` |
+| `ExitPlanMode` | `finish_planning` |
+
+## `apply_patch` blast-radius pre-audit
+
+Snowball wires a `PreToolUse` matcher on `apply_patch` to `on-pre-tool-use-vtcode.sh`, which classifies each patch before VTCode applies it. The classifier reads the unified diff, extracts touched paths, and returns one of three verdicts:
+
+- **low** — patch is allowed silently (exit 0).
+- **medium** — patch is allowed but a warning is written to stderr; review before committing (exit 0).
+- **high** — patch is blocked with exit 2. Triggers: any lockfile modification (`package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `Cargo.lock`, `go.sum`, `composer.lock`, `.terraform.lock.hcl`), any change under `hooks/`, `.vtcode/hooks.toml`, or `.github/`, or a patch touching 10 or more files.
+
+Set `SNOWBALL_BLAST_RADIUS=off` in the environment to bypass the audit (lockfiles will no longer be blocked). The PostToolUse mirror (`on-apply-patch-vtcode.sh`) still records the file-edit observation in `docs/snowball/decisions/observations.jsonl` either way.
 
 ## Skill loading
 
@@ -53,27 +63,17 @@ VTCode's `web_fetch` tool covers both `WebSearch` and `WebFetch` from Claude Cod
 
 Claude Code's `EnterPlanMode` / `ExitPlanMode` map to VTCode's `start_planning` / `finish_planning` tool pair. `start_planning` opens a plan-mode session; `finish_planning` closes it after the user confirms. The plan lives in the session, not on disk.
 
-## `apply_patch` blast-radius pre-audit
-
-Snowball wires a `PreToolUse` matcher on `apply_patch` to `on-pre-tool-use-vtcode.sh`, which classifies each patch before VTCode applies it. The classifier reads the unified diff, extracts touched paths, and returns one of three verdicts:
-
-- **low** — patch is allowed silently (exit 0).
-- **medium** — patch is allowed but a warning is written to stderr; review before committing (exit 0).
-- **high** — patch is blocked with exit 2. Triggers: any lockfile modification (`package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `Cargo.lock`, `go.sum`, `composer.lock`, `.terraform.lock.hcl`), any change under `hooks/`, `.vtcode/hooks.toml`, or `.github/`, or a patch touching 10 or more files.
-
-Set `SNOWBALL_BLAST_RADIUS=off` in the environment to bypass the audit (lockfiles will no longer be blocked). The PostToolUse mirror (`on-apply-patch-vtcode.sh`) still records the file-edit observation in `docs/snowball/decisions/observations.jsonl` either way.
-
 ## Configuration locations
 
-| Claude Code                           | VTCode                                                                                 |
-| ------------------------------------- | -------------------------------------------------------------------------------------- |
-| `~/.claude/settings.json` (user)      | `~/.vtcode/config.toml` (user) and `<project>/vtcode.toml` (project)                   |
-| `~/.claude/skills/<name>/` (user)     | `~/.agents/skills/<name>/` (user) and `<project>/.agents/skills/<name>/` (project)     |
-| `~/.claude/agents/<name>.md` (user)   | `~/.vtcode/agents.toml` (user) and `<project>/vtcode.toml` (project)                   |
-| `~/.claude/commands/<name>.md` (user) | n/a (VTCode uses slash commands via the CLI, not file-scoped)                          |
-| `.mcp.json` (project root)            | `<project>/.mcp.json` (project) — same `mcpServers` schema                             |
-| `AGENTS.md` (project root)            | `<project>/AGENTS.md` and `<project>/.vtcode/AGENTS.md` (project)                      |
-| `.claude/tool-policy.json`            | `<project>/.vtcode/tool-policy.json` (project) and `~/.vtcode/tool-policy.json` (user) |
+| Claude Code | VTCode |
+|-------------|--------|
+| `~/.claude/settings.json` (user) | `~/.vtcode/config.toml` (user) and `<project>/vtcode.toml` (project) |
+| `~/.claude/skills/<name>/` (user) | `~/.agents/skills/<name>/` (user) and `<project>/.agents/skills/<name>/` (project) |
+| `~/.claude/agents/<name>.md` (user) | `~/.vtcode/agents.toml` (user) and `<project>/vtcode.toml` (project) |
+| `~/.claude/commands/<name>.md` (user) | n/a (VTCode uses slash commands via the CLI, not file-scoped) |
+| `.mcp.json` (project root) | `<project>/.mcp.json` (project) — same `mcpServers` schema |
+| `AGENTS.md` (project root) | `<project>/AGENTS.md` and `<project>/.vtcode/AGENTS.md` (project) |
+| `.claude/tool-policy.json` | `<project>/.vtcode/tool-policy.json` (project) and `~/.vtcode/tool-policy.json` (user) |
 
 The `.vtcode/tool-policy.json` file is a user-environment artifact (an `allow` / `prompt` matrix over `available_tools`). Snowball does not ship or maintain it.
 
