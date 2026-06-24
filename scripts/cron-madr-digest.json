@@ -1,0 +1,5 @@
+{
+  "name": "snowball-madr-digest-refresh",
+  "cron": "0 3 * * *",
+  "prompt": "Run /absolute/path/to/snowball/scripts/refresh-adr-digest.sh to regenerate the MADR digest. Then commit the digest update if it changed."
+}

@@ -1,0 +1,42 @@
+# Snowball hooks for VTCode.
+#
+# This file is the VTCode-side mirror of the Snowball decision spine.
+# Drop it into your project's .vtcode/ directory (or symlink from the
+# Snowball clone) so VTCode fires the same capture hooks Claude Code,
+# Cursor, and OpenCode fire.
+#
+# Each `command` must be an absolute path. Replace /absolute/path/to/snowball
+# with the actual Snowball clone location on the user's machine before
+# installing. The Snowball validate-wiring test only checks the script
+# basenames; the absolute paths are a user-side substitution.
+
+[hooks.lifecycle]
+
+[[hooks.lifecycle.user_prompt_submit]]
+hooks = [
+  { command = "/absolute/path/to/snowball/skills/decision-logging/scripts/on-user-prompt.sh" },
+  { command = "/absolute/path/to/snowball/hooks/blast-radius-audit.sh operator-approval" }
+]
+
+[[hooks.lifecycle.post_tool_use]]
+matcher = "request_user_input"
+hooks = [
+  { command = "/absolute/path/to/snowball/skills/decision-logging/scripts/on-ask-user-question-vtcode.sh" }
+]
+
+[[hooks.lifecycle.session_start]]
+hooks = [
+  { command = "/absolute/path/to/snowball/hooks/run-hook.cmd session-start" },
+  { command = "/absolute/path/to/snowball/skills/decision-logging/scripts/on-session-start-cron.sh" }
+]
+
+[[hooks.lifecycle.stop]]
+hooks = [
+  { command = "/absolute/path/to/snowball/skills/decision-logging/scripts/on-stop.sh" },
+  { command = "/absolute/path/to/snowball/hooks/blast-radius-audit.sh stop" }
+]
+
+[[hooks.lifecycle.pre_compact]]
+hooks = [
+  { command = "/absolute/path/to/snowball/skills/decision-logging/scripts/on-pre-compact.sh" }
+]
