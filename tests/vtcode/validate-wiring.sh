@@ -86,6 +86,16 @@ for script in "session-start" "on-user-prompt.sh" "on-ask-user-question-vtcode.s
 done
 pass ".vtcode/hooks.toml is valid TOML with [hooks.lifecycle] and references the five expected scripts"
 
+# --- 4b. apply_patch PostToolUse matcher is wired ---
+
+if ! grep -q 'matcher = "apply_patch"' "$HOOKS_TOML"; then
+  fail ".vtcode/hooks.toml missing matcher = \"apply_patch\" entry"
+fi
+if ! grep -q "on-apply-patch-vtcode.sh" "$HOOKS_TOML"; then
+  fail ".vtcode/hooks.toml does not reference on-apply-patch-vtcode.sh"
+fi
+pass ".vtcode/hooks.toml has PostToolUse matcher for apply_patch → on-apply-patch-vtcode.sh"
+
 # --- 5. Decision-spine bridge artifacts exist ---
 
 [ -f "$BRIDGE_SRC" ] || fail "decision-logging bridge source missing at $BRIDGE_SRC"
