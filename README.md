@@ -190,6 +190,36 @@ OpenCode cannot shell out reliably, so [`.opencode/plugins/snowball.js`](.openco
 
 This repo installs by clone-and-link, not marketplace distribution.
 
+### Quick install (curl-pipe)
+
+If you'd rather skip the clone step, the bootstrap installer can be piped straight from the repo's raw branch:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/kellenff/snowball/main/scripts/bootstrap.sh | bash
+```
+
+Read it first if you're cautious about piping curl to bash:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/kellenff/snowball/main/scripts/bootstrap.sh | less
+```
+
+Pass arguments after `--`:
+
+```bash
+# Pick a provider and a target project in one shot
+curl -fsSL https://raw.githubusercontent.com/kellenff/snowball/main/scripts/bootstrap.sh \
+  | bash -s -- --provider vtcode --target /path/to/your/project
+
+# Update an existing clone and refresh a project
+curl -fsSL https://raw.githubusercontent.com/kellenff/snowball/main/scripts/bootstrap.sh \
+  | bash -s -- --provider vtcode --target /path/to/your/project --update
+```
+
+`--provider` accepts any of the names listed at the top of `scripts/install.sh --help` (`claude-code`, `vtcode`, `duo`, `aider`, `opencode`, `cursor`, `codex`, `gemini`, `copilot`, `junie`, `junie-cli`). The default provider when piped from curl is `vtcode`, since it's the only one whose install is fully shell-scriptable end-to-end; the others print the exact commands and stop.
+
+### Manual install (clone-and-link)
+
 ```bash
 git clone https://github.com/kellenff/snowball.git ~/Projects/snowball
 ```
