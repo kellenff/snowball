@@ -30,6 +30,12 @@ hooks = [
   { command = "/absolute/path/to/snowball/skills/decision-logging/scripts/on-apply-patch-vtcode.sh" }
 ]
 
+[[hooks.lifecycle.pre_tool_use]]
+matcher = "apply_patch"
+hooks = [
+  { command = "/absolute/path/to/snowball/skills/decision-logging/scripts/on-pre-tool-use-vtcode.sh" }
+]
+
 [[hooks.lifecycle.session_start]]
 hooks = [
   { command = "/absolute/path/to/snowball/hooks/run-hook.cmd session-start" }

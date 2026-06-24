@@ -96,6 +96,16 @@ if ! grep -q "on-apply-patch-vtcode.sh" "$HOOKS_TOML"; then
 fi
 pass ".vtcode/hooks.toml has PostToolUse matcher for apply_patch → on-apply-patch-vtcode.sh"
 
+# --- 4c. apply_patch PreToolUse blast-radius is wired ---
+
+if ! grep -q "pre_tool_use" "$HOOKS_TOML"; then
+  fail ".vtcode/hooks.toml missing [[hooks.lifecycle.pre_tool_use]] section"
+fi
+if ! grep -q "on-pre-tool-use-vtcode.sh" "$HOOKS_TOML"; then
+  fail ".vtcode/hooks.toml does not reference on-pre-tool-use-vtcode.sh"
+fi
+pass ".vtcode/hooks.toml has PreToolUse section for apply_patch blast-radius"
+
 # --- 5. Decision-spine bridge artifacts exist ---
 
 [ -f "$BRIDGE_SRC" ] || fail "decision-logging bridge source missing at $BRIDGE_SRC"
