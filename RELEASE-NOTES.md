@@ -27,6 +27,18 @@ bootstrap and registering the skills path.
   `tests/opencode/setup.sh` now installs `hooks/` so the fake install matches a
   real git-package layout.
 
+## v6.7.0 (2026-06-24)
+
+### VTCode cron MADR digest refresh
+
+Nightly MADR digest refresh via VTCode's `cron_create` primitive.
+
+- New `scripts/refresh-adr-digest.sh` regenerates the MADR digest atomically and idempotently. Safe to run repeatedly.
+- `scripts/cron-madr-digest.json` is the bootstrap template (5-field cron expression, prompt body, name label).
+- New `skills/decision-logging/scripts/on-session-start-cron.sh` registers the cron idempotently. Honors `SNOWBALL_CRON=off` to disable.
+- See `docs/snowball/cron-automation.md` for the full lifecycle and idempotency story.
+- Idempotency: VTCode's `cron_create` is not idempotent at the tool layer (task IDs are timestamp-derived); the bootstrap dedupes via `.vtcode/.snowball-cron-state.json` and the agent's own check before issuing the call.
+
 ## v6.6.0 (2026-06-23)
 
 ### VTCode harness adapter
