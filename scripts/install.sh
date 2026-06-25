@@ -326,7 +326,7 @@ install_vtcode() {
   echo
 
   if [ "$uninstall" -eq 1 ]; then
-    # Remove only Snowball symlinks we created; leave other content alone.
+    # Remove only Snowball-managed files we created; leave other content alone.
     if [ -L "$target/AGENTS.md" ]; then
       link="$(readlink "$target/AGENTS.md")"
       case "$link" in
@@ -337,16 +337,15 @@ install_vtcode() {
         *) echo "  preserving AGENTS.md (symlink to non-Snowball target)" ;;
       esac
     fi
-    if [ -L "$target/.vtcode/hooks.toml" ]; then
-      link="$(readlink "$target/.vtcode/hooks.toml")"
-      case "$link" in
-        "$clone_root/.vtcode/hooks.toml" | "$clone_root/.vtcode/hooks.toml/")
-          rm -f "$target/.vtcode/hooks.toml"
-          echo "  removed .vtcode/hooks.toml symlink"
-          ;;
-        *) echo "  preserving .vtcode/hooks.toml (symlink to non-Snowball target)" ;;
-      esac
-    fi
+    # hooks.toml and cron-madr-digest.json are target-specific regular files
+    # (not symlinks) whose contents reference the current clone root. Remove
+    # them only if they look Snowball-written; preserve operator-managed copies.
+    for f in "$target/.vtcode/hooks.toml" "$target/.vtcode/cron-madr-digest.json"; do
+      if [ -f "$f" ] && [ ! -L "$f" ] && grep -q "$clone_root" "$f" 2>/dev/null; then
+        rm -f "$f"
+        echo "  removed $f (Snowball-written file)"
+      fi
+    done
     if rmdir "$target/.vtcode" 2>/dev/null; then
       echo "  removed empty .vtcode/"
     fi
@@ -388,16 +387,31 @@ install_vtcode() {
     echo "  linked $target/AGENTS.md -> $clone_root/.vtcode/AGENTS.md"
   fi
 
-  # 3. Hooks config.
-  ln -sfn "$clone_root/.vtcode/hooks.toml" "$target/.vtcode/hooks.toml"
-  echo "  linked $target/.vtcode/hooks.toml -> $clone_root/.vtcode/hooks.toml"
+  # 3. Hooks config. Target-specific: copy (not symlink) and substitute the
+  #    placeholder so the target file works without manual editing. A symlink
+  #    would (a) create a self-loop when target == clone_root, and (b) make
+  #    any user-side edit land in the snowball repo's source file.
+  if [ -e "$target/.vtcode/hooks.toml" ] && [ ! -L "$target/.vtcode/hooks.toml" ] && [ "$force" -ne 1 ]; then
+    echo "  preserving existing $target/.vtcode/hooks.toml (re-run with --force to replace)"
+  else
+    sed "s|/absolute/path/to/snowball|$clone_root|g" "$clone_root/.vtcode/hooks.toml" > "$target/.vtcode/hooks.toml"
+    echo "  wrote $target/.vtcode/hooks.toml with $clone_root substituted"
+  fi
+
+  # 4. Cron digest template. Same shape as hooks.toml: copy + substitute so
+  #    the on-session-start-cron.sh hook can find a target-specific template
+  #    at $target/.vtcode/cron-madr-digest.json with the clone path baked in.
+  if [ -e "$target/.vtcode/cron-madr-digest.json" ] && [ ! -L "$target/.vtcode/cron-madr-digest.json" ] && [ "$force" -ne 1 ]; then
+    echo "  preserving existing $target/.vtcode/cron-madr-digest.json (re-run with --force to replace)"
+  else
+    sed "s|/absolute/path/to/snowball|$clone_root|g" "$clone_root/scripts/cron-madr-digest.json" > "$target/.vtcode/cron-madr-digest.json"
+    echo "  wrote $target/.vtcode/cron-madr-digest.json with $clone_root substituted"
+  fi
 
   echo
   echo "Next steps:"
-  echo "  1. Edit $target/.vtcode/hooks.toml and replace"
-  echo "     /absolute/path/to/snowball with: $clone_root"
-  echo "  2. Verify with: vtcode skills list   (the count printed above should match)"
-  echo "  3. Answer a request_user_input prompt — a MADR should land under"
+  echo "  1. Verify with: vtcode skills list   (the count printed above should match)"
+  echo "  2. Answer a request_user_input prompt — a MADR should land under"
   echo "     docs/snowball/decisions/ in the target repo."
   echo
   echo "Note: the committed .vtcode/tool-policy.json is a user-environment"

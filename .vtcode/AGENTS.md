@@ -1,8 +1,10 @@
 <!-- BEGIN SNOWBALL BOOTSTRAP (mirror of skills/using-snowball/SKILL.md) -->
 
 ---
+
 name: using-snowball
 description: Use when starting any conversation - establishes how to find and use skills, requiring Skill tool invocation before ANY response including clarifying questions
+
 ---
 
 <SUBAGENT-STOP>
@@ -96,20 +98,20 @@ digraph skill_flow {
 
 These thoughts mean STOP—you're rationalizing:
 
-| Thought | Reality |
-|---------|---------|
-| "This is just a simple question" | Questions are tasks. Check for skills. |
-| "I need more context first" | Skill check comes BEFORE clarifying questions. |
-| "Let me explore the codebase first" | Skills tell you HOW to explore. Check first. |
-| "I can check git/files quickly" | Files lack conversation context. Check for skills. |
-| "Let me gather information first" | Skills tell you HOW to gather information. |
-| "This doesn't need a formal skill" | If a skill exists, use it. |
-| "I remember this skill" | Skills evolve. Read current version. |
-| "This doesn't count as a task" | Action = task. Check for skills. |
-| "The skill is overkill" | Simple things become complex. Use it. |
-| "I'll just do this one thing first" | Check BEFORE doing anything. |
-| "This feels productive" | Undisciplined action wastes time. Skills prevent this. |
-| "I know what that means" | Knowing the concept ≠ using the skill. Invoke it. |
+| Thought                             | Reality                                                |
+| ----------------------------------- | ------------------------------------------------------ |
+| "This is just a simple question"    | Questions are tasks. Check for skills.                 |
+| "I need more context first"         | Skill check comes BEFORE clarifying questions.         |
+| "Let me explore the codebase first" | Skills tell you HOW to explore. Check first.           |
+| "I can check git/files quickly"     | Files lack conversation context. Check for skills.     |
+| "Let me gather information first"   | Skills tell you HOW to gather information.             |
+| "This doesn't need a formal skill"  | If a skill exists, use it.                             |
+| "I remember this skill"             | Skills evolve. Read current version.                   |
+| "This doesn't count as a task"      | Action = task. Check for skills.                       |
+| "The skill is overkill"             | Simple things become complex. Use it.                  |
+| "I'll just do this one thing first" | Check BEFORE doing anything.                           |
+| "This feels productive"             | Undisciplined action wastes time. Skills prevent this. |
+| "I know what that means"            | Knowing the concept ≠ using the skill. Invoke it.      |
 
 ## Skill Priority
 
@@ -202,11 +204,11 @@ done
 ln -sfn ~/Projects/snowball/.vtcode/AGENTS.md <project>/AGENTS.md
 # (or copy the marked block into your existing AGENTS.md)
 
-# Drop the hook config into the project too — without it, none of the
-# capture hooks fire and the decision spine is silent. Then edit the file
-# to substitute the absolute path to your Snowball clone (replace the
-# `/absolute/path/to/snowball` placeholder).
-ln -sfn ~/Projects/snowball/.vtcode/hooks.toml <project>/.vtcode/hooks.toml
+# For the decision spine, run scripts/install.sh vtcode --target <project>
+# from inside the Snowball clone. It writes .vtcode/hooks.toml AND
+# .vtcode/cron-madr-digest.json into <project>/.vtcode/ with the absolute
+# path to your Snowball clone already substituted — no manual edit needed.
+# Without these, none of the capture hooks fire and the decision spine is silent.
 ```
 
 Verify with `vtcode skills list` — all 18 skills should appear.
