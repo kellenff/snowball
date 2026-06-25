@@ -11,8 +11,9 @@ fi
 GIT_ROOT="${GIT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || true)}"
 [ -n "$GIT_ROOT" ] || exit 0
 
-SNOWBALL_ROOT="${SNOWBALL_PLUGIN_ROOT:-/absolute/path/to/snowball}"
-TEMPLATE="$SNOWBALL_ROOT/scripts/cron-madr-digest.json"
+SNOWBALL_ROOT="${SNOWBALL_PLUGIN_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)}"
+TEMPLATE="$GIT_ROOT/.vtcode/cron-madr-digest.json"
+[ -f "$TEMPLATE" ] || TEMPLATE="$SNOWBALL_ROOT/scripts/cron-madr-digest.json"
 
 [ -f "$TEMPLATE" ] || exit 0
 
