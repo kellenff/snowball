@@ -38,10 +38,10 @@ const buildFixtureRepo = (): string => {
   writeFileSync(
     join(decisionDir, "user-prompt-bridge.cjs"),
     `const APPROVAL_PHRASES = ["lgtm","looks good","ship it","approved","approve","go ahead","let's do that","yes do that","merge it","do it"];` +
-    `module.exports = {` +
-    `  handleUserPromptApproval: (i) => globalThis.__captured?.push({ kind: "approval", ...i }),` +
-    `  matchesApproval: (prompt) => { const t = String(prompt ?? "").trim().toLowerCase(); return APPROVAL_PHRASES.some(p => t === p || (t.startsWith(p) && /[\\s.,;:!?]/.test(t[p.length] ?? ""))); }` +
-    `};`,
+      `module.exports = {` +
+      `  handleUserPromptApproval: (i) => globalThis.__captured?.push({ kind: "approval", ...i }),` +
+      `  matchesApproval: (prompt) => { const t = String(prompt ?? "").trim().toLowerCase(); return APPROVAL_PHRASES.some(p => t === p || (t.startsWith(p) && /[\\s.,;:!?]/.test(t[p.length] ?? ""))); }` +
+      `};`,
   );
   writeFileSync(
     join(decisionDir, "extract-worker.sh"),
@@ -93,12 +93,20 @@ describe("snowball pi extension", () => {
     expect(result.systemPrompt).toContain("using-snowball");
   });
 
-  test("bootstrap not re-injected on second call", async () => {
+  test("bootstrap not re-injected when systemPrompt already contains marker (post-reload)", async () => {
     const { default: factory } = await importExtensionForRepo(repo);
     const pi = makePi();
     factory(pi.api);
-    await pi.invoke("before_agent_start", { systemPrompt: "BASE" });
-    const second = await pi.invoke("before_agent_start", { systemPrompt: "BASE2" });
+    // First injection.
+    const first = await pi.invoke("before_agent_start", { systemPrompt: "BASE" });
+    expect(first.systemPrompt).toContain("EXTREMELY_IMPORTANT");
+    // Simulate /reload: factory is re-invoked; module-level state is reset.
+    factory(pi.api);
+    // Pi sends back the augmented prompt; the second call should be a no-op
+    // because the system prompt already contains the marker.
+    const second = await pi.invoke("before_agent_start", {
+      systemPrompt: first.systemPrompt,
+    });
     expect(second).toBeUndefined();
   });
 

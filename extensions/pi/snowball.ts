@@ -140,15 +140,16 @@ ${body}
 };
 
 export default function (pi: ExtensionAPI) {
-  let bootstrapInjected = false;
-
   pi.on("resources_discover", () => ({ skillPaths: SKILL_PATHS }));
 
   pi.on("before_agent_start", (event) => {
-    if (bootstrapInjected) return;
+    // Content-based guard mirrors the opencode plugin's
+    // experimental.chat.messages.transform defense. Survives factory
+    // re-invocation from `pi /reload` (which resets per-instance state)
+    // because we check the inbound prompt itself rather than local flags.
+    if (event.systemPrompt?.includes("EXTREMELY_IMPORTANT")) return;
     const bootstrap = getBootstrap();
     if (!bootstrap) return;
-    bootstrapInjected = true;
     return { systemPrompt: `${event.systemPrompt}\n\n${bootstrap}` };
   });
 
