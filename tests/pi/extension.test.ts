@@ -2,7 +2,7 @@ import { describe, test, expect, beforeEach, afterEach, spyOn } from "bun:test";
 import { mkdtempSync, writeFileSync, rmSync, copyFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { execSync, spawn as realSpawn } from "node:child_process";
+import { execSync } from "node:child_process";
 import * as cp from "node:child_process";
 
 type Handler = (event: any, ctx: any) => any | Promise<any>;
