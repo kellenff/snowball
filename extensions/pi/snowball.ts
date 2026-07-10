@@ -51,7 +51,10 @@ const loadCapture = (): Capture | null => {
       captureBlastRadiusAudit: audit.captureBlastRadiusAudit,
       matchesApproval: prompt.matchesApproval,
     };
-  } catch {
+  } catch (err) {
+    console.warn(
+      `[snowball-pi] capture-load-failed: ${err instanceof Error ? err.message : String(err)}`,
+    );
     _capture = null;
   }
   return _capture;
@@ -66,7 +69,10 @@ const findGitRoot = (cwd: string): string | null => {
         .toString()
         .trim() || null
     );
-  } catch {
+  } catch (err) {
+    console.warn(
+      `[snowball-pi] git-root-lookup-failed: ${err instanceof Error ? err.message : String(err)}`,
+    );
     return null;
   }
 };
@@ -84,7 +90,10 @@ const serializeMessagesFromSessionFile = async (sessionFile: string): Promise<st
   try {
     const mod = await import(pathToFileURL(SESSION_READER_PATH).href);
     return mod.serializePiSession(sessionFile);
-  } catch {
+  } catch (err) {
+    console.warn(
+      `[snowball-pi] session-serialize-failed: ${err instanceof Error ? err.message : String(err)}`,
+    );
     return "";
   }
 };
@@ -99,8 +108,10 @@ const forkExtractionWorker = async (
   const transcriptPath = transcriptPathFor(sessionId);
   try {
     writeFileSync(transcriptPath, transcript || "\n");
-  } catch {
-    // best-effort
+  } catch (err) {
+    console.warn(
+      `[snowball-pi] transcript-write-failed: ${err instanceof Error ? err.message : String(err)}`,
+    );
   }
   try {
     // ponytail: spawn unconditionally; worker is idempotent on its per-session cursor,
@@ -110,8 +121,10 @@ const forkExtractionWorker = async (
       stdio: "ignore",
     });
     child.unref();
-  } catch {
-    // best-effort
+  } catch (err) {
+    console.warn(
+      `[snowball-pi] extract-spawn-failed: ${err instanceof Error ? err.message : String(err)}`,
+    );
   }
 };
 
@@ -167,7 +180,10 @@ export default function (pi: ExtensionAPI) {
         trigger: "operator-approval",
         prompt: event.text,
       });
-    } catch {
+    } catch (err) {
+      console.warn(
+        `[snowball-pi] approval-handler-error: ${err instanceof Error ? err.message : String(err)}`,
+      );
       // never block the input path
     }
     return { action: "continue" };
@@ -182,8 +198,10 @@ export default function (pi: ExtensionAPI) {
         cap.captureBlastRadiusAudit({ gitRoot, sessionId, trigger: "stop" });
       }
       await forkExtractionWorker(ctx, sessionId, gitRoot);
-    } catch {
-      // best-effort
+    } catch (err) {
+      console.warn(
+        `[snowball-pi] shutdown-handler-error: ${err instanceof Error ? err.message : String(err)}`,
+      );
     }
   });
 
@@ -192,8 +210,10 @@ export default function (pi: ExtensionAPI) {
       const gitRoot = findGitRoot(ctx.cwd);
       const sessionId = ctx.sessionManager?.getSessionFile?.() ?? "unknown";
       await forkExtractionWorker(ctx, sessionId, gitRoot);
-    } catch {
-      // best-effort
+    } catch (err) {
+      console.warn(
+        `[snowball-pi] compact-handler-error: ${err instanceof Error ? err.message : String(err)}`,
+      );
     }
   });
 }
