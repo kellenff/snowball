@@ -60,12 +60,18 @@ const loadCapture = (): Capture | null => {
   return _capture;
 };
 
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 
 const findGitRoot = (cwd: string): string | null => {
   try {
+    // execFile (not exec) so the cwd is passed as a process argument, not
+    // interpolated into a shell string. The current command literal is safe,
+    // but defense-in-depth matters when cwd may carry unusual characters.
     return (
-      execSync("git rev-parse --show-toplevel", { cwd, stdio: ["ignore", "pipe", "ignore"] })
+      execFileSync("git", ["rev-parse", "--show-toplevel"], {
+        cwd,
+        stdio: ["ignore", "pipe", "ignore"],
+      })
         .toString()
         .trim() || null
     );
@@ -86,9 +92,28 @@ const transcriptPathFor = (sessionId: string): string => {
   return path.join(dir, `${safe}.jsonl`);
 };
 
-const serializeMessagesFromSessionFile = async (sessionFile: string): Promise<string> => {
+type SessionReaderModule = { serializePiSession: (file: string) => string };
+let _sessionReader: SessionReaderModule | null | undefined;
+
+const loadSessionReader = async (): Promise<SessionReaderModule | null> => {
+  if (_sessionReader !== undefined) return _sessionReader;
   try {
-    const mod = await import(pathToFileURL(SESSION_READER_PATH).href);
+    const mod = (await import(pathToFileURL(SESSION_READER_PATH).href)) as SessionReaderModule;
+    _sessionReader = mod;
+    return mod;
+  } catch (err) {
+    console.warn(
+      `[snowball-pi] session-reader-load-failed: ${err instanceof Error ? err.message : String(err)}`,
+    );
+    _sessionReader = null;
+    return null;
+  }
+};
+
+const serializeMessagesFromSessionFile = async (sessionFile: string): Promise<string> => {
+  const mod = await loadSessionReader();
+  if (!mod) return "";
+  try {
     return mod.serializePiSession(sessionFile);
   } catch (err) {
     console.warn(
