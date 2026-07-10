@@ -1,5 +1,4 @@
 <!-- BEGIN SNOWBALL BOOTSTRAP (mirror of skills/using-snowball/SKILL.md) -->
-
 ---
 name: using-snowball
 description: Use when starting any conversation - establishes how to find and use skills, requiring Skill tool invocation before ANY response including clarifying questions
@@ -36,13 +35,17 @@ If a project defines its own `skills/<name>/SKILL.md` with the same name as a Sn
 
 **In Copilot CLI:** Use the `skill` tool. Skills are auto-discovered from installed plugins. The `skill` tool works the same as Claude Code's `Skill` tool.
 
+**In Aider:** Use the `/read` command to load a skill file (e.g., `/read skills/using-snowball/SKILL.md`). Aider will then follow the instructions in the file.
+
 **In Gemini CLI:** Skills activate via the `activate_skill` tool. Gemini loads skill metadata at session start and activates the full content on demand.
+
+**In VTCode:** Skills auto-load from `.agents/skills/<name>/SKILL.md` (project) or `~/.agents/skills/<name>/SKILL.md` (user); reference a skill by name in your prompt and VTCode activates it. Project guidelines come from `<project>/AGENTS.md` or `<project>/.vtcode/AGENTS.md`.
 
 **In other environments:** Check your platform's documentation for how skills are loaded.
 
 ## Platform Adaptation
 
-Skills use Claude Code tool names. Non-CC platforms: see `references/copilot-tools.md` (Copilot CLI), `references/codex-tools.md` (Codex), `references/junie-tools.md` (Junie CLI) for tool equivalents. Gemini CLI users get the tool mapping loaded automatically via GEMINI.md.
+Skills use Claude Code tool names. Non-CC platforms: see `references/copilot-tools.md` (Copilot CLI), `references/codex-tools.md` (Codex), `references/junie-tools.md` (Junie), `references/vtcode-tools.md` (VTCode), `references/aider-tools.md` (Aider) for tool equivalents. Gemini CLI users get the tool mapping loaded automatically via GEMINI.md.
 
 # Using Skills
 
@@ -128,31 +131,6 @@ The skill itself tells you which.
 ## User Instructions
 
 Instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows.
-
-## Skill Index
-
-The following skills are available in this Junie extension. Invoke by name when a task fits:
-
-- `blast-radius` — composite change-scope / failure-impact / action-risk analysis at lifecycle gates.
-- `brainstorming` — gated design exploration. Use before any creative work.
-- `writing-plans` — produces an implementation plan before code is written.
-- `executing-plans` — runs an existing plan with review checkpoints.
-- `test-driven-development` — red/green/refactor enforcement.
-- `systematic-debugging` — root-cause-first debugging.
-- `verification-before-completion` — show verification output before claiming success.
-- `finishing-a-development-branch` — structured merge / PR / cleanup.
-- `measuring-skill-performance` — ranks snowball skills as port candidates by token cost and reliability.
-- `requesting-code-review` — produces review-ready output.
-- `receiving-code-review` — responds to feedback with technical rigor.
-- `subagent-driven-development` — orchestrates implementation across subagents.
-- `dispatching-parallel-agents` — splits independent tasks across parallel agents.
-- `decision-logging` — REFERENCE ONLY (no hooks fire in Junie; the MCP tools below do the work).
-- `syncing-decisions-to-memory` — distills the decision logs into a project ADR.
-- `recalling-project-context` — cycle-start recall of prior rationale.
-- `structured-argumentation` — argdown as an intermediate representation.
-- `using-git-worktrees` — isolated workspace for feature work.
-- `writing-skills` — meta-skill for creating new skills.
-- `using-snowball` — this skill.
 
 <!-- END SNOWBALL BOOTSTRAP -->
 
