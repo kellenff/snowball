@@ -37,7 +37,11 @@ const buildFixtureRepo = (): string => {
   );
   writeFileSync(
     join(decisionDir, "user-prompt-bridge.cjs"),
-    `module.exports = { handleUserPromptApproval: (i) => globalThis.__captured?.push({ kind: "approval", ...i }) };`,
+    `const APPROVAL_PHRASES = ["lgtm","looks good","ship it","approved","approve","go ahead","let's do that","yes do that","merge it","do it"];` +
+    `module.exports = {` +
+    `  handleUserPromptApproval: (i) => globalThis.__captured?.push({ kind: "approval", ...i }),` +
+    `  matchesApproval: (prompt) => { const t = String(prompt ?? "").trim().toLowerCase(); return APPROVAL_PHRASES.some(p => t === p || (t.startsWith(p) && /[\\s.,;:!?]/.test(t[p.length] ?? ""))); }` +
+    `};`,
   );
   writeFileSync(
     join(decisionDir, "extract-worker.sh"),
@@ -122,6 +126,46 @@ describe("snowball pi extension", () => {
     expect(captured).toContainEqual(
       expect.objectContaining({ kind: "blast", trigger: "operator-approval" }),
     );
+  });
+
+  test("matches 'let's do that' via shared approval matcher", async () => {
+    const { default: factory } = await importExtensionForRepo(repo);
+    const pi = makePi();
+    factory(pi.api);
+    const ctx = {
+      cwd: repo,
+      sessionManager: { getSessionFile: () => join(repo, "session.jsonl") },
+    };
+    await pi.invoke("input", { text: "let's do that", source: "interactive" }, ctx);
+    expect(captured).toContainEqual(
+      expect.objectContaining({ kind: "approval", prompt: "let's do that" }),
+    );
+  });
+
+  test("matches 'merge it' via shared approval matcher", async () => {
+    const { default: factory } = await importExtensionForRepo(repo);
+    const pi = makePi();
+    factory(pi.api);
+    const ctx = {
+      cwd: repo,
+      sessionManager: { getSessionFile: () => join(repo, "session.jsonl") },
+    };
+    await pi.invoke("input", { text: "merge it", source: "interactive" }, ctx);
+    expect(captured).toContainEqual(
+      expect.objectContaining({ kind: "approval", prompt: "merge it" }),
+    );
+  });
+
+  test("does NOT match 'that works' (pi-only drift removed)", async () => {
+    const { default: factory } = await importExtensionForRepo(repo);
+    const pi = makePi();
+    factory(pi.api);
+    const ctx = {
+      cwd: repo,
+      sessionManager: { getSessionFile: () => join(repo, "session.jsonl") },
+    };
+    await pi.invoke("input", { text: "that works", source: "interactive" }, ctx);
+    expect(captured).toHaveLength(0);
   });
 
   test("non-approval text skipped", async () => {

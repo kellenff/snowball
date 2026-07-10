@@ -6,6 +6,11 @@ import { resolveSessionId, type BaseHookPayload } from "./hook-payload";
 import { writeMadr, type MadrInput } from "./write-madr";
 import { detectGitRoot } from "./git-root";
 
+// Re-export so other consumers (notably the pi extension in extensions/pi/)
+// can share the canonical approval-phrase matcher without re-implementing
+// the phrase list.
+export { matchesApproval };
+
 const ERROR_LOG = path.join(os.homedir(), ".snowball", "decision-logging-errors.log");
 const DEDUP_WINDOW_MS = 60 * 1000;
 

@@ -30,13 +30,14 @@ type Capture = {
     prompt: string;
     sessionId: string;
     gitRoot: string | null;
-  }) => void;
+  }) => boolean;
   captureBlastRadiusAudit: (input: {
     gitRoot: string | null;
     sessionId: string;
     trigger: string;
     prompt?: string;
-  }) => void;
+  }) => boolean;
+  matchesApproval: (prompt: string) => boolean;
 };
 
 let _capture: Capture | null | undefined;
@@ -48,6 +49,7 @@ const loadCapture = (): Capture | null => {
     _capture = {
       handleUserPromptApproval: prompt.handleUserPromptApproval,
       captureBlastRadiusAudit: audit.captureBlastRadiusAudit,
+      matchesApproval: prompt.matchesApproval,
     };
   } catch {
     _capture = null;
@@ -68,10 +70,6 @@ const findGitRoot = (cwd: string): string | null => {
     return null;
   }
 };
-
-const APPROVAL_RE = /^(lgtm|looks good|ship it|approved?|go ahead|do it|yes,? do it|that works)\b/i;
-
-const looksLikeApproval = (text: string): boolean => APPROVAL_RE.test(text.trim());
 
 const EXTRACT_WORKER_SH = path.join(REPO_ROOT, "skills/decision-logging/scripts/extract-worker.sh");
 
@@ -156,10 +154,9 @@ export default function (pi: ExtensionAPI) {
 
   pi.on("input", (event, ctx) => {
     if (event.source !== "interactive") return;
-    if (!looksLikeApproval(event.text)) return;
+    const cap = loadCapture();
+    if (!cap || !cap.matchesApproval(event.text)) return;
     try {
-      const cap = loadCapture();
-      if (!cap) return;
       const gitRoot = findGitRoot(ctx.cwd);
       const sessionId = ctx.sessionManager?.getSessionFile?.() ?? "unknown";
       cap.handleUserPromptApproval({ prompt: event.text, sessionId, gitRoot });
