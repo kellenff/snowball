@@ -973,7 +973,7 @@ Find the existing per-harness list in `skills/using-snowball/SKILL.md` (after th
 
 - [ ] **Step 2: Add `pi-tools.md` to the Platform Adaptation list**
 
-Find the line `Non-CC platforms: see `references/copilot-tools.md` ...`. Append `pi-tools.md` (Pi) to the list:
+Find the line that begins "Non-CC platforms: see" and references copilot-tools.md (with `...` continuation). Append `pi-tools.md` (Pi) to that list:
 
 ```markdown
 Non-CC platforms: see `references/copilot-tools.md` (Copilot CLI), `references/codex-tools.md` (Codex), `references/junie-tools.md` (Junie), `references/vtcode-tools.md` (VTCode), `references/aider-tools.md` (Aider), `references/pi-tools.md` (Pi) for tool equivalents. Gemini CLI users get the tool mapping loaded automatically via GEMINI.md.
