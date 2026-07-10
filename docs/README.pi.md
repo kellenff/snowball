@@ -27,7 +27,9 @@ pi -p "list skills"   # skills are visible to the agent
 
 ## What you get
 
-At session start, the bootstrap extension injects `using-snowball/SKILL.md` into the system prompt. The agent follows the skill-check discipline: it invokes any matching skill before responding, exactly as on Claude Code.
+At every agent-start, the extension appends the bootstrap (the `using-snowball/SKILL.md` content wrapped in `<EXTREMELY_IMPORTANT>` framing) **iff the system prompt does not already contain the marker**. This makes `/reload` and other re-invocations idempotent — the bootstrap is never duplicated.
+
+The agent follows the skill-check discipline: it invokes any matching skill before responding, exactly as on Claude Code.
 
 Skills are invoked with the `/skill:` slash command. For example, before non-trivial design work:
 
@@ -35,7 +37,7 @@ Skills are invoked with the `/skill:` slash command. For example, before non-tri
 /skill:brainstorming
 ```
 
-The agent sees the full skill content and follows its checklist.
+The agent sees the full skill content and follows its checklist. The `/skill:` syntax is a pi-native feature (not a snowball mechanism) — every pi package responds to it.
 
 ## Tool name mapping
 
@@ -89,3 +91,7 @@ Edits in the clone take effect on next `/reload`. Once stable, `pi install git:g
 - `TodoWrite` → write a `TODO.md` file (see [pi-tools.md](../skills/using-snowball/references/pi-tools.md#task-tracking)).
 - `Task` (subagent) → install a subagent package or spawn `pi` via tmux.
 - `EnterPlanMode` / `ExitPlanMode` → write the plan to a file under `docs/snowball/plans/`.
+
+## Platform notes
+
+The extension forks `<repo>/skills/decision-logging/scripts/extract-worker.sh` via `spawn("bash", ...)`. On Windows this requires `bash` to be on `PATH` (e.g., Git Bash, WSL, or a similar environment). On native Windows shells without bash, the extraction fork will fail silently (with a `[snowball-pi] extract-spawn-failed` warning in the terminal). The decision spine's blast-radius audits still fire on operator approvals; only the end-of-session observation extraction is affected.

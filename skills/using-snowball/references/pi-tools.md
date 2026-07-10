@@ -22,7 +22,7 @@ Skills use Claude Code tool names. Pi's built-in tools are lowercase (`read`, `w
 | `WebFetch` | none — use `bash` + `curl` | Same. |
 | `AskUserQuestion` | none — see [Operator prompts](#operator-prompts) | Pi exposes `ctx.ui.select/confirm/input` only inside extensions. Snowball skills that ask operator questions degrade to plain text. |
 | `TodoWrite` | none — see [Task tracking](#task-tracking) | Pi has no built-in todo. Use a TODO.md file or write your own extension. |
-| `Skill` | `/skill:name` slash command | Pi expands `/skill:foo` to the skill's content before agent processing. The agent never calls an explicit `Skill` tool. |
+| `Skill` | `/skill:<name>` (pi-native slash command) | Pi expands `/skill:foo` to the skill's content during input preprocessing. The agent never calls an explicit tool; the slash form is built into pi, not into snowball. |
 | `Task` (subagent) | none — see [Subagents](#subagents) | Pi has no built-in subagent. Spawn a child pi process via tmux, or install a third-party subagent package. |
 | `EnterPlanMode` / `ExitPlanMode` | none | Pi has no plan mode. Write plans to files (e.g., `plans/<topic>.md`). |
 | `apply_patch` | `edit` | Pi has no `apply_patch`; use `edit` with explicit old/new text. |
@@ -30,6 +30,8 @@ Skills use Claude Code tool names. Pi's built-in tools are lowercase (`read`, `w
 ## Skill loading
 
 Pi auto-discovers `SKILL.md` files from any path returned by a `resources_discover` extension handler. The snowball extension returns `<snowball>/skills`, so every snowball skill is available without symlinks. The agent invokes a skill by typing `/skill:<name>`; pi expands the command to the skill body before the LLM sees the prompt. Skills can also be auto-loaded when their frontmatter `description` matches the task.
+
+The `/skill:<name>` syntax is a pi-native feature (not a snowball mechanism) — every pi package responds to it. Snowball's role is to advertise the skill paths via `resources_discover`; pi itself handles the slash expansion.
 
 Frontmatter `allowed-tools` is ignored by pi — it does not constrain tool calls. Skill content that says "use only X" still has access to every active tool.
 
