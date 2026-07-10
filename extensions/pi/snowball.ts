@@ -1,0 +1,201 @@
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { readFileSync, existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+import { spawn } from "node:child_process";
+import { mkdirSync, writeFileSync } from "node:fs";
+import os from "node:os";
+import { pathToFileURL } from "node:url";
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = path.resolve(here, "../..");
+const SKILL_BOOTSTRAP_PATH = path.join(REPO_ROOT, "skills/using-snowball/SKILL.md");
+const SKILL_PATHS = [path.join(REPO_ROOT, "skills")];
+const SESSION_READER_PATH = path.join(
+  REPO_ROOT,
+  "skills/decision-logging/scripts/pi-session-reader.ts",
+);
+
+import { createRequire } from "node:module";
+const requireCjs = createRequire(import.meta.url);
+
+const BLAST_RADIUS_AUDIT_CJS = path.join(REPO_ROOT, "hooks/blast-radius-audit.cjs");
+const USER_PROMPT_BRIDGE_CJS = path.join(
+  REPO_ROOT,
+  "skills/decision-logging/scripts/user-prompt-bridge.cjs",
+);
+
+type Capture = {
+  handleUserPromptApproval: (input: {
+    prompt: string;
+    sessionId: string;
+    gitRoot: string | null;
+  }) => void;
+  captureBlastRadiusAudit: (input: {
+    gitRoot: string | null;
+    sessionId: string;
+    trigger: string;
+    prompt?: string;
+  }) => void;
+};
+
+let _capture: Capture | null | undefined;
+const loadCapture = (): Capture | null => {
+  if (_capture !== undefined) return _capture;
+  try {
+    const audit = requireCjs(BLAST_RADIUS_AUDIT_CJS);
+    const prompt = requireCjs(USER_PROMPT_BRIDGE_CJS);
+    _capture = {
+      handleUserPromptApproval: prompt.handleUserPromptApproval,
+      captureBlastRadiusAudit: audit.captureBlastRadiusAudit,
+    };
+  } catch {
+    _capture = null;
+  }
+  return _capture;
+};
+
+import { execSync } from "node:child_process";
+
+const findGitRoot = (cwd: string): string | null => {
+  try {
+    return (
+      execSync("git rev-parse --show-toplevel", { cwd, stdio: ["ignore", "pipe", "ignore"] })
+        .toString()
+        .trim() || null
+    );
+  } catch {
+    return null;
+  }
+};
+
+const APPROVAL_RE = /^(lgtm|looks good|ship it|approved?|go ahead|do it|yes,? do it|that works)\b/i;
+
+const looksLikeApproval = (text: string): boolean => APPROVAL_RE.test(text.trim());
+
+const EXTRACT_WORKER_SH = path.join(REPO_ROOT, "skills/decision-logging/scripts/extract-worker.sh");
+
+const transcriptPathFor = (sessionId: string): string => {
+  const dir = path.join(os.homedir(), ".snowball/pi-transcripts");
+  mkdirSync(dir, { recursive: true });
+  const safe = String(sessionId).replace(/[^A-Za-z0-9._-]/g, "_");
+  return path.join(dir, `${safe}.jsonl`);
+};
+
+const serializeMessagesFromSessionFile = async (sessionFile: string): Promise<string> => {
+  try {
+    const mod = await import(pathToFileURL(SESSION_READER_PATH).href);
+    return mod.serializePiSession(sessionFile);
+  } catch {
+    return "";
+  }
+};
+
+const forkExtractionWorker = async (
+  ctx: { cwd: string; sessionManager?: { getSessionFile?: () => string | null } },
+  sessionId: string,
+  gitRoot: string | null,
+): Promise<void> => {
+  const sessionFile = ctx.sessionManager?.getSessionFile?.();
+  const transcript = sessionFile ? await serializeMessagesFromSessionFile(sessionFile) : "";
+  const transcriptPath = transcriptPathFor(sessionId);
+  try {
+    writeFileSync(transcriptPath, transcript || "\n");
+  } catch {
+    // best-effort
+  }
+  try {
+    // ponytail: spawn unconditionally; worker is idempotent on its per-session cursor,
+    // so a missing or empty transcript is a safe no-op rather than a reason to skip.
+    const child = spawn("bash", [EXTRACT_WORKER_SH, sessionId, gitRoot ?? "", transcriptPath], {
+      detached: true,
+      stdio: "ignore",
+    });
+    child.unref();
+  } catch {
+    // best-effort
+  }
+};
+
+let _bootstrapCache: string | null | undefined;
+
+const stripFrontmatter = (content: string): string => {
+  const match = content.match(/^---\n[\s\S]*?\n---\n([\s\S]*)$/);
+  return match ? match[1] : content;
+};
+
+const getBootstrap = (): string | null => {
+  if (_bootstrapCache !== undefined) return _bootstrapCache;
+  if (!existsSync(SKILL_BOOTSTRAP_PATH)) {
+    _bootstrapCache = null;
+    return null;
+  }
+  const body = stripFrontmatter(readFileSync(SKILL_BOOTSTRAP_PATH, "utf8"));
+  _bootstrapCache = `<EXTREMELY_IMPORTANT>
+You have snowball skills loaded.
+
+The using-snowball skill content follows. You are already following it; do NOT call a Skill tool to load "using-snowball" again — that would be redundant.
+
+${body}
+</EXTREMELY_IMPORTANT>`;
+  return _bootstrapCache;
+};
+
+export default function (pi: ExtensionAPI) {
+  let bootstrapInjected = false;
+
+  pi.on("resources_discover", () => ({ skillPaths: SKILL_PATHS }));
+
+  pi.on("before_agent_start", (event) => {
+    if (bootstrapInjected) return;
+    const bootstrap = getBootstrap();
+    if (!bootstrap) return;
+    bootstrapInjected = true;
+    return { systemPrompt: `${event.systemPrompt}\n\n${bootstrap}` };
+  });
+
+  pi.on("input", (event, ctx) => {
+    if (event.source !== "interactive") return;
+    if (!looksLikeApproval(event.text)) return;
+    try {
+      const cap = loadCapture();
+      if (!cap) return;
+      const gitRoot = findGitRoot(ctx.cwd);
+      const sessionId = ctx.sessionManager?.getSessionFile?.() ?? "unknown";
+      cap.handleUserPromptApproval({ prompt: event.text, sessionId, gitRoot });
+      cap.captureBlastRadiusAudit({
+        gitRoot,
+        sessionId,
+        trigger: "operator-approval",
+        prompt: event.text,
+      });
+    } catch {
+      // never block the input path
+    }
+    return { action: "continue" };
+  });
+
+  pi.on("session_shutdown", async (_event, ctx) => {
+    try {
+      const cap = loadCapture();
+      const gitRoot = findGitRoot(ctx.cwd);
+      const sessionId = ctx.sessionManager?.getSessionFile?.() ?? "unknown";
+      if (cap) {
+        cap.captureBlastRadiusAudit({ gitRoot, sessionId, trigger: "stop" });
+      }
+      await forkExtractionWorker(ctx, sessionId, gitRoot);
+    } catch {
+      // best-effort
+    }
+  });
+
+  pi.on("session_compact", async (_event, ctx) => {
+    try {
+      const gitRoot = findGitRoot(ctx.cwd);
+      const sessionId = ctx.sessionManager?.getSessionFile?.() ?? "unknown";
+      await forkExtractionWorker(ctx, sessionId, gitRoot);
+    } catch {
+      // best-effort
+    }
+  });
+}

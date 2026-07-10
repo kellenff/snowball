@@ -1,6 +1,9 @@
 {
   "name": "snowball",
-  "version": "6.6.0",
+  "version": "6.8.0",
+  "keywords": [
+    "pi-package"
+  ],
   "type": "module",
   "main": ".opencode/plugins/snowball.js",
   "devDependencies": {
@@ -11,5 +14,17 @@
     "js-yaml": "^4.1.1",
     "typescript": "^6.0.3"
   },
-  "packageManager": "npm@12.0.0-pre.0.0+sha512.42a81f7586d8cc6530fd5360eef4c2e6e99132bf5cd46750b7c4388706fd134c5c3a7fa7a6c94bb081d448ca67381914b65ed2e4ce2afb69f70bf0dcba893be5"
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "typebox": "*"
+  },
+  "packageManager": "npm@12.0.0-pre.0.0+sha512.42a81f7586d8cc6530fd5360eef4c2e6e99132bf5cd46750b7c4388706fd134c5c3a7fa7a6c94bb081d448ca67381914b65ed2e4ce2afb69f70bf0dcba893be5",
+  "pi": {
+    "extensions": [
+      "./extensions/pi/snowball.ts"
+    ],
+    "skills": [
+      "./skills"
+    ]
+  }
 }

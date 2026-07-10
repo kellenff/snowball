@@ -1,0 +1,3 @@
+{"id":"e1","parentId":null,"type":"message","timestamp":1700000000000,"message":{"role":"user","content":[{"type":"text","text":"What is 2+2?"}]}}
+{"id":"e2","parentId":"e1","type":"message","timestamp":1700000001000,"message":{"role":"assistant","content":[{"type":"text","text":"4"}]}}
+{"id":"e3","parentId":"e2","type":"message","timestamp":1700000002000,"message":{"role":"toolResult","content":[{"type":"text","text":"bash exit 0"}]}}
