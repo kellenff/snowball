@@ -127,7 +127,7 @@ Matches the existing `vtcode-tools.md` and `junie-tools.md` shape:
 
 #### `skills/decision-logging/scripts/pi-session-reader.ts`
 
-Serializes pi's session JSONL tree into the flat `{role, content}` JSONL format `extract-worker.sh` consumes. The opencode plugin already does the equivalent for OpenCode's nested message tree (`serializeMessages` in `.opencode/plugins/snowball.js`); the pi reader mirrors that shape.
+Serializes pi's session JSONL tree into the flat `{role, content}` JSONL format `extract-worker.sh` consumes. The opencode plugin performs equivalent capture via its bundled CJS path but does NOT export a separate `serializeMessages` function — `.opencode/plugins/snowball.js` exports `SnowballPlugin` only. The pi reader is therefore greenfield code, not a port.
 
 ```ts
 // Sketch — implementation lives in the plan, not the spec.
