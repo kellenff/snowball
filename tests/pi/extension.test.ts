@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, afterEach, spyOn } from "bun:test";
-import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import { mkdtempSync, writeFileSync, rmSync, copyFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { execSync, spawn as realSpawn } from "node:child_process";
@@ -49,6 +49,16 @@ const buildFixtureRepo = (): string => {
   );
   execSync(`chmod +x ${join(decisionDir, "extract-worker.sh")}`);
 
+  // Copy the real pi-session-reader.ts and a session fixture into the temp
+  // repo so the extension's SESSION_READER_PATH resolution finds them. Without
+  // this, forkExtractionWorker spawns unconditionally but writes an empty
+  // transcript; shutdown/compact tests pass for the wrong reason.
+  copyFileSync(
+    "skills/decision-logging/scripts/pi-session-reader.ts",
+    join(decisionDir, "pi-session-reader.ts"),
+  );
+  copyFileSync("tests/pi/fixtures/sample-session.jsonl", join(repo, "session.jsonl"));
+
   return repo;
 };
 
@@ -67,15 +77,18 @@ describe("snowball pi extension", () => {
   let repo: string;
   let captured: any[];
   let spawnCalls: string[][];
+  let spawnArgs: any[][];
   let spawnSpy: ReturnType<typeof spyOn<typeof cp, "spawn">>;
 
   beforeEach(() => {
     repo = buildFixtureRepo();
     captured = [];
     spawnCalls = [];
+    spawnArgs = [];
     (globalThis as any).__captured = captured;
 
     spawnSpy = spyOn(cp, "spawn").mockImplementation(((...args: any[]) => {
+      spawnArgs.push(args);
       spawnCalls.push(args.map(String));
       return { unref: () => {} } as any;
     }) as any);
@@ -200,7 +213,7 @@ describe("snowball pi extension", () => {
     expect(captured).toHaveLength(0);
   });
 
-  test("session_shutdown fires stop audit + extraction", async () => {
+  test("session_shutdown fires stop audit + writes transcript + spawns worker", async () => {
     const { default: factory } = await importExtensionForRepo(repo);
     const pi = makePi();
     factory(pi.api);
@@ -209,12 +222,21 @@ describe("snowball pi extension", () => {
       sessionManager: { getSessionFile: () => join(repo, "session.jsonl") },
     };
     await pi.invoke("session_shutdown", { reason: "quit" }, ctx);
+
     expect(captured).toContainEqual(expect.objectContaining({ kind: "blast", trigger: "stop" }));
-    expect(spawnCalls.length).toBeGreaterThanOrEqual(1);
+    expect(spawnSpy).toHaveBeenCalled();
     expect(spawnCalls[0].join(" ")).toContain("extract-worker.sh");
+
+    // Verify the transcript at the spawn arg path contains real content from
+    // sample-session.jsonl (exercises pi-session-reader.ts through the extension).
+    const args = spawnArgs[0] as [string, string[], Record<string, unknown>];
+    const transcriptPath = args[1][3];
+    const out = readFileSync(transcriptPath, "utf8");
+    expect(out).toContain("What is 2+2?");
+    expect(out).toContain('"role":"assistant"');
   });
 
-  test("session_compact fires extraction only", async () => {
+  test("session_compact writes transcript + spawns worker (no stop audit)", async () => {
     const { default: factory } = await importExtensionForRepo(repo);
     const pi = makePi();
     factory(pi.api);
@@ -223,8 +245,16 @@ describe("snowball pi extension", () => {
       sessionManager: { getSessionFile: () => join(repo, "session.jsonl") },
     };
     await pi.invoke("session_compact", { reason: "manual" }, ctx);
+
     expect(captured).toHaveLength(0);
-    expect(spawnCalls.length).toBeGreaterThanOrEqual(1);
+    expect(spawnSpy).toHaveBeenCalled();
+    expect(spawnCalls[0].join(" ")).toContain("extract-worker.sh");
+
+    const args = spawnArgs[0] as [string, string[], Record<string, unknown>];
+    const transcriptPath = args[1][3];
+    const out = readFileSync(transcriptPath, "utf8");
+    expect(out).toContain("What is 2+2?");
+    expect(out).toContain('"role":"assistant"');
   });
 
   test("resources_discover returns skill paths", async () => {
