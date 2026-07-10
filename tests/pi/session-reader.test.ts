@@ -30,4 +30,13 @@ describe("serializePiSession", () => {
     const danglingFile = join(fixtures, "dangling-parent-session.jsonl");
     expect(() => serializePiSession(danglingFile)).toThrow(/dangling parentId/);
   });
+
+  test("picks the active leaf when multiple roots/branch leaves exist", () => {
+    const result = serializePiSession(join(fixtures, "multi-root-session.jsonl"));
+    const expected = readFileSync(
+      join(fixtures, "expected-multi-root-transcript.jsonl"),
+      "utf8",
+    );
+    expect(result).toBe(expected);
+  });
 });

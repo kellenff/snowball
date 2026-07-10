@@ -1,0 +1,4 @@
+{"id":"e1","parentId":null,"type":"message","timestamp":10,"message":{"role":"user","content":[{"type":"text","text":"new chain prompt"}]}}
+{"id":"e2","parentId":"e1","type":"message","timestamp":11,"message":{"role":"assistant","content":[{"type":"text","text":"new chain reply"}]}}
+{"id":"e3","parentId":null,"type":"message","timestamp":1,"message":{"role":"user","content":[{"type":"text","text":"old chain prompt"}]}}
+{"id":"e4","parentId":"e3","type":"message","timestamp":2,"message":{"role":"assistant","content":[{"type":"text","text":"old chain reply"}]}}

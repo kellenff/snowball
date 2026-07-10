@@ -4,6 +4,7 @@ type PiEntry = {
   id: string;
   parentId: string | null;
   type: string;
+  timestamp?: number;
   message?: {
     role?: string;
     content?: Array<{ type: string; text?: string }>;
@@ -19,10 +20,31 @@ const flattenText = (content: PiEntry["message"]["content"]): string => {
     .trim();
 };
 
+// Pick the active leaf deterministically. Prefers entries with no children
+// (true leaves), tiebreaks on timestamp descending. Handles multi-root
+// session files where JSONL write order doesn't reflect chain activity
+// (compaction, regeneration, or stale appends).
+const pickLeaf = (entries: PiEntry[]): PiEntry | null => {
+  if (entries.length === 0) return null;
+  const childCount = new Map<string, number>();
+  for (const e of entries) {
+    const key = e.id;
+    childCount.set(key, childCount.get(key) ?? 0);
+  }
+  for (const e of entries) {
+    const parentKey = e.parentId ?? "__root__";
+    childCount.set(parentKey, (childCount.get(parentKey) ?? 0) + 1);
+  }
+  const trueLeaves = entries.filter((e) => (childCount.get(e.id) ?? 0) === 0);
+  const candidates = trueLeaves.length > 0 ? trueLeaves : entries;
+  candidates.sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0));
+  return candidates[0];
+};
+
 const walkBranch = (entries: PiEntry[]): PiEntry[] => {
-  const byId = new Map(entries.map((e) => [e.id, e]));
-  const leaf = entries[entries.length - 1];
+  const leaf = pickLeaf(entries);
   if (!leaf) return [];
+  const byId = new Map(entries.map((e) => [e.id, e]));
   const chain: PiEntry[] = [];
   let cursor: PiEntry | undefined = leaf;
   while (cursor) {
