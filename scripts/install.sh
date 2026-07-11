@@ -286,7 +286,7 @@ install_junie() {
     "" \
     "mcp/mcp.json points at ../snowball-capture/run.cjs which resolves the" \
     "server's path at start time — no manual edit needed for snowball-capture." \
-    "The 'argdown' and 'codebase-memory' MCP entries still need their" \
+    "The 'argdown', 'codebase-memory', and 'yactt' MCP entries still need their" \
     "<absolute-path-to-*> placeholders replaced with real absolute paths." \
     "" \
     "Restart the IDE so Junie picks up the wiring. The .junie/AGENTS.md is" \
@@ -302,7 +302,7 @@ install_junie_cli() {
     "Extension content is cached under ~/.junie/extensions/; no project" \
     "files are modified." \
     "" \
-    "After install, snowball-capture / argdown / codebase-memory should" \
+    "After install, snowball-capture / argdown / codebase-memory / yactt should" \
     "appear as Active in /mcp. For adapters that don't resolve relative" \
     "paths, run once:" \
     "    node $clone_root/extensions/snowball/scripts/install-path-fix.cjs"

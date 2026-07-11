@@ -7,7 +7,7 @@ Skills use Claude Code tool names. Junie accepts different tools depending on th
 When multiple tools can achieve the same goal, follow this priority:
 
 1. **IDE-native tools** (`mcp_idea_*`) — Fastest, most reliable, and understands IDE-specific project structure (symbols, refactorings, inspections).
-2. **Codebase Memory MCP** (`mcp_codebase-memory-*`) — Use for semantic search, cross-repo intelligence, and deep relationship mapping.
+2. **yactt MCP** (`mcp_yactt_*`) — snowball's preferred graph backend as of v6.10. Use for semantic search, symbol/call/reference mapping, and deep cross-file intelligence. Reach for `search_symbols` and `references_for_symbol` first; fall through to `mcp_codebase-memory_*` *only* for ADR / `manage_adr` calls — `codebase-memory` is on life support for graph use (see `docs/snowball/specs/2026-07-10-yactt-graph-backend-design.md`).
 3. **Standard Unix tools** (`rg`, `fd`, `sed`, `grep`, `ls` via `bash`) — Use when IDE tools are insufficient or for complex command-line workflows.
 4. **Custom Python tools** — Use for specialized logic, data processing, or custom automation scripts.
 

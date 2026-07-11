@@ -68,7 +68,7 @@ You MUST complete each phase before proceeding to the next.
    - Git diff, recent commits
    - New dependencies, config changes
    - Environmental differences
-   - **OPTIONAL:** Invoke `snowball:recalling-project-context` scoped to the failing area — prior MADRs may document constraints or known pitfalls. When codebase-memory is indexed, `trace_path` on the failing symbol (after recall) can show inbound callers with risk labels.
+   - **OPTIONAL:** Invoke `snowball:recalling-project-context` scoped to the failing area — prior MADRs may document constraints or known pitfalls. When yactt is installed and the repo is loaded (`yactt mcp serve <gitRoot>` runs cleanly), call its `references_for_symbol` MCP tool on the failing symbol — or use `yactt-cli references-for-symbol --repo <gitRoot> --query <name>` from the snowball-owned shim — to show inbound callers with risk labels. Codebase-memory's `trace_path` is the equivalent on the legacy graph backend; switch to yactt per the rollout plan at `docs/snowball/specs/2026-07-10-yactt-graph-backend-design.md`.
 
 4. **Gather Evidence in Multi-Component Systems**
 
