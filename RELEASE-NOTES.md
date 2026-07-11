@@ -24,6 +24,11 @@ codebase-memory — a separate MADR will replace it later.
   mentions as yactt.
 - **`extensions/snowball/mcp/mcp.json`** registers yactt alongside
   codebase-memory; the yactt entry is what new operators see.
+- **`scripts/cleanup-cbm-graph-allowlist.sh`** — operator-side helper that
+  removes the now-stale `mcp__codebase-memory-mcp_*` graph-tool entries
+  from a local Claude Code allowlist. Idempotent; preserves `manage_adr`
+  and `delete_project` (still used by the ADR layer). Run once after
+  upgrading: `bash scripts/cleanup-cbm-graph-allowlist.sh`.
 - ADR storage (`codebase-memory manage_adr`) is **untouched** in this release;
   the ADR-replacement MADR is a separate, follow-up spec.
 
