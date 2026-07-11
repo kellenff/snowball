@@ -1,0 +1,8 @@
+{
+  "tasks": {
+    "test": "deno test --allow-net --allow-read --allow-run --no-check tests/blast-radius/yactt-cli/cli.test.ts",
+    "lint": "deno lint cli.ts"
+  },
+  "imports": {},
+  "compilerOptions": { "lib": ["deno.window"] }
+}
