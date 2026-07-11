@@ -2,6 +2,33 @@
 
 ## Unreleased
 
+### yactt as graph backend (replaces codebase-memory graph path)
+
+The `blast-radius` graph backend now uses yactt by default, with codebase-memory
+preserved as a chained fallback. ADR storage (`manage_adr`) stays on
+codebase-memory — a separate MADR will replace it later.
+
+- **`extensions/snowball/yactt-cli/`** — new Deno shim wrapping yactt's
+  MCP-only surface in a CLI shape blast-radius can shell out to. Deno 2.7+
+  required.
+- **`SNOWBALL_BLAST_RADIUS_GRAPH_BACKEND`** — selector env var
+  (`yactt` (default) / `codebase-memory` / `heuristic`).
+- **`SNOWBALL_BLAST_RADIUS_GRAPH_FALLBACK`** — opt-out env var for
+  yactt→codebase-memory auto-fallback (default `1`).
+- **Schema delta**: blast-radius envelopes gain an optional
+  `backend_attempts: string[]` field, closed enum
+  `["yactt","codebase-memory","heuristic"]`. Older readers ignore it.
+- **Top-of-skill prose**: `systematic-debugging`, `recalling-project-context`
+  (operator-tip line), `brainstorming` (line 200), and
+  `using-snowball/references/junie-tools.md` reframe codebase-memory graph
+  mentions as yactt.
+- **`extensions/snowball/mcp/mcp.json`** registers yactt alongside
+  codebase-memory; the yactt entry is what new operators see.
+- ADR storage (`codebase-memory manage_adr`) is **untouched** in this release;
+  the ADR-replacement MADR is a separate, follow-up spec.
+
+Ref: `docs/snowball/specs/2026-07-10-yactt-graph-backend-design.md`.
+
 ### OpenCode decision-logging + blast-radius parity
 
 The OpenCode plugin (`.opencode/plugins/snowball.js`) now runs the same
