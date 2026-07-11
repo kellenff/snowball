@@ -42,7 +42,13 @@ export interface BlastRadiusEnvelope {
   backend: BlastRadiusBackend;
   output: BlastRadiusOutput | null;
   reason: ReasonCode | null;
+  /** Ordered list of graph backends attempted. Optional, null-safe (older readers ignore). */
+  backend_attempts?: BackendAttempt[];
 }
+
+export type BackendAttempt = "yactt" | "codebase-memory" | "heuristic";
+
+const BACKEND_ATTEMPTS: BackendAttempt[] = ["yactt", "codebase-memory", "heuristic"];
 
 export interface ComputeInput {
   gitRoot: string;
@@ -93,5 +99,15 @@ export function assertEnvelope(envelope: BlastRadiusEnvelope): void {
   }
   if (envelope.reason && !isReasonCode(envelope.reason)) {
     throw new Error(`invalid reason: ${envelope.reason}`);
+  }
+  if (envelope.backend_attempts) {
+    if (!Array.isArray(envelope.backend_attempts)) {
+      throw new Error("backend_attempts must be an array");
+    }
+    for (const entry of envelope.backend_attempts) {
+      if (!BACKEND_ATTEMPTS.includes(entry)) {
+        throw new Error(`backend_attempts contains unknown value: ${entry}`);
+      }
+    }
   }
 }

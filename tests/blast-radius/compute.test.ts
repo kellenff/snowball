@@ -24,7 +24,7 @@ function runCompute(env: Record<string, string>): { envelope: any; stderr: strin
   const repo = makeRepo()
   try {
     const proc = spawnSync({
-      cmd: ["/Users/kellen/n/bin/node", COMPUTE_CJS, "compute-and-persist"],
+      cmd: ["/Users/kellen/n/bin/node", COMPUTE_CJS, "compute"],
       env: { ...process.env, ...env, BUN_TEST_GIT_ROOT: repo.path },
       stdin: new TextEncoder().encode(JSON.stringify({
         gitRoot: repo.path,

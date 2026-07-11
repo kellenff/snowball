@@ -69,6 +69,7 @@ __export(exports_compute, {
 module.exports = __toCommonJS(exports_compute);
 
 // skills/blast-radius/src/envelope.ts
+var BACKEND_ATTEMPTS = ["yactt", "codebase-memory", "heuristic"];
 var REASON_CODES = [
   "graph-unavailable",
   "repo-not-indexed",
@@ -106,6 +107,16 @@ function assertEnvelope(envelope) {
   }
   if (envelope.reason && !isReasonCode(envelope.reason)) {
     throw new Error(`invalid reason: ${envelope.reason}`);
+  }
+  if (envelope.backend_attempts) {
+    if (!Array.isArray(envelope.backend_attempts)) {
+      throw new Error("backend_attempts must be an array");
+    }
+    for (const entry of envelope.backend_attempts) {
+      if (!BACKEND_ATTEMPTS.includes(entry)) {
+        throw new Error(`backend_attempts contains unknown value: ${entry}`);
+      }
+    }
   }
 }
 
@@ -239,6 +250,17 @@ function computeHeuristic(input) {
 var import_node_child_process = require("node:child_process");
 var path = __toESM(require("node:path"));
 var DEFAULT_TIMEOUT_MS = 15000;
+function resolveBackendId() {
+  if (process.env.BLAST_RADIUS_DISABLE_GRAPH === "1")
+    return "heuristic";
+  const sel = process.env.SNOWBALL_BLAST_RADIUS_GRAPH_BACKEND?.trim();
+  if (sel === "yactt" || sel === "codebase-memory" || sel === "heuristic")
+    return sel;
+  return "yactt";
+}
+function fallbackEnabled() {
+  return process.env.SNOWBALL_BLAST_RADIUS_GRAPH_FALLBACK !== "0";
+}
 function resolveCliBinary() {
   if (process.env.BLAST_RADIUS_DISABLE_GRAPH === "1")
     return null;
@@ -300,6 +322,60 @@ function createDefaultCodebaseMemoryClient() {
     })
   };
 }
+function resolveYacttBinary() {
+  return process.env.YACTT_BIN?.trim() || "yactt";
+}
+function runYacttCli(tool, args, gitRoot) {
+  const denoBin = process.env.DENO_BIN?.trim() || "deno";
+  const shim = process.env.YACTT_CLI_PATH?.trim() || path.join("/Users/kellen/.paseo/worktrees/0emyw5aq/famous-mole/skills/blast-radius/src", "..", "..", "..", "extensions", "snowball", "yactt-cli", "cli.ts");
+  try {
+    const out = import_node_child_process.execFileSync(denoBin, ["run", "--allow-net", "--allow-read", "--allow-write", "--allow-env", shim, tool, "--repo", gitRoot, ...args], { encoding: "utf8", timeout: DEFAULT_TIMEOUT_MS, stdio: ["ignore", "pipe", "pipe"] });
+    const trimmed = out.trim();
+    if (!trimmed)
+      return { ok: false, reason: "graph-unavailable" };
+    return { ok: true, json: JSON.parse(trimmed) };
+  } catch (e) {
+    const stderr = (e?.stderr ?? "").toString();
+    if (/repo-not-indexed/i.test(stderr))
+      return { ok: false, reason: "repo-not-indexed" };
+    if (/graph-unavailable/i.test(stderr))
+      return { ok: false, reason: "graph-unavailable" };
+    if (/mcp-timeout/i.test(stderr))
+      return { ok: false, reason: "mcp-timeout" };
+    return { ok: false, reason: "graph-unavailable" };
+  }
+}
+function createYacttClient(gitRoot) {
+  return {
+    isAvailable: () => {
+      try {
+        import_node_child_process.execFileSync(resolveYacttBinary(), ["--version"], {
+          encoding: "utf8",
+          timeout: 5000,
+          stdio: ["ignore", "pipe", "ignore"]
+        });
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    listProjects: () => {
+      return [{ name: "yactt-active", root_path: gitRoot }];
+    },
+    detectChanges: (_project, _opts) => {
+      return null;
+    },
+    searchGraph: (_project, opts) => {
+      const patterns = opts.paths ?? (opts.file_pattern ? [opts.file_pattern] : []);
+      const file_pattern = patterns.join(",");
+      const args = ["--file-pattern", file_pattern, "--limit", String(opts.limit ?? 50)];
+      const r = runYacttCli("search-symbols", args, gitRoot);
+      if (!r.ok)
+        return null;
+      return r.json;
+    }
+  };
+}
 function resolveProjectName(projects, gitRoot) {
   const normalizedRoot = path.resolve(gitRoot);
   for (const p of projects) {
@@ -347,18 +423,17 @@ function estimateGraphFanOut(client, project, paths, detect) {
   }
   return fanOut;
 }
-function tryGraphBackend(input, client = createDefaultCodebaseMemoryClient()) {
-  if (!client.isAvailable()) {
+function attemptOne(label, client, input) {
+  if (client === null || !client.isAvailable()) {
     return { ok: false, reason: "graph-unavailable" };
   }
-  const project = resolveProjectName(client.listProjects(), input.gitRoot);
-  if (!project) {
+  const projects = client.listProjects();
+  const project = resolveProjectName(projects, input.gitRoot);
+  if (!project)
     return { ok: false, reason: "repo-not-indexed" };
-  }
   const detect = client.detectChanges(project, { scope: "impact" });
-  if (detect === null) {
+  if (detect === null)
     return { ok: false, reason: "mcp-timeout" };
-  }
   const base = computeHeuristic({
     paths: input.paths,
     proposedAction: input.proposedAction
@@ -371,6 +446,50 @@ function tryGraphBackend(input, client = createDefaultCodebaseMemoryClient()) {
       ...base,
       failure_impact: failureImpactFromFanOut(estimatedFanOut, sensitivePaths)
     }
+  };
+}
+function tryGraphBackend(input, injectedClient) {
+  const sel = resolveBackendId();
+  const attempts = [];
+  let firstReason;
+  let secondReason;
+  if (injectedClient) {
+    const r = attemptOne("codebase-memory", injectedClient, input);
+    if (r.ok && r.output) {
+      return { ok: true, output: r.output };
+    }
+    return { ok: false, reason: r.reason };
+  }
+  if (sel !== "heuristic") {
+    const firstLabel = sel === "codebase-memory" ? "codebase-memory" : "yactt";
+    const client = sel === "codebase-memory" ? createDefaultCodebaseMemoryClient() : createYacttClient(input.gitRoot);
+    const r = attemptOne(firstLabel, client, input);
+    attempts.push(firstLabel);
+    if (r.ok && r.output) {
+      return { ok: true, output: r.output, backend_attempts: attempts };
+    }
+    firstReason = r.reason;
+  }
+  if (fallbackEnabled() && sel !== "heuristic") {
+    const secondLabel = sel === "yactt" ? "codebase-memory" : "yactt";
+    const client = secondLabel === "codebase-memory" ? createDefaultCodebaseMemoryClient() : createYacttClient(input.gitRoot);
+    const r = attemptOne(secondLabel, client, input);
+    attempts.push(secondLabel);
+    if (r.ok && r.output) {
+      return { ok: true, output: r.output, backend_attempts: attempts };
+    }
+    secondReason = r.reason;
+  }
+  const output = computeHeuristic({
+    paths: input.paths,
+    proposedAction: input.proposedAction
+  });
+  const reason = secondReason ?? firstReason;
+  return {
+    ok: false,
+    reason,
+    output,
+    backend_attempts: attempts
   };
 }
 
@@ -485,12 +604,14 @@ function computeBlastRadius(input) {
     paths,
     proposedAction: input.changeSet.proposedAction
   });
+  const attempts = graph.backend_attempts ?? [];
   if (graph.ok && graph.output) {
     const env = {
       status: "success",
       backend: "graph",
       output: graph.output,
-      reason: null
+      reason: null,
+      backend_attempts: attempts
     };
     assertEnvelope(env);
     return env;
@@ -504,7 +625,8 @@ function computeBlastRadius(input) {
       status: graph.reason ? "degraded" : "success",
       backend: "heuristic",
       output,
-      reason: graph.reason ?? null
+      reason: graph.reason ?? null,
+      backend_attempts: attempts
     };
     assertEnvelope(env);
     return env;

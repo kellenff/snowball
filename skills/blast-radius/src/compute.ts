@@ -36,12 +36,14 @@ export function computeBlastRadius(input: ComputeInput): BlastRadiusEnvelope {
     paths,
     proposedAction: input.changeSet.proposedAction,
   });
+  const attempts = graph.backend_attempts ?? [];
   if (graph.ok && graph.output) {
     const env: BlastRadiusEnvelope = {
       status: "success",
       backend: "graph",
       output: graph.output,
       reason: null,
+      backend_attempts: attempts,
     };
     assertEnvelope(env);
     return env;
@@ -57,6 +59,7 @@ export function computeBlastRadius(input: ComputeInput): BlastRadiusEnvelope {
       backend: "heuristic",
       output,
       reason: graph.reason ?? null,
+      backend_attempts: attempts,
     };
     assertEnvelope(env);
     return env;

@@ -11,7 +11,7 @@ Deno.test("list-loaded-repos against stub returns parsed {repos:[...]}", async (
       "list-loaded-repos",
       "--repo", "/tmp/snowball-stub-1"
     ],
-    env: { YACTT_BIN: `${Deno.cwd()}/tests/blast-radius/yactt-cli/stub-server.ts` },
+    env: { YACTT_BIN: `${Deno.cwd()}/extensions/snowball/yactt-cli/tests/stub-server.ts` },
     stdout: "piped", stderr: "piped"
   })
   const { code, stdout, stderr } = await cmd.output()
@@ -29,7 +29,7 @@ Deno.test("search-symbols returns the fixture shape", async () => {
       "search-symbols", "--repo", "/tmp/snowball-stub-1",
       "--query", "x", "--limit", "5"
     ],
-    env: { YACTT_BIN: `${Deno.cwd()}/tests/blast-radius/yactt-cli/stub-server.ts` },
+    env: { YACTT_BIN: `${Deno.cwd()}/extensions/snowball/yactt-cli/tests/stub-server.ts` },
     stdout: "piped", stderr: "piped"
   })
   const { code, stdout, stderr } = await cmd.output()

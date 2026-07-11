@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "test": "deno test --allow-net --allow-read --allow-run --no-check tests/blast-radius/yactt-cli/cli.test.ts",
+    "test": "deno test --allow-net --allow-read --allow-run --no-check extensions/snowball/yactt-cli/tests/cli.test.ts",
     "lint": "deno lint cli.ts"
   },
   "imports": {},
