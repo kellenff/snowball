@@ -1,4 +1,3 @@
-<!-- BEGIN SNOWBALL BOOTSTRAP (mirror of skills/using-snowball/SKILL.md) -->
 ---
 name: using-snowball
 description: Use when starting any conversation - establishes how to find and use skills, requiring Skill tool invocation before ANY response including clarifying questions
@@ -131,63 +130,3 @@ The skill itself tells you which.
 ## User Instructions
 
 Instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows.
-
-<!-- END SNOWBALL BOOTSTRAP -->
-
----
-
-## Capture rules (snowball-capture MCP server)
-
-The `snowball-capture` MCP server is wired into this Junie extension. It exposes three tools that maintain the snowball decision spine (operator MADRs and agent observations). Call them at the right moments:
-
-### `madr_capture` — after a multi-choice question
-
-When you ask the user a multi-choice question and they answer, call `madr_capture` with:
-
-```json
-{
-  "question": "<the question you asked>",
-  "options": [{ "name": "...", "description": "..." }, ...],
-  "chosen": "<the option the user picked>",
-  "context": "<optional, why this matters>",
-  "tags": ["<optional, e.g. brainstorming>"]
-}
-```
-
-### `approval_phrase_record` — when the user sends an approval
-
-When the user submits an approval phrase (`lgtm`, `looks good`, `ship it`, `approved`, `go ahead`, `merge it`, `do it`, etc.) and you act on it, call `approval_phrase_record` with:
-
-```json
-{
-  "phrase": "<the exact phrase the user sent>",
-  "action": "<what you did in response>",
-  "context": "<optional, what was being approved>"
-}
-```
-
-If the tool returns `NOT_AN_APPROVAL`, drop the call — the phrase didn't match. Do not retry with a different phrase.
-
-### `observation_log` — for non-obvious choices
-
-When you make a non-obvious implementation choice, surface a hypothesis, or notice a constraint, call `observation_log` before moving on. Pick the most accurate `type`:
-
-- `implementation-choice` — for a decision that affects code shape
-- `constraint` — for a hard limit (missing API, env, budget, etc.)
-- `hypothesis` — for a guess you're acting on
-- `observation` — for a general finding
-
-```json
-{
-  "content": "<one or two sentences>",
-  "type": "<one of the four>",
-  "confidence": "high" | "medium" | "low",
-  "rationale": "<why this matters or what it constrains>",
-  "related_files": ["<optional paths>"],
-  "tags": ["<optional, e.g. junie, brainstorm>"]
-}
-```
-
-### What this does NOT cover
-
-Junie has no public hook/lifecycle event API. These tools are active capture, not passive. The agent has to remember to call them. If you don't, the decision is unrecorded. That's accepted as the honest trade-off — passive capture is impossible on Junie today.

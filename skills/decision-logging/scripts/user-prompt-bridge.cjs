@@ -63,7 +63,8 @@ var __export = (target, all) => {
 // skills/decision-logging/src/user-prompt-bridge.ts
 var exports_user_prompt_bridge = {};
 __export(exports_user_prompt_bridge, {
-  handleUserPromptApproval: () => handleUserPromptApproval
+  handleUserPromptApproval: () => handleUserPromptApproval,
+  matchesApproval: () => matchesApproval
 });
 module.exports = __toCommonJS(exports_user_prompt_bridge);
 var fs2 = __toESM(require("node:fs"));
