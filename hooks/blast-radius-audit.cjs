@@ -212,6 +212,7 @@ function resolveSessionId(payload) {
 var fs2 = __toESM(require("node:fs"));
 
 // skills/blast-radius/src/envelope.ts
+var BACKEND_ATTEMPTS = ["yactt", "codebase-memory", "heuristic"];
 var REASON_CODES = [
   "graph-unavailable",
   "repo-not-indexed",
@@ -249,6 +250,16 @@ function assertEnvelope(envelope) {
   }
   if (envelope.reason && !isReasonCode(envelope.reason)) {
     throw new Error(`invalid reason: ${envelope.reason}`);
+  }
+  if (envelope.backend_attempts) {
+    if (!Array.isArray(envelope.backend_attempts)) {
+      throw new Error("backend_attempts must be an array");
+    }
+    for (const entry of envelope.backend_attempts) {
+      if (!BACKEND_ATTEMPTS.includes(entry)) {
+        throw new Error(`backend_attempts contains unknown value: ${entry}`);
+      }
+    }
   }
 }
 

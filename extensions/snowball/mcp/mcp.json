@@ -11,6 +11,10 @@
     "codebase-memory": {
       "command": "node",
       "args": ["<absolute-path-to-codebase-memory-mcp>/dist/server.cjs"]
+    },
+    "yactt": {
+      "command": "yactt",
+      "args": ["mcp", "serve"]
     }
   }
 }
