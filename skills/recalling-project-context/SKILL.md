@@ -41,8 +41,9 @@ Run in order. Deterministic prep uses `scripts/recall-context.cjs`; you orchestr
    - Prefer live ADR sections over disk `prepare.sections` when both exist (live is authoritative).
    - If MCP is unreachable or repo not indexed, continue with disk/MADR fallback from step 3 — **do not block the task**.
 
-5. **Scoped graph query (optional).** When the task names specific files or symbols and the project is indexed:
-   - `search_graph(query="<keyword>")` or `detect_changes(scope="<path prefix>")` for targeted structural context.
+5. **Scoped graph query (optional).** When the task names specific files or symbols and the project is yactt-indexed:
+   - yactt path: `yactt mcp serve <gitRoot>` exposes `search_symbols` and `references_for_symbol`. The snowball shim at `extensions/snowball/yactt-cli/cli.ts` exposes `search-symbols` / `references-for-symbol` as CLI subcommands for operators who prefer shell verbs.
+   - Codebase-memory path (legacy, on life support): `search_graph(query="<keyword>")` or `detect_changes(scope="<path prefix>")` for targeted structural context.
    - Do not dump the full graph — one or two focused queries only.
 
 6. **Synthesize recall** in ≤10 bullets covering:
