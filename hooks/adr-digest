@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Emit a capped ADR/decision excerpt for session-start context injection.
-# Reads .codebase-memory/adr.md from disk — no MCP calls.
+# Reads .snowball/adr.md (or legacy .codebase-memory/adr.md) from disk — no MCP calls.
 
 set -euo pipefail
 
@@ -23,8 +23,9 @@ if [ -z "$git_root" ]; then
   exit 0
 fi
 
-adr_file="${git_root}/.codebase-memory/adr.md"
-if [ ! -f "$adr_file" ] && [ ! -d "${git_root}/docs/snowball/decisions" ]; then
+adr_file="${git_root}/.snowball/adr.md"
+legacy_adr="${git_root}/.codebase-memory/adr.md"
+if [ ! -f "$adr_file" ] && [ ! -f "$legacy_adr" ] && [ ! -d "${git_root}/docs/snowball/decisions" ]; then
   exit 0
 fi
 

@@ -67,12 +67,30 @@ __export(exports_recall_context, {
   prepare: () => prepare
 });
 module.exports = __toCommonJS(exports_recall_context);
-var fs3 = __toESM(require("node:fs"));
-var path3 = __toESM(require("node:path"));
+var fs4 = __toESM(require("node:fs"));
 
-// skills/syncing-decisions-to-memory/src/gather.ts
+// skills/syncing-decisions-to-memory/src/disk-cache.ts
 var fs = __toESM(require("node:fs"));
 var path = __toESM(require("node:path"));
+function diskCachePath(gitRoot) {
+  return path.join(gitRoot, ".snowball", "adr.md");
+}
+function legacyDiskCachePath(gitRoot) {
+  return path.join(gitRoot, ".codebase-memory", "adr.md");
+}
+function resolveAdrPath(gitRoot) {
+  const primary = diskCachePath(gitRoot);
+  if (fs.existsSync(primary))
+    return primary;
+  const legacy = legacyDiskCachePath(gitRoot);
+  if (fs.existsSync(legacy))
+    return legacy;
+  return null;
+}
+
+// skills/syncing-decisions-to-memory/src/gather.ts
+var fs2 = __toESM(require("node:fs"));
+var path2 = __toESM(require("node:path"));
 
 // node_modules/js-yaml/dist/js-yaml.mjs
 /*! js-yaml 4.1.1 https://github.com/nodeca/js-yaml @license MIT */
@@ -2774,25 +2792,25 @@ function parseObservationLine(line) {
   };
 }
 function gatherDecisions(gitRoot) {
-  const dir = path.join(gitRoot, "docs", "snowball", "decisions");
+  const dir = path2.join(gitRoot, "docs", "snowball", "decisions");
   const madrs = [];
   const observations = [];
   const warnings = [];
-  if (!fs.existsSync(dir))
+  if (!fs2.existsSync(dir))
     return { madrs, observations, warnings };
-  for (const f of fs.readdirSync(dir).sort()) {
+  for (const f of fs2.readdirSync(dir).sort()) {
     if (!f.endsWith(".md"))
       continue;
-    const raw = fs.readFileSync(path.join(dir, f), "utf8");
+    const raw = fs2.readFileSync(path2.join(dir, f), "utf8");
     const r = parseMadr(f, raw);
     if ("warning" in r)
       warnings.push(r.warning);
     else
       madrs.push(r);
   }
-  const jsonlPath = path.join(dir, "observations.jsonl");
-  if (fs.existsSync(jsonlPath)) {
-    for (const line of fs.readFileSync(jsonlPath, "utf8").split(`
+  const jsonlPath = path2.join(dir, "observations.jsonl");
+  if (fs2.existsSync(jsonlPath)) {
+    for (const line of fs2.readFileSync(jsonlPath, "utf8").split(`
 `)) {
       const r = parseObservationLine(line);
       if (r === null)
@@ -2918,8 +2936,8 @@ function excerptAdrSections(content, cap = DEFAULT_SECTION_CHAR_CAP) {
 }
 
 // skills/recalling-project-context/src/recall-madrs.ts
-var fs2 = __toESM(require("node:fs"));
-var path2 = __toESM(require("node:path"));
+var fs3 = __toESM(require("node:fs"));
+var path3 = __toESM(require("node:path"));
 var FRONTMATTER_RE2 = /^---\n([\s\S]*?)\n---\n?([\s\S]*)$/;
 function madrTags(raw) {
   const m = raw.match(FRONTMATTER_RE2);
@@ -2958,19 +2976,19 @@ function recallMadrs(input) {
   const scope = input.scope?.trim() ?? "";
   const gathered = gatherDecisions(input.gitRoot);
   const filtered = filterRecords(gathered);
-  const dir = path2.join(input.gitRoot, "docs", "snowball", "decisions");
+  const dir = path3.join(input.gitRoot, "docs", "snowball", "decisions");
   const withMeta = [];
   for (const record of filtered.madrs) {
-    const filePath = path2.join(dir, record.filename);
-    if (!fs2.existsSync(filePath))
+    const filePath = path3.join(dir, record.filename);
+    if (!fs3.existsSync(filePath))
       continue;
-    const raw = fs2.readFileSync(filePath, "utf8");
+    const raw = fs3.readFileSync(filePath, "utf8");
     if (scope && !madrMatchesScope(record, raw, scope))
       continue;
     withMeta.push({
       record,
       raw,
-      mtimeMs: fs2.statSync(filePath).mtimeMs
+      mtimeMs: fs3.statSync(filePath).mtimeMs
     });
   }
   withMeta.sort((a, b) => b.mtimeMs - a.mtimeMs);
@@ -2992,9 +3010,6 @@ function computeStaleness(adrDigest, currentDigest) {
 }
 
 // skills/recalling-project-context/src/recall-context.ts
-function defaultAdrPath(gitRoot) {
-  return path3.join(gitRoot, ".codebase-memory", "adr.md");
-}
 function stalenessFields(gitRoot, adrContent) {
   const filtered = filterRecords(gatherDecisions(gitRoot));
   const currentDigest = computeDigest(filtered);
@@ -3007,7 +3022,7 @@ function stalenessFields(gitRoot, adrContent) {
   };
 }
 function prepare(input) {
-  const adrPath = defaultAdrPath(input.gitRoot);
+  const adrPath = resolveAdrPath(input.gitRoot);
   const scope = input.scope?.trim() || null;
   const cap = input.sectionCharCap ?? DEFAULT_SECTION_CHAR_CAP;
   const madrResult = recallMadrs({
@@ -3025,7 +3040,7 @@ function prepare(input) {
     })),
     warnings: madrResult.warnings
   };
-  if (!fs3.existsSync(adrPath)) {
+  if (!adrPath) {
     const stale = stalenessFields(input.gitRoot, null);
     if (base.madrs.length === 0) {
       return {
@@ -3046,7 +3061,7 @@ function prepare(input) {
       ...base
     };
   }
-  const adrContent = fs3.readFileSync(adrPath, "utf8");
+  const adrContent = fs4.readFileSync(adrPath, "utf8");
   const excerpt = excerptAdrSections(adrContent, cap);
   return {
     source: "adr-file",
@@ -3061,12 +3076,12 @@ function renderExcerptForHook(input) {
   const out = prepare(input);
   const lines = [
     "<project-memory>",
-    "Distilled project rationale from codebase-memory ADR and/or on-disk decision logs.",
-    "Invoke snowball:recalling-project-context for live MCP recall and scoped graph queries.",
+    "Distilled project rationale from the local ADR (.snowball/adr.md) and/or on-disk decision logs.",
+    "Invoke snowball:recalling-project-context for full recall and optional yactt graph queries.",
     ""
   ];
   if (out.source === "empty") {
-    lines.push("No project ADR on disk (.codebase-memory/adr.md) and no matching decision logs.", "After a preserve finish, run syncing-decisions-to-memory to distill decisions into the ADR.");
+    lines.push("No project ADR on disk (.snowball/adr.md) and no matching decision logs.", "After a preserve finish, run syncing-decisions-to-memory to distill decisions into the ADR.");
     lines.push("</project-memory>");
     return lines.join(`
 `);
@@ -3081,7 +3096,7 @@ function renderExcerptForHook(input) {
     }
     lines.push("");
   } else if (out.source === "madrs-only") {
-    lines.push("No local ADR file — showing recent on-disk MADRs only.", "Run syncing-decisions-to-memory after finish to populate .codebase-memory/adr.md.");
+    lines.push("No local ADR file — showing recent on-disk MADRs only.", "Run syncing-decisions-to-memory after finish to populate .snowball/adr.md.");
     lines.push("");
   } else if (out.digest) {
     lines.push(`ADR last synced from decision logs: ${out.digest}`);

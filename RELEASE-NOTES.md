@@ -2,37 +2,25 @@
 
 ## Unreleased
 
-### yactt as graph backend (replaces codebase-memory graph path)
+### Replace codebase-memory with yactt HTTP + local ADR
 
-The `blast-radius` graph backend now uses yactt by default, with codebase-memory
-preserved as a chained fallback. ADR storage (`manage_adr`) stays on
-codebase-memory — a separate MADR will replace it later.
+Completes the move off codebase-memory:
 
-- **`extensions/snowball/yactt-cli/`** — new Deno shim wrapping yactt's
-  MCP-only surface in a CLI shape blast-radius can shell out to. Deno 2.7+
-  required.
-- **`SNOWBALL_BLAST_RADIUS_GRAPH_BACKEND`** — selector env var
-  (`yactt` (default) / `codebase-memory` / `heuristic`).
-- **`SNOWBALL_BLAST_RADIUS_GRAPH_FALLBACK`** — opt-out env var for
-  yactt→codebase-memory auto-fallback (default `1`).
-- **Schema delta**: blast-radius envelopes gain an optional
-  `backend_attempts: string[]` field, closed enum
-  `["yactt","codebase-memory","heuristic"]`. Older readers ignore it.
-- **Top-of-skill prose**: `systematic-debugging`, `recalling-project-context`
-  (operator-tip line), `brainstorming` (line 200), and
-  `using-snowball/references/junie-tools.md` reframe codebase-memory graph
-  mentions as yactt.
-- **`extensions/snowball/mcp/mcp.json`** registers yactt alongside
-  codebase-memory; the yactt entry is what new operators see.
-- **`scripts/cleanup-cbm-graph-allowlist.sh`** — operator-side helper that
-  removes the now-stale `mcp__codebase-memory-mcp_*` graph-tool entries
-  from a local Claude Code allowlist. Idempotent; preserves `manage_adr`
-  and `delete_project` (still used by the ADR layer). Run once after
-  upgrading: `bash scripts/cleanup-cbm-graph-allowlist.sh`.
-- ADR storage (`codebase-memory manage_adr`) is **untouched** in this release;
-  the ADR-replacement MADR is a separate, follow-up spec.
+- **blast-radius** talks to yactt over Streamable HTTP (`YACTT_MCP_URL`, default
+  `http://127.0.0.1:57812/mcp`) instead of the Deno `yactt-cli` shim or
+  `codebase-memory-mcp cli`. Removed `extensions/snowball/yactt-cli/` and the
+  CBM graph client path.
+- **ADR store** is disk-only at `.snowball/adr.md` (legacy read fallback from
+  `.codebase-memory/adr.md`). `syncing-decisions-to-memory` no longer calls
+  `manage_adr`; `recalling-project-context` and session `adr-digest` read the
+  local file. Optional structural recall uses yactt MCP tools when indexed.
+- **Junie MCP config** drops the `codebase-memory` (and stdio `yactt`) entries;
+  configure yactt as Streamable HTTP in the harness.
 
-Ref: `docs/snowball/specs/2026-07-10-yactt-graph-backend-design.md`.
+### Prior note (superseded by above)
+
+The earlier unreleased "yactt as graph backend" rollouts (selector + Deno shim +
+CBM fallback) are superseded by this change.
 
 ### OpenCode decision-logging + blast-radius parity
 

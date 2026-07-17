@@ -25,8 +25,8 @@ Canonical definitions for the status envelope, reason codes, thresholds, and heu
 
 | Code | When |
 |---|---|
-| `graph-unavailable` | codebase-memory CLI not reachable or disabled (`BLAST_RADIUS_DISABLE_GRAPH`) |
-| `repo-not-indexed` | Project not in codebase-memory index |
+| `graph-unavailable` | yactt HTTP MCP not reachable or disabled (`BLAST_RADIUS_DISABLE_GRAPH`) |
+| `repo-not-indexed` | Project not in yactt registry |
 | `change-untracked` | Requested paths have no git history / not in repo |
 | `mcp-timeout` | Graph query timed out |
 | `compute-error` | Internal bug or malformed input |

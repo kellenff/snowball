@@ -286,8 +286,8 @@ install_junie() {
     "" \
     "mcp/mcp.json points at ../snowball-capture/run.cjs which resolves the" \
     "server's path at start time — no manual edit needed for snowball-capture." \
-    "The 'argdown', 'codebase-memory', and 'yactt' MCP entries still need their" \
-    "<absolute-path-to-*> placeholders replaced with real absolute paths." \
+    "The 'argdown' MCP entry still needs its" \
+    "<absolute-path-to-*> placeholder replaced with a real absolute path." \
     "" \
     "Restart the IDE so Junie picks up the wiring. The .junie/AGENTS.md is" \
     "read automatically as project guidelines."
@@ -302,8 +302,10 @@ install_junie_cli() {
     "Extension content is cached under ~/.junie/extensions/; no project" \
     "files are modified." \
     "" \
-    "After install, snowball-capture / argdown / codebase-memory / yactt should" \
-    "appear as Active in /mcp. For adapters that don't resolve relative" \
+    "After install, snowball-capture / argdown should" \
+    "appear as Active in /mcp. Configure yactt separately as a Streamable" \
+    "HTTP MCP (e.g. yactt mcp serve-http) for blast-radius graph intel." \
+    "For adapters that don't resolve relative" \
     "paths, run once:" \
     "    node $clone_root/extensions/snowball/scripts/install-path-fix.cjs"
 }
@@ -394,7 +396,7 @@ install_vtcode() {
   if [ -e "$target/.vtcode/hooks.toml" ] && [ ! -L "$target/.vtcode/hooks.toml" ] && [ "$force" -ne 1 ]; then
     echo "  preserving existing $target/.vtcode/hooks.toml (re-run with --force to replace)"
   else
-    sed "s|/absolute/path/to/snowball|$clone_root|g" "$clone_root/.vtcode/hooks.toml" > "$target/.vtcode/hooks.toml"
+    sed "s|/absolute/path/to/snowball|$clone_root|g" "$clone_root/.vtcode/hooks.toml" >"$target/.vtcode/hooks.toml"
     echo "  wrote $target/.vtcode/hooks.toml with $clone_root substituted"
   fi
 
@@ -404,7 +406,7 @@ install_vtcode() {
   if [ -e "$target/.vtcode/cron-madr-digest.json" ] && [ ! -L "$target/.vtcode/cron-madr-digest.json" ] && [ "$force" -ne 1 ]; then
     echo "  preserving existing $target/.vtcode/cron-madr-digest.json (re-run with --force to replace)"
   else
-    sed "s|/absolute/path/to/snowball|$clone_root|g" "$clone_root/scripts/cron-madr-digest.json" > "$target/.vtcode/cron-madr-digest.json"
+    sed "s|/absolute/path/to/snowball|$clone_root|g" "$clone_root/scripts/cron-madr-digest.json" >"$target/.vtcode/cron-madr-digest.json"
     echo "  wrote $target/.vtcode/cron-madr-digest.json with $clone_root substituted"
   fi
 

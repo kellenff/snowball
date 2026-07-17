@@ -30,7 +30,7 @@ function tryCanonicalHeader(line: string): string | null {
   return CANONICAL_SET.has(name) ? name : null;
 }
 
-/** Mirror of codebase-memory's cbm_adr_parse_sections (canonical-only, trimmed). */
+/** Canonical-only section parse (uppercase names only, trimmed). */
 export function parseAdrSections(content: string): Record<string, string> {
   const result: Record<string, string> = {};
   if (!content) return result;

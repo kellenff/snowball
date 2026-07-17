@@ -32,10 +32,10 @@ describe("readLastEnvelope", () => {
     }
   });
 
-  test("reads persisted envelope", () => {
+  test("reads persisted envelope", async () => {
     const repo = makeTempRepo();
     try {
-      computeAndPersist({
+      await computeAndPersist({
         gitRoot: repo,
         preset: "design",
         changeSet: { paths: ["hooks/foo.sh"] },
@@ -50,10 +50,10 @@ describe("readLastEnvelope", () => {
 });
 
 describe("captureBlastRadiusAudit", () => {
-  test("operator-approval ignores non-approval prompts", () => {
+  test("operator-approval ignores non-approval prompts", async () => {
     const repo = makeTempRepo();
     try {
-      computeAndPersist({
+      await computeAndPersist({
         gitRoot: repo,
         preset: "pre-execution",
         changeSet: { paths: ["hooks/foo.sh"], proposedAction: "git push" },
@@ -73,10 +73,10 @@ describe("captureBlastRadiusAudit", () => {
     }
   });
 
-  test("operator-approval appends observation with blast_radius_envelope", () => {
+  test("operator-approval appends observation with blast_radius_envelope", async () => {
     const repo = makeTempRepo();
     try {
-      computeAndPersist({
+      await computeAndPersist({
         gitRoot: repo,
         preset: "pre-execution",
         changeSet: { paths: ["hooks/foo.sh"], proposedAction: "git push" },
@@ -99,10 +99,10 @@ describe("captureBlastRadiusAudit", () => {
     }
   });
 
-  test("stop capture appends observation", () => {
+  test("stop capture appends observation", async () => {
     const repo = makeTempRepo();
     try {
-      computeAndPersist({
+      await computeAndPersist({
         gitRoot: repo,
         preset: "completion",
         changeSet: { paths: ["skills/foo/SKILL.md"] },
@@ -123,10 +123,10 @@ describe("captureBlastRadiusAudit", () => {
     }
   });
 
-  test("explicit-skip envelope is still captured", () => {
+  test("explicit-skip envelope is still captured", async () => {
     const repo = makeTempRepo();
     try {
-      computeAndPersist({
+      await computeAndPersist({
         gitRoot: repo,
         preset: "pre-execution",
         changeSet: {},

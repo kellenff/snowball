@@ -1,6 +1,6 @@
 ---
 name: blast-radius
-description: Use at lifecycle gates to surface change-scope, failure-impact, and action-risk for a proposed change set. Self-gates on trivial work. Tries codebase-memory graph first via the CBM CLI; degrades to git-diff heuristics when the graph is unavailable or the repo is not indexed.
+description: Use at lifecycle gates to surface change-scope, failure-impact, and action-risk for a proposed change set. Self-gates on trivial work. Tries yactt graph first via HTTP MCP; degrades to git-diff heuristics when the graph is unavailable or the repo is not indexed.
 ---
 
 # Blast-Radius Analysis
@@ -40,7 +40,7 @@ Composite blast-radius analysis for Snowball lifecycle gates. Produces a **statu
 
 ## Notes
 
-- **Graph backend:** `compute.cjs` calls `codebase-memory-mcp cli` (`list_projects`, `detect_changes`, `search_graph`) when the binary is on `PATH`. Expect `backend: graph` when the repo is indexed; `degraded` + `backend: heuristic` with reason `repo-not-indexed`, `graph-unavailable`, or `mcp-timeout` when not. Override binary with `CBM_CLI_PATH`; set `BLAST_RADIUS_DISABLE_GRAPH=1` to skip graph attempts.
+- **Graph backend:** `compute.cjs` calls the yactt Streamable HTTP MCP (`list_projects`, `detect_changes`, `get_symbols_overview`, `find_referencing_symbols`). Expect `backend: graph` when the repo is indexed; `degraded` + `backend: heuristic` with reason `repo-not-indexed`, `graph-unavailable`, or `mcp-timeout` when not. Override endpoint with `YACTT_MCP_URL` (default `http://127.0.0.1:57812/mcp`); optional `YACTT_MCP_TOKEN` for bearer auth; set `BLAST_RADIUS_DISABLE_GRAPH=1` to skip graph attempts.
 - **Audit hook:** `hooks/blast-radius-audit.sh` reads `.snowball/blast-radius/last.json` on operator approval / Stop and appends a `blast_radius_envelope` observation — do not delete that file during the session.
 - **Harness portability:** this skill file ships everywhere; the audit hook ships on Claude Code + Cursor only (see `hooks/hooks.json` and `hooks/hooks-cursor.json`).
 

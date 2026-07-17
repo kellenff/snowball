@@ -22,7 +22,7 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 If the spec covers multiple independent subsystems, it should have been broken into sub-project specs during brainstorming. If it wasn't, suggest breaking this into separate plans — one per subsystem. Each plan should produce working, testable software on its own.
 
-Cross-check the spec against ADR **TRADEOFFS** (via `snowball:recalling-project-context` or `.codebase-memory/adr.md`) for contradictions with established project constraints before decomposing tasks.
+Cross-check the spec against ADR **TRADEOFFS** (via `snowball:recalling-project-context` or `.snowball/adr.md`) for contradictions with established project constraints before decomposing tasks.
 
 ## File Structure
 
