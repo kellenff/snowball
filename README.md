@@ -25,7 +25,7 @@ Snowball is two interlocking processes.
 
 The **forward spine** is a chain of gates that carries work from idea to merged code. Each gate refuses to advance until its precondition is met, so the agent cannot run ahead of its own justification.
 
-The **decision spine** runs underneath, passively. Hooks watch the events the skills already emit and record each decision, with no skill modified and nobody having to remember to log. At completion the records are committed onto the same branch as the code, distilled into a codebase-memory project ADR (plus a local disk cache), and **recalled at cycle start** via a session-start excerpt and `recalling-project-context`.
+The **decision spine** runs underneath, passively. Hooks watch the events the skills already emit and record each decision, with no skill modified and nobody having to remember to log. At completion the records are committed onto the same branch as the code, distilled into a local project ADR at `.snowball/adr.md`, and **recalled at cycle start** via a session-start excerpt and `recalling-project-context`.
 
 ```mermaid
 flowchart TD
@@ -40,7 +40,7 @@ flowchart TD
   end
   subgraph DEC["Decision spine: passive capture"]
     H1["hooks capture<br/>MADRs + observations"] --> H2["commit onto the branch"]
-    H2 --> H3["distill into codebase-memory ADR"]
+    H2 --> H3["distill into .snowball/adr.md"]
     H3 --> H4["recall via recalling-project-context"]
   end
   B -.->|emits decisions| H1
@@ -88,7 +88,7 @@ Everything else tracks upstream closely. Skill content, the bootstrap design, an
 ### What this is not
 
 - Not an MCP server, not a runtime tool, not a library you import.
-- Not on any plugin marketplace. Install is clone-and-link only.
+- Not on any plugin marketplace **for Claude Code, Cursor, OpenCode, Codex, Gemini CLI, GitLab Duo, Aider, and VTCode**. **Pi users install via [`pi install git:github.com/kellenff/snowball`](docs/README.pi.md)** — a pi package, not a Claude-Code-style marketplace.
 - Not accepting issues, PRs, or feature requests.
 
 ### Known stale or broken
@@ -128,8 +128,8 @@ These are real artifacts that have not been reconciled with the fork's posture. 
 ### Decision intelligence
 
 - [`decision-logging`](skills/decision-logging/SKILL.md): reference documentation for the hook-driven capture system. Four Claude Code hooks emit operator MADRs and agent observations; the agent does not invoke this skill, the hooks do the work.
-- [`syncing-decisions-to-memory`](skills/syncing-decisions-to-memory/SKILL.md): distills the decision logs into a codebase-memory project ADR via the `manage_adr` MCP tool. It owns the TRADEOFFS and PHILOSOPHY sections and is idempotent.
-- [`recalling-project-context`](skills/recalling-project-context/SKILL.md): **cycle-start recall** — tier-0 session hook excerpt plus tier-1 active gate before non-trivial work (live MCP, scoped MADRs, staleness). Closes the capture → commit → distill → recall loop.
+- [`syncing-decisions-to-memory`](skills/syncing-decisions-to-memory/SKILL.md): distills the decision logs into the local project ADR at `.snowball/adr.md`. It owns the TRADEOFFS and PHILOSOPHY sections and is idempotent.
+- [`recalling-project-context`](skills/recalling-project-context/SKILL.md): **cycle-start recall** — tier-0 session hook excerpt plus tier-1 active gate before non-trivial work (disk ADR, scoped MADRs, staleness, optional yactt graph). Closes the capture → commit → distill → recall loop.
 - [`structured-argumentation`](skills/structured-argumentation/SKILL.md): argdown as an intermediate representation for the structure of an argument (option comparison, hypothesis elimination, claim decomposition). Ships a parser-only validator bundled from `@argdown/core`.
 
 ### Infrastructure
@@ -152,9 +152,9 @@ All hooks no-op silently outside a git repo. `Stop` and `PreCompact` coordinate 
 
 Capture hooks are registered for Claude Code and Cursor. Claude uses `AskUserQuestion`; Cursor uses `AskQuestion`. Other harnesses run the forward spine without the decision trail.
 
-At completion, `finishing-a-development-branch` commits the records under `docs/snowball/decisions/` onto the same branch as the work, then offers to run `syncing-decisions-to-memory`. That step is self-gating: if codebase-memory is unreachable or the repo is not indexed, it stops cleanly, so completion never breaks on a missing dependency.
+At completion, `finishing-a-development-branch` commits the records under `docs/snowball/decisions/` onto the same branch as the work, then offers to run `syncing-decisions-to-memory` to refresh `.snowball/adr.md`.
 
-At the next session, the bootstrap hook injects a capped ADR excerpt from `.codebase-memory/adr.md` when present (written by `syncing-decisions-to-memory` after ADR sync). For live recall and scoped decision logs at cycle start, invoke `recalling-project-context` before non-trivial design work — it falls back to on-disk MADRs when MCP is absent.
+At the next session, the bootstrap hook injects a capped ADR excerpt from `.snowball/adr.md` when present (written by `syncing-decisions-to-memory`). For full recall and scoped decision logs at cycle start, invoke `recalling-project-context` before non-trivial design work — it falls back to on-disk MADRs when the ADR is absent.
 
 ## Per-harness adapters
 
@@ -170,6 +170,7 @@ At the next session, the bootstrap hook injects a capped ADR excerpt from `.code
 | Aider                       | `.aider.conf.yml`                                                                     | `read` entry in config                                                                                                                                                 | `AGENTS.md`                           |
 | Junie (JetBrains IDE + CLI) | `extensions/snowball/extension.json` + `.junie-extension/marketplace.json` (CLI only) | bundled `snowball-capture` MCP server + `.junie/AGENTS.md` for context; CLI users register the repo as a custom Junie marketplace                                      | `AGENTS.md`                           |
 | VTCode                      | `.vtcode/AGENTS.md` (bootstrap mirror)                                                | project guidelines via `AGENTS.md`; skills symlinked into `.agents/skills/`; unified_search auto-approved via prefix cache; apply_patch observation+blast-radius hooks | `AGENTS.md`                           |
+| Pi | root `package.json` (`pi` key) | `extensions/pi/snowball.ts` (`resources_discover`, `before_agent_start`, `input`, `session_shutdown`, `session_compact`) | `skills/using-snowball/references/pi-tools.md` | decision spine partial |
 
 ### How the bootstrap works
 
@@ -231,10 +232,10 @@ Then install into each harness:
 - **Cursor, Codex, Gemini CLI, Copilot CLI**: follow each harness's plugin documentation, pointing at this repo's matching manifest.
 - **GitLab Duo**: see [`docs/README.gitlab-duo.md`](docs/README.gitlab-duo.md). Short version: from inside a target project, run [`scripts/install-into-project.sh`](scripts/install-into-project.sh) from this clone. It writes per-skill files under `skills/<name>/`, symlinks `AGENTS.md`, and generates `.gitlab/duo/hooks.json` with the absolute Snowball path patched in. Duo CLI users launch with `--enable-project-hooks` so the SessionStart hook fires.
 - **Aider**: from inside a target project, run [`scripts/install-into-project.sh`](scripts/install-into-project.sh) from this clone. It copies skills into `skills/` and ensures `.aider.conf.yml` includes `read: [AGENTS.md]`.
-- **Junie (JetBrains IDE plugin)**: in the IDE, install the local extension pointing at `extensions/snowball/` in this clone. The `mcp/mcp.json` points at `../snowball-capture/run.cjs` which resolves the server's path at start time, so no manual edit is needed for `snowball-capture`. The `argdown`, `codebase-memory`, and `yactt` entries are external user-installed MCP servers and still need their `<absolute-path-to-*>` placeholders replaced with real absolute paths. Restart the IDE so Junie picks up the wiring. The `.junie/AGENTS.md` is read automatically as project guidelines.
-- **Junie CLI**: in any project, in a Junie CLI session, run `/extensions marketplace add https://github.com/kellenff/snowball` and then `/extensions install snowball`. The extension content is cached under `~/.junie/extensions/`; no project files are modified. After install, the `snowball-capture`, `argdown`, `codebase-memory`, and `yactt` MCP servers should appear as `Active` in `/mcp`. The bundled `mcp/mcp.json` uses a relative path to `run.cjs` which resolves the server's path at start time; for adapters that don't resolve relative paths, run `node extensions/snowball/scripts/install-path-fix.cjs` once after install.
-- **yactt** (required for `blast-radius` graph backend): install [yactt](https://github.com/kellenff/yactt) before running snowball on a real repo. The snowbld `blast-radius` skill shells out to a Deno shim at `extensions/snowball/yactt-cli/cli.ts` which talks to `yactt mcp serve`. Deno 2.7+ is required. See [`docs/snowball/specs/2026-07-10-yactt-graph-backend-design.md`](docs/snowball/specs/2026-07-10-yactt-graph-backend-design.md) for the rollout plan.
+- **Junie (JetBrains IDE plugin)**: in the IDE, install the local extension pointing at `extensions/snowball/` in this clone. The `mcp/mcp.json` points at `../snowball-capture/run.cjs` which resolves the server's path at start time, so no manual edit is needed for `snowball-capture`. The `argdown` entry is an external user-installed MCP server and still needs its `<absolute-path-to-*>` placeholder replaced with a real absolute path. Configure yactt separately as Streamable HTTP MCP for blast-radius graph intel. Restart the IDE so Junie picks up the wiring. The `.junie/AGENTS.md` is read automatically as project guidelines.
+- **Junie CLI**: in any project, in a Junie CLI session, run `/extensions marketplace add https://github.com/kellenff/snowball` and then `/extensions install snowball`. The extension content is cached under `~/.junie/extensions/`; no project files are modified. After install, the `snowball-capture` and `argdown` MCP servers should appear as `Active` in `/mcp`. Configure yactt separately for graph tools. The bundled `mcp/mcp.json` uses a relative path to `run.cjs` which resolves the server's path at start time; for adapters that don't resolve relative paths, run `node extensions/snowball/scripts/install-path-fix.cjs` once after install.
 - **VTCode**: run `bash scripts/install.sh vtcode --target <your-project>` from inside the Snowball clone (the curl-pipe form is in the Quick install block above). The install script symlinks the skills into `~/.agents/skills/`, links the bootstrap mirror as `<your-project>/AGENTS.md`, and writes both `hooks.toml` and `cron-madr-digest.json` into `<your-project>/.vtcode/` with the absolute path to your Snowball clone already substituted — no manual edit required. Re-run with `--force` to refresh after a pull. Manual fallback if you can't run the script: clone the repo to `~/Projects/snowball`, symlink each skill into `~/.agents/skills/`, symlink `.vtcode/AGENTS.md` as `<your-project>/AGENTS.md`, then `cp` both `.vtcode/hooks.toml` and `scripts/cron-madr-digest.json` into `<your-project>/.vtcode/` and `sed 's|/absolute/path/to/snowball|~/Projects/snowball|g'` each — but the install script is the supported path. Verify with `vtcode skills list` (all 18 skills should appear) and by answering a `request_user_input` prompt — a MADR should appear under `docs/snowball/decisions/`. The committed `.vtcode/tool-policy.json` is a user-environment artifact, not a Snowball-managed file.
+- **Pi**: from inside any project, run `pi install git:github.com/kellenff/snowball`. Pi clones the repo into `~/.pi/agent/git/snowball/` and auto-discovers the extension + skills. Verify with `pi list`. Detailed instructions: [`docs/README.pi.md`](docs/README.pi.md).
 - **Windows**: see [`docs/windows/`](docs/windows/). The polyglot [`hooks/run-hook.cmd`](hooks/run-hook.cmd) handles Windows as long as bash is reachable (Git for Windows, MSYS2, Cygwin, or PATH).
 
 Update after a pull:

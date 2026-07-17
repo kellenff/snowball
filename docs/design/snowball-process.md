@@ -50,7 +50,7 @@ flowchart TD
     subgraph DEC["Decision spine — passive, runs underneath"]
         H1["hooks: AskUserQuestion → MADR<br/>prompt-pattern → MADR<br/>Stop / PreCompact → observations.jsonl<br/>blast-radius audit → envelope in JSONL"]
         H2["commit-decision-records<br/>(records ride onto the branch)"]
-        H3["syncing-decisions-to-memory<br/>→ codebase-memory ADR"]
+        H3["syncing-decisions-to-memory<br/>→ .snowball/adr.md"]
         H4["recalling-project-context<br/>+ session-start ADR digest"]
         H1 --> H2 --> H3 --> H4
     end
@@ -89,7 +89,7 @@ work can never run ahead of its own justification.
 [`blast-radius`](../../skills/blast-radius/SKILL.md) is not a separate lifecycle
 stage; it is invoked **inside** four forward-spine moments so "how big is this?"
 and "how reversible is the next action?" are operationalized against the real
-repo (codebase-memory graph when indexed, git-diff heuristics otherwise). It
+repo (yactt graph when indexed, git-diff heuristics otherwise). It
 self-gates on trivial work (same bar as `recalling-project-context`). One
 computation produces a **status envelope**; lens presets shape the operator-facing
 render per gate. See [`SCHEMA.md`](../../skills/blast-radius/SCHEMA.md) and
@@ -138,24 +138,23 @@ work*.
 
 **Distill** — after a preserve disposition, the finish skill offers to run
 [`syncing-decisions-to-memory`](../../skills/syncing-decisions-to-memory/SKILL.md),
-which distills the operator MADRs + filtered observations into codebase-memory's
-project **ADR** via the `manage_adr` MCP tool. It owns the **TRADEOFFS** and
+which distills the operator MADRs + filtered observations into the local project
+**ADR** at `.snowball/adr.md`. It owns the **TRADEOFFS** and
 **PHILOSOPHY** sections and is idempotent — a no-change re-run is a no-op.
 
 **Recall** — [`recalling-project-context`](../../skills/recalling-project-context/SKILL.md)
 closes the loop and **opens** the forward spine at cycle start: tier-0 passive excerpt at session bootstrap, tier-1 active gate before non-trivial design work (`using-snowball` → `recalling-project-context` → `brainstorming`).
 
 1. **Session start** — the bootstrap hook injects a capped excerpt from
-   `.codebase-memory/adr.md` (when present on disk) plus a pointer to the recall
-   skill for live MCP queries.
+   `.snowball/adr.md` (when present on disk) plus a pointer to the recall
+   skill for full recall and optional yactt graph queries.
 2. **Before non-trivial design work** — brainstorming step 1 and the
    `using-snowball` flowchart invoke the recall skill (opt-in, not a hard gate).
-   It reads ADR TRADEOFFS/PHILOSOPHY via `manage_adr` when codebase-memory is
-   indexed, falls back to on-disk MADRs when not, and optionally scopes MADRs to
-   a subsystem path or keyword.
+   It reads ADR TRADEOFFS/PHILOSOPHY from disk, falls back to on-disk MADRs when
+   the ADR is absent, and optionally scopes MADRs to a subsystem path or keyword.
 3. **During planning/debugging** — `writing-plans` cross-checks specs against
    ADR TRADEOFFS; `systematic-debugging` may scope recall to the failing area
-   and follow with `trace_path` when the graph is indexed.
+   and follow with yactt `find_referencing_symbols` / `query_graph` when indexed.
 
 ## Cross-cutting sub-skills
 
@@ -163,7 +162,7 @@ These aren't lifecycle stages; they're reached *within* a stage on demand:
 
 - [`blast-radius`](../../skills/blast-radius/SKILL.md) — scope/risk envelope at
   design, plan handoff, pre-execution, and completion (see table above). Graph
-  backend via codebase-memory MCP when available; honest `backend` field on every
+  backend via yactt HTTP MCP when available; honest `backend` field on every
   render.
 - [`structured-argumentation`](../../skills/structured-argumentation/SKILL.md) —
   argdown as an intermediate representation for surfacing the *structure* of
@@ -173,7 +172,7 @@ These aren't lifecycle stages; they're reached *within* a stage on demand:
   attach its `.argdown` map via `snowball.argdown_path` (schema v1.1). This very
   document's companion map is an example.
 - [`recalling-project-context`](../../skills/recalling-project-context/SKILL.md) —
-  cycle-start recall: tier-0 session excerpt + tier-1 active gate before non-trivial work. Self-gates when codebase-memory is absent.
+  cycle-start recall: tier-0 session excerpt + tier-1 active gate before non-trivial work. Self-gates when the local ADR is absent.
 - **Chorus** (when the `chorus:chorus` skill is installed) — a multi-model
   (cross-provider round-robin, with an optional Argdown critic) perspective
   offered once per substantive brainstorm, reached only at the "propose 2-3
@@ -195,7 +194,7 @@ every attack resolves.
 | **Process theater** — gates check a step *happened*, not that it was done *well*; the ritual can be performed without rigor. | Every gate emits an *inspectable artifact* — shown command output (not a claim), a reviewable diff, on-disk MADRs, blast-radius envelopes with honest `backend` — so ritual-without-rigor is catchable in review. The floor rises; rigor isn't guaranteed. |
 | **Capture noise / privacy** — an MADR per click, observations per tail, blast-radius envelopes on approval, much of it low-signal; the Stop worker reads the full transcript. | Two-stream confidence separation; `syncing-decisions-to-memory` *filters* observations, owns only TRADEOFFS/PHILOSOPHY, idempotently; privacy has a review-and-gitignore escape hatch. |
 | **Harness gap** — richest capture (AskUserQuestion MADRs, blast-radius audit) is Claude Code + Cursor only and assumes an interactive operator. | The forward spine runs on seven harnesses; the decision spine and blast-radius *skill* are additive — absence breaks nothing, the Stop/PreCompact worker still runs, MADRs can be hand-authored, blast-radius still surfaces at gates. Degrades, doesn't collapse. |
-| **Infra dependence** — resumability leans on codebase-memory being indexed and reachable; blast-radius prefers the graph backend. | The durable source of truth is *on disk*: MADRs + `observations.jsonl` ride with the work; codebase-memory's ADR is a derived cache and sync/blast-radius *self-gate* to heuristics when MCP is absent. Outage degrades recall and graph confidence, not rationale preservation or the safety surface at pre-execution. |
+| **Infra dependence** — resumability leans on yactt being indexed and reachable for graph confidence; blast-radius prefers the graph backend. | The durable source of truth is *on disk*: MADRs + `observations.jsonl` ride with the work; `.snowball/adr.md` is a derived cache and blast-radius *self-gates* to heuristics when yactt is absent. Outage degrades graph confidence, not rationale preservation or the safety surface at pre-execution. |
 
 **Grounded extension** (argdown `dung_extensions`, 11 arguments / 10 attacks):
 all five rebuttals are unattacked and land **IN**, defeating all five objections
@@ -207,7 +206,7 @@ than guaranteeing a ceiling, and the map records three residual concessions
 (`[Phase-1-Capture]`, `[Opt-In-Hygiene]`, `[Floor-Not-Ceiling]`) as scope limits
 that qualify the thesis's breadth without negating it.
 
-## Structural facts (from codebase-memory)
+## Structural facts (from the code graph)
 
 The repo backing this process is, deliberately, **markdown-first**:
 

@@ -1,0 +1,4 @@
+{
+  "minSymbols": 2,
+  "expectedSymbolNames": ["computeBlastRadius", "computeAndPersist"]
+}

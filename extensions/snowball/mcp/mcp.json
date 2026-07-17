@@ -7,14 +7,6 @@
     "argdown": {
       "command": "node",
       "args": ["<absolute-path-to-argdown-mcp>/dist/server.cjs"]
-    },
-    "codebase-memory": {
-      "command": "node",
-      "args": ["<absolute-path-to-codebase-memory-mcp>/dist/server.cjs"]
-    },
-    "yactt": {
-      "command": "yactt",
-      "args": ["mcp", "serve"]
     }
   }
 }

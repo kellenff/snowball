@@ -10,7 +10,7 @@ function errorEnvelope(reason: ReasonCode): BlastRadiusEnvelope {
   return { status: "error", backend: "none", output: null, reason };
 }
 
-export function computeBlastRadius(input: ComputeInput): BlastRadiusEnvelope {
+export async function computeBlastRadius(input: ComputeInput): Promise<BlastRadiusEnvelope> {
   if (input.explicitSkip) {
     return {
       status: "degraded",
@@ -31,19 +31,18 @@ export function computeBlastRadius(input: ComputeInput): BlastRadiusEnvelope {
     return env;
   }
 
-  const graph = tryGraphBackend({
+  const graph = await tryGraphBackend({
     gitRoot: input.gitRoot,
     paths,
     proposedAction: input.changeSet.proposedAction,
+    gitRef: input.changeSet.gitRef,
   });
-  const attempts = graph.backend_attempts ?? [];
   if (graph.ok && graph.output) {
     const env: BlastRadiusEnvelope = {
       status: "success",
       backend: "graph",
       output: graph.output,
       reason: null,
-      backend_attempts: attempts,
     };
     assertEnvelope(env);
     return env;
@@ -59,7 +58,6 @@ export function computeBlastRadius(input: ComputeInput): BlastRadiusEnvelope {
       backend: "heuristic",
       output,
       reason: graph.reason ?? null,
-      backend_attempts: attempts,
     };
     assertEnvelope(env);
     return env;
@@ -70,11 +68,11 @@ export function computeBlastRadius(input: ComputeInput): BlastRadiusEnvelope {
   }
 }
 
-export function computeAndPersist(input: ComputeInput): {
+export async function computeAndPersist(input: ComputeInput): Promise<{
   envelope: BlastRadiusEnvelope;
   scratchPath: string;
-} {
-  const envelope = computeBlastRadius(input);
+}> {
+  const envelope = await computeBlastRadius(input);
   const scratchPath = writeLastEnvelope(input.gitRoot, envelope);
   return { envelope, scratchPath };
 }
@@ -87,20 +85,25 @@ if (require.main === module) {
   const cmd = process.argv[2];
   const raw = require("node:fs").readFileSync(0, "utf8");
 
-  if (cmd === "compute") {
-    const input = JSON.parse(raw || "{}") as ComputeInput;
-    process.stdout.write(JSON.stringify(computeBlastRadius(input), null, 2) + "\n");
-  } else if (cmd === "compute-and-persist") {
-    const input = JSON.parse(raw || "{}") as ComputeInput;
-    process.stdout.write(JSON.stringify(computeAndPersist(input), null, 2) + "\n");
-  } else if (cmd === "render") {
-    const { envelope, preset } = JSON.parse(raw || "{}") as {
-      envelope: import("./envelope").BlastRadiusEnvelope;
-      preset: import("./envelope").BlastRadiusPreset;
-    };
-    process.stdout.write(renderOperatorReport(envelope, preset) + "\n");
-  } else {
-    process.stderr.write("usage: node compute.cjs <compute|compute-and-persist|render>\n");
+  void (async () => {
+    if (cmd === "compute") {
+      const input = JSON.parse(raw || "{}") as ComputeInput;
+      process.stdout.write(JSON.stringify(await computeBlastRadius(input), null, 2) + "\n");
+    } else if (cmd === "compute-and-persist") {
+      const input = JSON.parse(raw || "{}") as ComputeInput;
+      process.stdout.write(JSON.stringify(await computeAndPersist(input), null, 2) + "\n");
+    } else if (cmd === "render") {
+      const { envelope, preset } = JSON.parse(raw || "{}") as {
+        envelope: import("./envelope").BlastRadiusEnvelope;
+        preset: import("./envelope").BlastRadiusPreset;
+      };
+      process.stdout.write(renderOperatorReport(envelope, preset) + "\n");
+    } else {
+      process.stderr.write("usage: node compute.cjs <compute|compute-and-persist|render>\n");
+      process.exit(1);
+    }
+  })().catch((err: unknown) => {
+    process.stderr.write(String(err) + "\n");
     process.exit(1);
-  }
+  });
 }

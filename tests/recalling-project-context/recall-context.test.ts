@@ -30,7 +30,7 @@ test("prepare reads ADR file and scoped MADRs", () => {
       "2026-05-30T2035-a.md",
       madrFixture({ title: "Scoped", status: "accepted", body: "skills/decision-logging detail" }),
     );
-    const adrDir = path.join(repo, ".codebase-memory");
+    const adrDir = path.join(repo, ".snowball");
     fs.mkdirSync(adrDir, { recursive: true });
     fs.writeFileSync(
       path.join(adrDir, "adr.md"),
@@ -49,7 +49,7 @@ test("prepare reads ADR file and scoped MADRs", () => {
 test("renderExcerptForHook emits project-memory block", () => {
   const repo = makeTempRepo();
   try {
-    const adrDir = path.join(repo, ".codebase-memory");
+    const adrDir = path.join(repo, ".snowball");
     fs.mkdirSync(adrDir, { recursive: true });
     fs.writeFileSync(path.join(adrDir, "adr.md"), "## PHILOSOPHY\n\nSide-effect capture only.\n");
     const text = renderExcerptForHook({ gitRoot: repo });
@@ -71,7 +71,7 @@ test("prepare reports staleness current when ADR digest matches decisions", () =
     );
     const filtered = filterRecords(gatherDecisions(repo));
     const digest = computeDigest(filtered);
-    const adrDir = path.join(repo, ".codebase-memory");
+    const adrDir = path.join(repo, ".snowball");
     fs.mkdirSync(adrDir, { recursive: true });
     fs.writeFileSync(
       path.join(adrDir, "adr.md"),
@@ -90,7 +90,7 @@ test("prepare reports staleness current when ADR digest matches decisions", () =
 test("prepare reports staleness stale when decisions changed after sync", () => {
   const repo = makeTempRepo();
   try {
-    const adrDir = path.join(repo, ".codebase-memory");
+    const adrDir = path.join(repo, ".snowball");
     fs.mkdirSync(adrDir, { recursive: true });
     fs.writeFileSync(
       path.join(adrDir, "adr.md"),
@@ -131,7 +131,7 @@ test("prepare reports staleness unknown for madrs-only source", () => {
 test("renderExcerptForHook surfaces stale ADR warning", () => {
   const repo = makeTempRepo();
   try {
-    const adrDir = path.join(repo, ".codebase-memory");
+    const adrDir = path.join(repo, ".snowball");
     fs.mkdirSync(adrDir, { recursive: true });
     fs.writeFileSync(
       path.join(adrDir, "adr.md"),
@@ -160,7 +160,7 @@ test("renderExcerptForHook surfaces current ADR line", () => {
     );
     const filtered = filterRecords(gatherDecisions(repo));
     const digest = computeDigest(filtered);
-    const adrDir = path.join(repo, ".codebase-memory");
+    const adrDir = path.join(repo, ".snowball");
     fs.mkdirSync(adrDir, { recursive: true });
     fs.writeFileSync(
       path.join(adrDir, "adr.md"),

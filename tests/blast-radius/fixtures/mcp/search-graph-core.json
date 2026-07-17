@@ -1,4 +1,0 @@
-{
-  "minResults": 3,
-  "expectedFunctionNames": ["computeBlastRadius", "computeAndPersist", "errorEnvelope"]
-}

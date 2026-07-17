@@ -1,5 +1,5 @@
 import * as fs from "node:fs";
-import * as path from "node:path";
+import { resolveAdrPath } from "../../syncing-decisions-to-memory/src/disk-cache";
 import { gatherDecisions } from "../../syncing-decisions-to-memory/src/gather";
 import { filterRecords } from "../../syncing-decisions-to-memory/src/filter";
 import { computeDigest } from "../../syncing-decisions-to-memory/src/digest";
@@ -34,10 +34,6 @@ export interface PrepareOutput {
   warnings: string[];
 }
 
-function defaultAdrPath(gitRoot: string): string {
-  return path.join(gitRoot, ".codebase-memory", "adr.md");
-}
-
 function stalenessFields(
   gitRoot: string,
   adrContent: string | null,
@@ -54,7 +50,7 @@ function stalenessFields(
 }
 
 export function prepare(input: PrepareInput): PrepareOutput {
-  const adrPath = defaultAdrPath(input.gitRoot);
+  const adrPath = resolveAdrPath(input.gitRoot);
   const scope = input.scope?.trim() || null;
   const cap = input.sectionCharCap ?? DEFAULT_SECTION_CHAR_CAP;
 
@@ -75,7 +71,7 @@ export function prepare(input: PrepareInput): PrepareOutput {
     warnings: madrResult.warnings,
   };
 
-  if (!fs.existsSync(adrPath)) {
+  if (!adrPath) {
     const stale = stalenessFields(input.gitRoot, null);
     if (base.madrs.length === 0) {
       return {
@@ -114,14 +110,14 @@ export function renderExcerptForHook(input: PrepareInput): string {
   const out = prepare(input);
   const lines: string[] = [
     "<project-memory>",
-    "Distilled project rationale from codebase-memory ADR and/or on-disk decision logs.",
-    "Invoke snowball:recalling-project-context for live MCP recall and scoped graph queries.",
+    "Distilled project rationale from the local ADR (.snowball/adr.md) and/or on-disk decision logs.",
+    "Invoke snowball:recalling-project-context for full recall and optional yactt graph queries.",
     "",
   ];
 
   if (out.source === "empty") {
     lines.push(
-      "No project ADR on disk (.codebase-memory/adr.md) and no matching decision logs.",
+      "No project ADR on disk (.snowball/adr.md) and no matching decision logs.",
       "After a preserve finish, run syncing-decisions-to-memory to distill decisions into the ADR.",
     );
     lines.push("</project-memory>");
@@ -142,7 +138,7 @@ export function renderExcerptForHook(input: PrepareInput): string {
   } else if (out.source === "madrs-only") {
     lines.push(
       "No local ADR file — showing recent on-disk MADRs only.",
-      "Run syncing-decisions-to-memory after finish to populate .codebase-memory/adr.md.",
+      "Run syncing-decisions-to-memory after finish to populate .snowball/adr.md.",
     );
     lines.push("");
   } else if (out.digest) {

@@ -64,6 +64,7 @@ var __export = (target, all) => {
 var exports_sync_decisions = {};
 __export(exports_sync_decisions, {
   writeCache: () => writeCache,
+  readAdr: () => readAdr,
   prepare: () => prepare
 });
 module.exports = __toCommonJS(exports_sync_decisions);
@@ -2836,7 +2837,25 @@ function computeDigest(input) {
 var fs2 = __toESM(require("node:fs"));
 var path2 = __toESM(require("node:path"));
 function diskCachePath(gitRoot) {
+  return path2.join(gitRoot, ".snowball", "adr.md");
+}
+function legacyDiskCachePath(gitRoot) {
   return path2.join(gitRoot, ".codebase-memory", "adr.md");
+}
+function resolveAdrPath(gitRoot) {
+  const primary = diskCachePath(gitRoot);
+  if (fs2.existsSync(primary))
+    return primary;
+  const legacy = legacyDiskCachePath(gitRoot);
+  if (fs2.existsSync(legacy))
+    return legacy;
+  return null;
+}
+function readAdrContent(gitRoot) {
+  const resolved = resolveAdrPath(gitRoot);
+  if (!resolved)
+    return "";
+  return fs2.readFileSync(resolved, "utf8");
 }
 function writeDiskCache(gitRoot, content) {
   const target = diskCachePath(gitRoot);
@@ -2954,6 +2973,13 @@ function prepare(input) {
 function writeCache(input) {
   writeDiskCache(input.gitRoot, input.content);
 }
+function readAdr(input) {
+  const resolved = resolveAdrPath(input.gitRoot);
+  return {
+    path: resolved,
+    content: resolved ? readAdrContent(input.gitRoot) : ""
+  };
+}
 if (require.main == module) {
   const sub = process.argv[2];
   let raw = "";
@@ -2962,14 +2988,16 @@ if (require.main == module) {
   });
   process.stdin.on("end", () => {
     try {
-      if (sub === "prepare") {
+      if (sub === "read-adr") {
+        process.stdout.write(JSON.stringify(readAdr(JSON.parse(raw))));
+      } else if (sub === "prepare") {
         process.stdout.write(JSON.stringify(prepare(JSON.parse(raw))));
       } else if (sub === "render") {
         process.stdout.write(renderAdr(JSON.parse(raw)));
       } else if (sub === "write-cache") {
         writeCache(JSON.parse(raw));
       } else {
-        process.stderr.write(`unknown subcommand: ${String(sub)} (expected 'prepare', 'render', or 'write-cache')
+        process.stderr.write(`unknown subcommand: ${String(sub)} (expected 'read-adr', 'prepare', 'render', or 'write-cache')
 `);
         process.exit(2);
       }

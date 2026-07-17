@@ -251,11 +251,9 @@ If absent, say nothing and finish (no dangling offer).
 
 If present, make a single offer:
 
-> "Derive/update codebase-memory's ADR from the decision logs now? (runs `syncing-decisions-to-memory`)"
+> "Derive/update the local project ADR from the decision logs now? (runs `syncing-decisions-to-memory` → `.snowball/adr.md`)"
 
-- **Yes** → invoke the `syncing-decisions-to-memory` skill via the Skill tool. It self-gates: if
-  codebase-memory is unreachable or the repo isn't indexed, it stops with a clear message, so
-  completion never breaks on a missing dependency.
+- **Yes** → invoke the `syncing-decisions-to-memory` skill via the Skill tool. It writes `.snowball/adr.md` from on-disk MADRs/observations (no external MCP store).
 - **No** → finish.
 
 For a merge (Option 1) this runs while on `<base-branch>` with the records already merged in, so the

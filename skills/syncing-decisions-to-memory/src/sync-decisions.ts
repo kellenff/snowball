@@ -1,7 +1,7 @@
 import { gatherDecisions } from "./gather";
 import { filterRecords } from "./filter";
 import { computeDigest } from "./digest";
-import { writeDiskCache } from "./disk-cache";
+import { readAdrContent, resolveAdrPath, writeDiskCache } from "./disk-cache";
 import {
   parseAdrSections,
   extractDigest,
@@ -12,7 +12,16 @@ import {
 
 export interface PrepareInput {
   gitRoot: string;
-  adrContent: string; // "" when codebase-memory reports no_adr
+  adrContent: string; // "" when no on-disk ADR
+}
+
+export interface ReadAdrInput {
+  gitRoot: string;
+}
+
+export interface ReadAdrOutput {
+  path: string | null;
+  content: string;
 }
 
 export interface DecisionBrief {
@@ -83,10 +92,19 @@ export function writeCache(input: WriteCacheInput): void {
   writeDiskCache(input.gitRoot, input.content);
 }
 
+export function readAdr(input: ReadAdrInput): ReadAdrOutput {
+  const resolved = resolveAdrPath(input.gitRoot);
+  return {
+    path: resolved,
+    content: resolved ? readAdrContent(input.gitRoot) : "",
+  };
+}
+
 // CLI:
+//   node sync-decisions.cjs read-adr     < {gitRoot}                    > {path, content}
 //   node sync-decisions.cjs prepare      < {gitRoot, adrContent}        > PrepareOutput JSON
 //   node sync-decisions.cjs render       < {preserved,tradeoffs,...}    > ADR document text
-//   node sync-decisions.cjs write-cache  < {gitRoot, content}           > (writes disk cache)
+//   node sync-decisions.cjs write-cache  < {gitRoot, content}           > (writes .snowball/adr.md)
 if (require.main === module) {
   const sub = process.argv[2];
   let raw = "";
@@ -95,7 +113,9 @@ if (require.main === module) {
   });
   process.stdin.on("end", () => {
     try {
-      if (sub === "prepare") {
+      if (sub === "read-adr") {
+        process.stdout.write(JSON.stringify(readAdr(JSON.parse(raw) as ReadAdrInput)));
+      } else if (sub === "prepare") {
         process.stdout.write(JSON.stringify(prepare(JSON.parse(raw) as PrepareInput)));
       } else if (sub === "render") {
         process.stdout.write(renderAdr(JSON.parse(raw) as RenderCliInput));
@@ -103,7 +123,7 @@ if (require.main === module) {
         writeCache(JSON.parse(raw) as WriteCacheInput);
       } else {
         process.stderr.write(
-          `unknown subcommand: ${String(sub)} (expected 'prepare', 'render', or 'write-cache')\n`,
+          `unknown subcommand: ${String(sub)} (expected 'read-adr', 'prepare', 'render', or 'write-cache')\n`,
         );
         process.exit(2);
       }

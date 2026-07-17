@@ -197,7 +197,7 @@ After alternatives are stable and before the user picks one:
 
 1. Invoke `snowball:blast-radius` once per approach (or once for the recommended approach if the others are clearly smaller — use judgment, but never skip for non-trivial cross-cutting work).
 2. Pass projected paths the approach would touch as `changeSet.paths`.
-3. Surface the rendered report under each approach heading. With `SNOWBALL_BLAST_RADIUS_GRAPH_BACKEND` defaulting to `yactt` (per `2026-07-10-yactt-graph-backend-design.md`), expect `backend: graph` (the envelope's closed enum is unchanged) when the repo is yactt-loaded; otherwise expect `backend: heuristic` with an honest reason. The `backend_attempts` array on the envelope records which graph backends were attempted before the heuristic floor fired (e.g. `["yactt", "codebase-memory"]`).
+3. Surface the rendered report under each approach heading. When the repo is indexed in yactt, the operator should see `backend: graph`; otherwise expect `backend: heuristic` with an honest reason.
 4. If the decomposition flag appears, call it out explicitly when making your recommendation.
 
 This is **report-only** at design-time — it does not block brainstorming.

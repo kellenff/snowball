@@ -4,9 +4,10 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { computeBlastRadius } from "../../skills/blast-radius/src/compute";
 import {
-  createDefaultCodebaseMemoryClient,
-  resolveProjectName,
-} from "../../skills/blast-radius/src/mcp-cli";
+  createDefaultYacttGraphClient,
+  isRepoIndexed,
+  projectUriFromRoot,
+} from "../../skills/blast-radius/src/yactt-http-client";
 
 const LIVE = process.env.BLAST_RADIUS_LIVE_GRAPH === "1";
 
@@ -15,47 +16,53 @@ function gitRoot(): string {
 }
 
 describe("graph backend live contract", () => {
-  test.skipIf(!LIVE)("indexed snowball repo returns graph backend success", () => {
-    const root = gitRoot();
-    const client = createDefaultCodebaseMemoryClient();
-    expect(client.isAvailable()).toBe(true);
+  test.skipIf(!LIVE)(
+    "indexed snowball repo returns graph backend success",
+    async () => {
+      const root = gitRoot();
+      const client = createDefaultYacttGraphClient();
+      expect(await client.isAvailable()).toBe(true);
 
-    const project = resolveProjectName(client.listProjects(), root);
-    expect(project).not.toBeNull();
+      const projects = await client.listProjects();
+      expect(isRepoIndexed(projects, root)).toBe(true);
 
-    const env = computeBlastRadius({
-      gitRoot: root,
-      preset: "design",
-      changeSet: {
-        paths: ["skills/blast-radius/src/compute.ts"],
-      },
-    });
+      const env = await computeBlastRadius({
+        gitRoot: root,
+        preset: "design",
+        changeSet: {
+          paths: ["skills/blast-radius/src/compute.ts"],
+        },
+      });
 
-    expect(env.status).toBe("success");
-    expect(env.backend).toBe("graph");
-    expect(env.reason).toBeNull();
-    expect(env.output?.failure_impact.estimatedFanOut).toBeGreaterThan(0);
-  });
+      expect(env.status).toBe("success");
+      expect(env.backend).toBe("graph");
+      expect(env.reason).toBeNull();
+      expect(env.output?.failure_impact.estimatedFanOut).toBeGreaterThan(0);
+    },
+    60_000,
+  );
 
-  test.skipIf(!LIVE)("fixture stub values are achievable via search_graph", () => {
-    const root = gitRoot();
-    const client = createDefaultCodebaseMemoryClient();
-    const project = resolveProjectName(client.listProjects(), root);
-    expect(project).not.toBeNull();
+  test.skipIf(!LIVE)(
+    "fixture stub values are achievable via get_symbols_overview",
+    async () => {
+      const root = gitRoot();
+      const client = createDefaultYacttGraphClient();
+      expect(isRepoIndexed(await client.listProjects(), root)).toBe(true);
 
-    const fixture = JSON.parse(
-      fs.readFileSync(path.join(__dirname, "fixtures/mcp/search-graph-core.json"), "utf8"),
-    );
+      const fixture = JSON.parse(
+        fs.readFileSync(path.join(__dirname, "fixtures/mcp/symbols-overview-compute.json"), "utf8"),
+      );
 
-    const live = client.searchGraph(project!, {
-      file_pattern: "skills/blast-radius/src/compute.ts",
-      label: "Function",
-      limit: 10,
-    });
+      const live = await client.getSymbolsOverview(
+        projectUriFromRoot(root),
+        "skills/blast-radius/src/compute.ts",
+      );
 
-    expect(live?.results?.length).toBeGreaterThanOrEqual(fixture.minResults);
-    for (const name of fixture.expectedFunctionNames as string[]) {
-      expect(live?.results?.some((r) => r.name === name)).toBe(true);
-    }
-  });
+      expect(live?.symbols?.length).toBeGreaterThanOrEqual(fixture.minSymbols);
+      for (const name of fixture.expectedSymbolNames as string[]) {
+        expect(live?.symbols?.some((r) => r.name === name)).toBe(true);
+      }
+    },
+    30_000,
+  );
 });

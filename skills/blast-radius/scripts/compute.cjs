@@ -246,143 +246,178 @@ function computeHeuristic(input) {
   };
 }
 
-// skills/blast-radius/src/mcp-cli.ts
-var import_node_child_process = require("node:child_process");
+// skills/blast-radius/src/yactt-http-client.ts
 var path = __toESM(require("node:path"));
+var import_node_url = require("node:url");
+var PROTOCOL = "2025-03-26";
 var DEFAULT_TIMEOUT_MS = 15000;
-function resolveBackendId() {
-  if (process.env.BLAST_RADIUS_DISABLE_GRAPH === "1")
-    return "heuristic";
-  const sel = process.env.SNOWBALL_BLAST_RADIUS_GRAPH_BACKEND?.trim();
-  if (sel === "yactt" || sel === "codebase-memory" || sel === "heuristic")
-    return sel;
-  return "yactt";
-}
-function fallbackEnabled() {
-  return process.env.SNOWBALL_BLAST_RADIUS_GRAPH_FALLBACK !== "0";
-}
-function resolveCliBinary() {
+var DEFAULT_MCP_URL = "http://127.0.0.1:57812/mcp";
+function resolveMcpUrl() {
   if (process.env.BLAST_RADIUS_DISABLE_GRAPH === "1")
     return null;
-  const configured = process.env.CBM_CLI_PATH?.trim();
-  if (configured)
-    return configured;
-  return "codebase-memory-mcp";
+  const configured = process.env.YACTT_MCP_URL?.trim();
+  return configured || DEFAULT_MCP_URL;
 }
-function runCliTool(binary, tool, args) {
-  try {
-    const out = import_node_child_process.execFileSync(binary, ["cli", tool, JSON.stringify(args)], {
-      encoding: "utf8",
-      timeout: DEFAULT_TIMEOUT_MS,
-      stdio: ["ignore", "pipe", "pipe"]
+function timeoutMs() {
+  const raw = process.env.BLAST_RADIUS_MCP_TIMEOUT_MS?.trim();
+  if (!raw)
+    return DEFAULT_TIMEOUT_MS;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : DEFAULT_TIMEOUT_MS;
+}
+function projectUriFromRoot(gitRoot) {
+  return import_node_url.pathToFileURL(path.resolve(gitRoot)).href;
+}
+function isRepoIndexed(projects, gitRoot) {
+  const root = path.resolve(gitRoot);
+  return projects.some((p) => path.resolve(p.path) === root);
+}
+
+class YacttMcpSession {
+  mcpUrl;
+  token;
+  sessionId;
+  rpcId = 1;
+  constructor(mcpUrl, token) {
+    this.mcpUrl = mcpUrl;
+    this.token = token;
+  }
+  headers() {
+    const h = {
+      "Content-Type": "application/json",
+      Accept: "application/json"
+    };
+    if (this.sessionId) {
+      h["Mcp-Session-Id"] = this.sessionId;
+      h["Mcp-Protocol-Version"] = PROTOCOL;
+    }
+    if (this.token)
+      h.Authorization = `Bearer ${this.token}`;
+    return h;
+  }
+  async post(body) {
+    return fetch(this.mcpUrl, {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(timeoutMs())
     });
-    const trimmed = out.trim();
-    if (!trimmed)
+  }
+  async ensureSession() {
+    if (this.sessionId)
+      return;
+    const init = await this.post({
+      jsonrpc: "2.0",
+      id: this.rpcId++,
+      method: "initialize",
+      params: {
+        protocolVersion: PROTOCOL,
+        capabilities: {},
+        clientInfo: { name: "snowball-blast-radius", version: "1.0" }
+      }
+    });
+    this.sessionId = init.headers.get("Mcp-Session-Id") ?? undefined;
+    if (!this.sessionId)
+      throw new Error("missing Mcp-Session-Id");
+    const notif = await this.post({
+      jsonrpc: "2.0",
+      method: "notifications/initialized"
+    });
+    if (notif.status !== 204 && notif.body) {
+      await notif.arrayBuffer();
+    }
+  }
+  async callTool(name, args) {
+    try {
+      await this.ensureSession();
+      const res = await this.post({
+        jsonrpc: "2.0",
+        id: this.rpcId++,
+        method: "tools/call",
+        params: { name, arguments: args }
+      });
+      if (!res.ok)
+        return null;
+      const frame = await res.json();
+      if (frame.error)
+        return null;
+      if (frame.result?.structuredContent)
+        return frame.result.structuredContent;
+      const text = frame.result?.content?.find((c) => c.type === "text")?.text;
+      return text ? JSON.parse(text) : null;
+    } catch {
       return null;
-    return JSON.parse(trimmed);
-  } catch {
-    return null;
+    }
+  }
+  async close() {
+    if (!this.sessionId)
+      return;
+    try {
+      await fetch(this.mcpUrl, {
+        method: "DELETE",
+        headers: this.headers(),
+        signal: AbortSignal.timeout(3000)
+      });
+    } catch {} finally {
+      this.sessionId = undefined;
+    }
   }
 }
-function createDefaultCodebaseMemoryClient() {
-  const binary = resolveCliBinary();
-  if (!binary) {
+function createDefaultYacttGraphClient() {
+  const mcpUrl = resolveMcpUrl();
+  if (!mcpUrl) {
     return {
-      isAvailable: () => false,
-      listProjects: () => [],
-      detectChanges: () => null,
-      searchGraph: () => null
+      isAvailable: async () => false,
+      listProjects: async () => [],
+      detectChanges: async () => null,
+      getSymbolsOverview: async () => null,
+      findReferencingSymbols: async () => null
     };
   }
+  const token = process.env.YACTT_MCP_TOKEN?.trim() || undefined;
+  let session = null;
+  const getSession = () => {
+    if (!session)
+      session = new YacttMcpSession(mcpUrl, token);
+    return session;
+  };
   return {
-    isAvailable: () => {
+    isAvailable: async () => {
       try {
-        import_node_child_process.execFileSync(binary, ["--version"], {
-          encoding: "utf8",
-          timeout: 5000,
-          stdio: ["ignore", "pipe", "ignore"]
-        });
-        return true;
+        const health = new URL("/healthz", mcpUrl);
+        const res = await fetch(health, { signal: AbortSignal.timeout(3000) });
+        return res.ok;
       } catch {
         return false;
       }
     },
-    listProjects: () => {
-      const parsed = runCliTool(binary, "list_projects", {});
+    listProjects: async () => {
+      const parsed = await getSession().callTool("list_projects", {});
       return parsed?.projects ?? [];
     },
-    detectChanges: (project, opts) => runCliTool(binary, "detect_changes", {
-      project,
-      scope: opts?.scope ?? "impact",
-      ...opts?.base_branch ? { base_branch: opts.base_branch } : {}
+    detectChanges: async (projectUri, opts) => {
+      const args = { project: projectUri };
+      if (opts.since)
+        args.since = opts.since;
+      if (opts.base)
+        args.base = opts.base;
+      if (opts.head)
+        args.head = opts.head;
+      if (opts.limit != null)
+        args.limit = opts.limit;
+      return getSession().callTool("detect_changes", args);
+    },
+    getSymbolsOverview: async (projectUri, file) => getSession().callTool("get_symbols_overview", {
+      project: projectUri,
+      file
     }),
-    searchGraph: (project, opts) => runCliTool(binary, "search_graph", {
-      project,
-      ...opts
+    findReferencingSymbols: async (projectUri, symbol, opts) => getSession().callTool("find_referencing_symbols", {
+      project: projectUri,
+      symbol,
+      kinds: opts?.kinds ?? ["callers"],
+      ...opts?.limit != null ? { limit: opts.limit } : {}
     })
   };
-}
-function resolveYacttBinary() {
-  return process.env.YACTT_BIN?.trim() || "yactt";
-}
-function runYacttCli(tool, args, gitRoot) {
-  const denoBin = process.env.DENO_BIN?.trim() || "deno";
-  const shim = process.env.YACTT_CLI_PATH?.trim() || path.join("/Users/kellen/.paseo/worktrees/0emyw5aq/famous-mole/skills/blast-radius/src", "..", "..", "..", "extensions", "snowball", "yactt-cli", "cli.ts");
-  try {
-    const out = import_node_child_process.execFileSync(denoBin, ["run", "--allow-net", "--allow-read", "--allow-write", "--allow-env", shim, tool, "--repo", gitRoot, ...args], { encoding: "utf8", timeout: DEFAULT_TIMEOUT_MS, stdio: ["ignore", "pipe", "pipe"] });
-    const trimmed = out.trim();
-    if (!trimmed)
-      return { ok: false, reason: "graph-unavailable" };
-    return { ok: true, json: JSON.parse(trimmed) };
-  } catch (e) {
-    const stderr = (e?.stderr ?? "").toString();
-    if (/repo-not-indexed/i.test(stderr))
-      return { ok: false, reason: "repo-not-indexed" };
-    if (/graph-unavailable/i.test(stderr))
-      return { ok: false, reason: "graph-unavailable" };
-    if (/mcp-timeout/i.test(stderr))
-      return { ok: false, reason: "mcp-timeout" };
-    return { ok: false, reason: "graph-unavailable" };
-  }
-}
-function createYacttClient(gitRoot) {
-  return {
-    isAvailable: () => {
-      try {
-        import_node_child_process.execFileSync(resolveYacttBinary(), ["--version"], {
-          encoding: "utf8",
-          timeout: 5000,
-          stdio: ["ignore", "pipe", "ignore"]
-        });
-        return true;
-      } catch {
-        return false;
-      }
-    },
-    listProjects: () => {
-      return [{ name: "yactt-active", root_path: gitRoot }];
-    },
-    detectChanges: (_project, _opts) => {
-      return null;
-    },
-    searchGraph: (_project, opts) => {
-      const patterns = opts.paths ?? (opts.file_pattern ? [opts.file_pattern] : []);
-      const file_pattern = patterns.join(",");
-      const args = ["--file-pattern", file_pattern, "--limit", String(opts.limit ?? 50)];
-      const r = runYacttCli("search-symbols", args, gitRoot);
-      if (!r.ok)
-        return null;
-      return r.json;
-    }
-  };
-}
-function resolveProjectName(projects, gitRoot) {
-  const normalizedRoot = path.resolve(gitRoot);
-  for (const p of projects) {
-    if (path.resolve(p.root_path) === normalizedRoot)
-      return p.name;
-  }
-  return null;
 }
 
 // skills/blast-radius/src/graph-backend.ts
@@ -395,51 +430,65 @@ function failureImpactFromFanOut(estimatedFanOut, sensitivePaths) {
   }
   return { estimatedFanOut, sensitivePaths, level };
 }
-function estimateGraphFanOut(client, project, paths, detect) {
+async function estimateGraphFanOut(client, projectUri, paths, detect) {
   const seen = new Set;
   let fanOut = 0;
-  for (const sym of detect?.impacted_symbols ?? []) {
-    const key = sym.name ?? sym.file ?? "";
+  for (const change of detect?.changes ?? []) {
+    const key = change.symbol?.id ?? change.file;
     if (key && !seen.has(key)) {
       seen.add(key);
       fanOut += 1;
     }
+    for (const caller of change.callers ?? []) {
+      const ck = caller.targetId ?? caller.location?.file;
+      if (ck && !seen.has(ck)) {
+        seen.add(ck);
+        fanOut += 1;
+      }
+    }
   }
   for (const filePath of paths) {
-    const graph = client.searchGraph(project, {
-      file_pattern: filePath,
-      label: "Function",
-      limit: 50
-    });
-    if (graph === null)
+    const overview = await client.getSymbolsOverview(projectUri, filePath);
+    if (!overview)
       continue;
-    for (const node of graph.results ?? []) {
-      const qn = node.qualified_name ?? node.name;
-      if (!qn || seen.has(qn))
+    for (const sym of overview.symbols ?? []) {
+      if (!["FUNCTION", "METHOD"].includes(sym.kind))
         continue;
-      seen.add(qn);
-      fanOut += Math.max(1, node.in_degree ?? 0);
+      if (seen.has(sym.id))
+        continue;
+      seen.add(sym.id);
+      const refs = await client.findReferencingSymbols(projectUri, sym.id, {
+        kinds: ["callers"],
+        limit: 50
+      });
+      const callerCount = refs?.references?.filter((r) => r.edgeKind === "callers").length ?? 0;
+      fanOut += Math.max(1, callerCount);
     }
   }
   return fanOut;
 }
-function attemptOne(label, client, input) {
-  if (client === null || !client.isAvailable()) {
+async function tryGraphBackend(input, client = createDefaultYacttGraphClient()) {
+  if (!await client.isAvailable()) {
     return { ok: false, reason: "graph-unavailable" };
   }
-  const projects = client.listProjects();
-  const project = resolveProjectName(projects, input.gitRoot);
-  if (!project)
+  const projects = await client.listProjects();
+  if (!isRepoIndexed(projects, input.gitRoot)) {
     return { ok: false, reason: "repo-not-indexed" };
-  const detect = client.detectChanges(project, { scope: "impact" });
-  if (detect === null)
-    return { ok: false, reason: "mcp-timeout" };
+  }
+  const projectUri = projectUriFromRoot(input.gitRoot);
+  let detect = null;
+  if (input.gitRef) {
+    detect = await client.detectChanges(projectUri, { since: input.gitRef });
+    if (detect === null) {
+      return { ok: false, reason: "mcp-timeout" };
+    }
+  }
   const base = computeHeuristic({
     paths: input.paths,
     proposedAction: input.proposedAction
   });
   const sensitivePaths = input.paths.filter((p) => matchesAnyPattern(p, SENSITIVE_PATH_PATTERNS));
-  const estimatedFanOut = estimateGraphFanOut(client, project, input.paths, detect);
+  const estimatedFanOut = await estimateGraphFanOut(client, projectUri, input.paths, detect);
   return {
     ok: true,
     output: {
@@ -448,56 +497,12 @@ function attemptOne(label, client, input) {
     }
   };
 }
-function tryGraphBackend(input, injectedClient) {
-  const sel = resolveBackendId();
-  const attempts = [];
-  let firstReason;
-  let secondReason;
-  if (injectedClient) {
-    const r = attemptOne("codebase-memory", injectedClient, input);
-    if (r.ok && r.output) {
-      return { ok: true, output: r.output };
-    }
-    return { ok: false, reason: r.reason };
-  }
-  if (sel !== "heuristic") {
-    const firstLabel = sel === "codebase-memory" ? "codebase-memory" : "yactt";
-    const client = sel === "codebase-memory" ? createDefaultCodebaseMemoryClient() : createYacttClient(input.gitRoot);
-    const r = attemptOne(firstLabel, client, input);
-    attempts.push(firstLabel);
-    if (r.ok && r.output) {
-      return { ok: true, output: r.output, backend_attempts: attempts };
-    }
-    firstReason = r.reason;
-  }
-  if (fallbackEnabled() && sel !== "heuristic") {
-    const secondLabel = sel === "yactt" ? "codebase-memory" : "yactt";
-    const client = secondLabel === "codebase-memory" ? createDefaultCodebaseMemoryClient() : createYacttClient(input.gitRoot);
-    const r = attemptOne(secondLabel, client, input);
-    attempts.push(secondLabel);
-    if (r.ok && r.output) {
-      return { ok: true, output: r.output, backend_attempts: attempts };
-    }
-    secondReason = r.reason;
-  }
-  const output = computeHeuristic({
-    paths: input.paths,
-    proposedAction: input.proposedAction
-  });
-  const reason = secondReason ?? firstReason;
-  return {
-    ok: false,
-    reason,
-    output,
-    backend_attempts: attempts
-  };
-}
 
 // skills/blast-radius/src/git-diff.ts
-var import_node_child_process2 = require("node:child_process");
+var import_node_child_process = require("node:child_process");
 function listChangedFiles(gitRoot, gitRef = "HEAD") {
   try {
-    const out = import_node_child_process2.execFileSync("git", ["diff", "--name-only", gitRef], {
+    const out = import_node_child_process.execFileSync("git", ["diff", "--name-only", gitRef], {
       cwd: gitRoot,
       stdio: ["ignore", "pipe", "ignore"]
     });
@@ -583,7 +588,7 @@ function writeLastEnvelope(gitRoot, envelope) {
 function errorEnvelope(reason) {
   return { status: "error", backend: "none", output: null, reason };
 }
-function computeBlastRadius(input) {
+async function computeBlastRadius(input) {
   if (input.explicitSkip) {
     return {
       status: "degraded",
@@ -599,19 +604,18 @@ function computeBlastRadius(input) {
     assertEnvelope(env);
     return env;
   }
-  const graph = tryGraphBackend({
+  const graph = await tryGraphBackend({
     gitRoot: input.gitRoot,
     paths,
-    proposedAction: input.changeSet.proposedAction
+    proposedAction: input.changeSet.proposedAction,
+    gitRef: input.changeSet.gitRef
   });
-  const attempts = graph.backend_attempts ?? [];
   if (graph.ok && graph.output) {
     const env = {
       status: "success",
       backend: "graph",
       output: graph.output,
-      reason: null,
-      backend_attempts: attempts
+      reason: null
     };
     assertEnvelope(env);
     return env;
@@ -625,8 +629,7 @@ function computeBlastRadius(input) {
       status: graph.reason ? "degraded" : "success",
       backend: "heuristic",
       output,
-      reason: graph.reason ?? null,
-      backend_attempts: attempts
+      reason: graph.reason ?? null
     };
     assertEnvelope(env);
     return env;
@@ -636,29 +639,35 @@ function computeBlastRadius(input) {
     return env;
   }
 }
-function computeAndPersist(input) {
-  const envelope = computeBlastRadius(input);
+async function computeAndPersist(input) {
+  const envelope = await computeBlastRadius(input);
   const scratchPath = writeLastEnvelope(input.gitRoot, envelope);
   return { envelope, scratchPath };
 }
 if (require.main == module) {
   const cmd = process.argv[2];
   const raw = require("node:fs").readFileSync(0, "utf8");
-  if (cmd === "compute") {
-    const input = JSON.parse(raw || "{}");
-    process.stdout.write(JSON.stringify(computeBlastRadius(input), null, 2) + `
+  (async () => {
+    if (cmd === "compute") {
+      const input = JSON.parse(raw || "{}");
+      process.stdout.write(JSON.stringify(await computeBlastRadius(input), null, 2) + `
 `);
-  } else if (cmd === "compute-and-persist") {
-    const input = JSON.parse(raw || "{}");
-    process.stdout.write(JSON.stringify(computeAndPersist(input), null, 2) + `
+    } else if (cmd === "compute-and-persist") {
+      const input = JSON.parse(raw || "{}");
+      process.stdout.write(JSON.stringify(await computeAndPersist(input), null, 2) + `
 `);
-  } else if (cmd === "render") {
-    const { envelope, preset } = JSON.parse(raw || "{}");
-    process.stdout.write(renderOperatorReport(envelope, preset) + `
+    } else if (cmd === "render") {
+      const { envelope, preset } = JSON.parse(raw || "{}");
+      process.stdout.write(renderOperatorReport(envelope, preset) + `
 `);
-  } else {
-    process.stderr.write(`usage: node compute.cjs <compute|compute-and-persist|render>
+    } else {
+      process.stderr.write(`usage: node compute.cjs <compute|compute-and-persist|render>
+`);
+      process.exit(1);
+    }
+  })().catch((err) => {
+    process.stderr.write(String(err) + `
 `);
     process.exit(1);
-  }
+  });
 }
