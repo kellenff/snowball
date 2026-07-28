@@ -236,6 +236,45 @@ describe("snowball pi extension", () => {
     expect(out).toContain('"role":"assistant"');
   });
 
+  test("session_shutdown swallows missing session file (no session-serialize-failed warning)", async () => {
+    const { default: factory } = await importExtensionForRepo(repo);
+    const pi = makePi();
+    factory(pi.api);
+    // Ponytail: pi's SessionManager sets sessionFile on newSession() but only
+    // writes the file after the first assistant message lands. Quitting before
+    // that leaves a path that points at nothing on disk. The extension must
+    // treat this as "empty session" — the transcript worker is idempotent on
+    // empty input — rather than warn about a transient condition.
+    const ctx = {
+      cwd: repo,
+      sessionManager: { getSessionFile: () => join(repo, "does-not-exist.jsonl") },
+    };
+
+    const warnings: string[] = [];
+    const origWarn = console.warn;
+    console.warn = (...args: unknown[]) => warnings.push(args.map(String).join(" "));
+    try {
+      await pi.invoke("session_shutdown", { reason: "quit" }, ctx);
+    } finally {
+      console.warn = origWarn;
+    }
+
+    // Stop audit still fires; worker still spawns with empty transcript.
+    expect(captured).toContainEqual(expect.objectContaining({ kind: "blast", trigger: "stop" }));
+    expect(spawnSpy).toHaveBeenCalled();
+    expect(spawnCalls[0].join(" ")).toContain("extract-worker.sh");
+
+    const args = spawnArgs[0] as [string, string[], Record<string, unknown>];
+    const transcriptPath = args[1][3];
+    const out = readFileSync(transcriptPath, "utf8");
+    expect(out.trim()).toBe("");
+
+    // ENOENT must NOT emit session-serialize-failed — it is the expected
+    // condition for an aborted session. Real errors (corrupt JSON, parse
+    // failures, I/O after open) still warn so genuine bugs surface.
+    expect(warnings.some((w) => w.includes("session-serialize-failed"))).toBe(false);
+  });
+
   test("session_compact writes transcript + spawns worker (no stop audit)", async () => {
     const { default: factory } = await importExtensionForRepo(repo);
     const pi = makePi();
