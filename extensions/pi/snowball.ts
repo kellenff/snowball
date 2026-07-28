@@ -116,6 +116,15 @@ const serializeMessagesFromSessionFile = async (sessionFile: string): Promise<st
   try {
     return mod.serializePiSession(sessionFile);
   } catch (err) {
+    // ponytail: pi's SessionManager sets sessionFile in newSession() but only
+    // writes the file after the first assistant message lands (_persist's
+    // no-assistant guard). Quitting before that — or any other abort path —
+    // leaves getSessionFile() pointing at a path that does not exist on disk.
+    // An empty transcript is a safe no-op for the idempotent extraction
+    // worker (see forkExtractionWorker), so swallow ENOENT silently. Real
+    // errors (corrupt JSONL, partial writes, post-open I/O failures) still
+    // warn so genuine bugs surface.
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") return "";
     console.warn(
       `[snowball-pi] session-serialize-failed: ${err instanceof Error ? err.message : String(err)}`,
     );
